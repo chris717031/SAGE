@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>小威 - IT 智慧助手</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+    body {
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .safe-bottom { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+    
+    @keyframes xiaoAiBreath {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+      50% { transform: scale(1.06); box-shadow: 0 0 28px rgba(56, 189, 248, 0.85); }
+    }
+    .voice-avatar-active { animation: xiaoAiBreath 1.8s infinite ease-in-out; }
+
+    @keyframes micPulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+      70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .mic-listening {
+      animation: micPulse 1.4s infinite ease-out;
+      background-color: #ef4444 !important;
+      color: white !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 h-screen w-screen flex flex-col overflow-hidden relative">
+
+  <!-- 喚醒啟用覆蓋層 -->
+  <div id="welcomeSplash" class="absolute inset-0 bg-slate-900 z-50 flex flex-col items-center justify-center p-6 text-center text-white">
+    <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center text-3xl mb-5 voice-avatar-active border-4 border-sky-300/40">
+      🎙️
+    </div>
+    <h2 class="text-xl font-bold mb-2">我是小威，您的 IT 助手</h2>
+    <p class="text-xs text-slate-300 mb-6 leading-relaxed">
+      點擊下方開啟，小威將為您提供即時排查與語音對話引導。
+    </p>
+    <button id="startBtn" onclick="startXiaoWei()" class="w-full max-w-xs py-3.5 bg-sky-500 active:bg-sky-600 text-white font-bold text-sm rounded-full shadow-lg transition">
+      開啟對話
+    </button>
+  </div>
+
+  <!-- 頂部狀態列 -->
+  <header class="bg-sky-700 text-white px-4 py-3 shrink-0 flex items-center justify-between shadow-sm">
+    <div class="flex items-center space-x-2.5">
+      <div id="headerAvatar" class="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center text-xs border border-sky-300 font-bold">
+        威
+      </div>
+      <div>
+        <h1 class="text-sm font-bold leading-tight flex items-center gap-1.5">
+          小威同學
+          <span id="speakingIndicator" class="hidden text-[10px] bg-emerald-500/40 text-emerald-200 border border-emerald-400 px-1 rounded">發聲中</span>
+          <span id="listeningIndicator" class="hidden text-[10px] bg-rose-500/50 text-rose-100 border border-rose-300 px-1 rounded animate-pulse">聆聽中</span>
+        </h1>
+        <p class="text-[11px] text-sky-200">全語音智慧排除與報修</p>
+      </div>
+    </div>
+    <button onclick="toggleVoiceOutput()" id="voiceToggleBtn" class="text-xs bg-sky-800 border border-sky-500/50 text-sky-100 px-2.5 py-1 rounded-full">
+      🔊 語音開
+    </button>
+  </header>
+
+  <!-- 中間：對話滾動區 -->
+  <main id="chatArea" class="flex-1 p-3.5 space-y-3 overflow-y-auto no-scrollbar">
+    <!-- 訊息動態插入 -->
+  </main>
+
+  <!-- 底部控制列 -->
+  <footer class="bg-white border-t border-slate-200 px-3 pt-2 safe-bottom shrink-0">
+    <!-- 語音識別提示條 -->
+    <div id="voiceStatusBanner" class="hidden mb-2 p-2 bg-rose-50 border border-rose-200 rounded-lg flex items-center justify-between">
+      <div class="flex items-center space-x-2 text-xs text-rose-800">
+        <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+        <span id="speechLiveTranscript" class="font-medium">小威正在聽，請說話...</span>
+      </div>
+      <button onclick="stopListeningAndSend()" class="text-[11px] bg-rose-600 text-white px-2 py-0.5 rounded font-bold">
+        說完了
+      </button>
+    </div>
+
+    <!-- 快速常見標籤 -->
+    <div class="flex space-x-1.5 overflow-x-auto no-scrollbar pb-2">
+      <button onclick="handleQuickClick('公文系統進不去，一直轉圈圈')" class="shrink-0 text-xs bg-slate-100 active:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200">
+        公文系統進不去
+      </button>
+      <button onclick="handleQuickClick('印表機亮橘燈印不出來')" class="shrink-0 text-xs bg-slate-100 active:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200">
+        印表機印不出來
+      </button>
+      <button onclick="handleQuickClick('電腦開機完全沒有畫面')" class="shrink-0 text-xs bg-slate-100 active:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200">
+        螢幕沒畫面
+      </button>
+    </div>
+
+    <!-- 輸入工具列 -->
+    <div class="flex items-center space-x-1.5 pb-1">
+      <button id="micBtn" onclick="toggleListeningManually()" class="p-2.5 text-slate-600 bg-slate-100 active:bg-slate-200 rounded-full shrink-0">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+        </svg>
+      </button>
+
+      <div class="flex-1">
+        <input id="userMsgInput" type="text" placeholder="可說話或直接打字..."
+               class="w-full bg-slate-100 text-slate-800 text-sm rounded-full px-3.5 py-2 border border-slate-200 focus:outline-none">
+      </div>
+
+      <button onclick="handleSend()" class="p-2 bg-sky-600 active:bg-sky-700 text-white rounded-full shadow shrink-0">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+        </svg>
+      </button>
+    </div>
+  </footer>
+
+  <script>
+    let isVoiceEnabled = true;
+    let currentStep = 0;
+    let recognition = null;
+    let isListening = false;
+    let speechSilenceTimer = null;
+    let currentInterimTranscript = "";
+
+    // 瀏覽器 STT 初始化（安全保護：非 HTTPS 或手機不支援時不崩潰）
+    try {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'zh-TW';
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onstart = () => {
+          isListening = true;
+          document.getElementById('listeningIndicator').classList.remove('hidden');
+          document.getElementById('voiceStatusBanner').classList.remove('hidden');
+          document.getElementById('micBtn').classList.add('mic-listening');
+        };
+
+        recognition.onresult = (event) => {
+          let transcript = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            transcript += event.results[i][0].transcript;
+          }
+          currentInterimTranscript = transcript;
+          document.getElementById('speechLiveTranscript').innerText = `「${transcript}」`;
+          document.getElementById('userMsgInput').value = transcript;
+
+          clearTimeout(speechSilenceTimer);
+          speechSilenceTimer = setTimeout(() => {
+            if (currentInterimTranscript.trim().length > 0) {
+              stopListeningAndSend();
+            }
+          }, 1500);
+        };
+
+        recognition.onerror = (e) => {
+          console.warn("STT 錯誤或未獲取權限:", e);
+          stopListeningUI();
+        };
+
+        recognition.onend = () => {
+          stopListeningUI();
+        };
+      }
+    } catch (err) {
+      console.warn("此瀏覽器環境不支持 Web Speech Recognition", err);
+    }
+
+    function startAutoListening() {
+      if (!recognition) return;
+      try {
+        currentInterimTranscript = "";
+        document.getElementById('speechLiveTranscript').innerText = "小威正在聽，請說話...";
+        recognition.start();
+      } catch (e) {
+        // 避免重複調用報錯
+      }
+    }
+
+    function stopListeningUI() {
+      isListening = false;
+      document.getElementById('listeningIndicator').classList.add('hidden');
+      document.getElementById('voiceStatusBanner').classList.add('hidden');
+      document.getElementById('micBtn').classList.remove('mic-listening');
+    }
+
+    function stopListeningAndSend() {
+      if (recognition && isListening) {
+        try { recognition.stop(); } catch(e){}
+      }
+      stopListeningUI();
+      clearTimeout(speechSilenceTimer);
+
+      const val = document.getElementById('userMsgInput').value.trim();
+      if (val) {
+        document.getElementById('userMsgInput').value = '';
+        handleUserSpeechTurn(val);
+      }
+    }
+
+    function toggleListeningManually() {
+      if (!recognition) {
+        alert("目前手機環境未開放麥克風語音辨識（需在 HTTPS 網址下運行）。請使用鍵盤輸入或點擊預設標籤！");
+        return;
+      }
+      if (isListening) {
+        stopListeningAndSend();
+      } else {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        startAutoListening();
+      }
+    }
+
+    // 語音朗讀合成（TTS）
+    function speakText(text, onComplete = null) {
+      if (!isVoiceEnabled || !('speechSynthesis' in window)) {
+        if (onComplete) onComplete();
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+      const cleanText = text.replace(/<[^>]*>/g, '').replace(/📷|💻|💡|✅|❌|📋/g, '');
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = 'zh-TW';
+      utterance.rate = 1.05;
+
+      const indicator = document.getElementById('speakingIndicator');
+      utterance.onstart = () => {
+        indicator.classList.remove('hidden');
+        document.getElementById('headerAvatar').classList.add('voice-avatar-active');
+      };
+      utterance.onend = () => {
+        indicator.classList.add('hidden');
+        document.getElementById('headerAvatar').classList.remove('voice-avatar-active');
+        if (onComplete) onComplete();
+      };
+      utterance.onerror = () => {
+        indicator.classList.add('hidden');
+        document.getElementById('headerAvatar').classList.remove('voice-avatar-active');
+        if (onComplete) onComplete();
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function toggleVoiceOutput() {
+      isVoiceEnabled = !isVoiceEnabled;
+      const btn = document.getElementById('voiceToggleBtn');
+      if (isVoiceEnabled) {
+        btn.innerText = "🔊 語音開";
+      } else {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        btn.innerText = "🔇 語音關";
+      }
+    }
+
+    const scriptFlow = [
+      {
+        user: "我的電子公文系統今天早上一直轉圈圈進不去，現在急著要簽核！",
+        aiAsk: "收到！請先別著急，小威先幫您排查。請問畫面轉圈後有跳出錯誤代碼嗎？另外您同部門的同事也有遇到相同的狀況嗎？"
+      },
+      {
+        user: "畫面顯示 HTTP 504 逾時錯誤，而且隔壁同事也都卡住進不去！",
+        aiAsk: "收到說明！這可能是 504 伺服器逾時。請試試在網頁上按 Ctrl 加 F5 強制重新整理，或開啟無痕視窗登入看看。請問這樣有解決問題嗎？",
+        showButtons: true
+      },
+      {
+        user: "試過了依然無法排除，請幫我派工程師！",
+        aiAsk: "好的，小威明白了！因為多人同時異常，這不是個人電腦問題。我已經為您建立緊急派修單，並直接通報工程師排查伺服器，您不用在電腦前等待囉！",
+        ticket: {
+          id: "TCK-20261017-0042",
+          status: "已建立派工 (P1 高優先級)",
+          detail: "多人同時出現 HTTP 504 伺服器逾時，已嘗試強制重整無效。"
+        }
+      }
+    ];
+
+    function startXiaoWei() {
+      // 確保覆蓋層徹底移除
+      const splash = document.getElementById('welcomeSplash');
+      splash.style.display = 'none';
+
+      const initialGreeting = "我在！我是小威。請問今天電腦遇到了什麼問題呢？請直接說給我聽！";
+      appendMessage('ai', initialGreeting);
+
+      // 解鎖手機音訊播放
+      speakText(initialGreeting, () => {
+        startAutoListening();
+      });
+    }
+
+    function handleUserSpeechTurn(userText) {
+      appendMessage('user', userText);
+
+      setTimeout(() => {
+        if (currentStep < scriptFlow.length) {
+          const step = scriptFlow[currentStep];
+          appendMessage('ai', step.aiAsk, {
+            showFeedbackButtons: step.showButtons,
+            ticket: step.ticket
+          });
+
+          speakText(step.aiAsk, () => {
+            if (!step.ticket) {
+              startAutoListening();
+            }
+          });
+
+          currentStep++;
+        }
+      }, 500);
+    }
+
+    function appendMessage(role, htmlText, options = {}) {
+      const chat = document.getElementById('chatArea');
+      const row = document.createElement('div');
+
+      if (role === 'user') {
+        row.className = "flex items-start justify-end";
+        row.innerHTML = `
+          <div class="bg-sky-600 text-white text-[13px] rounded-2xl rounded-tr-sm p-3 shadow-sm max-w-[85%] leading-relaxed">
+            ${htmlText}
+          </div>
+        `;
+      } else {
+        let buttonsHtml = '';
+        if (options.showFeedbackButtons) {
+          buttonsHtml = `
+            <div class="mt-2.5 pt-2 border-t border-slate-100 flex space-x-2">
+              <button onclick="handleQuickAnswer('已解決')" class="flex-1 py-1.5 bg-emerald-600 active:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm">
+                ✅ 已解決
+              </button>
+              <button onclick="handleQuickAnswer('未解決')" class="flex-1 py-1.5 bg-rose-600 active:bg-rose-700 text-white text-xs font-bold rounded-lg shadow-sm">
+                ❌ 仍無法解決
+              </button>
+            </div>
+          `;
+        }
+
+        let ticketHtml = '';
+        if (options.ticket) {
+          const t = options.ticket;
+          ticketHtml = `
+            <div class="mt-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1 text-slate-700">
+              <div class="flex justify-between items-center border-b border-slate-200 pb-1 font-bold text-sky-800">
+                <span>📋 報修案件已建立</span>
+                <span class="text-rose-600">${t.status}</span>
+              </div>
+              <div><span class="text-slate-400">工單編號：</span><span class="font-mono font-medium">${t.id}</span></div>
+              <div><span class="text-slate-400">前置診斷：</span>${t.detail}</div>
+            </div>
+          `;
+        }
+
+        row.className = "flex items-start space-x-2";
+        row.innerHTML = `
+          <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 border border-sky-200">威</div>
+          <div class="bg-white border border-slate-200 text-slate-800 text-[13px] rounded-2xl rounded-tl-sm p-3 shadow-sm max-w-[85%] leading-relaxed">
+            ${htmlText}
+            ${buttonsHtml}
+            ${ticketHtml}
+          </div>
+        `;
+      }
+
+      chat.appendChild(row);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function handleQuickAnswer(ans) {
+      if (ans.includes('已解決')) {
+        const text = "太棒了！很高興能幫上忙，本次紀錄小威已為您歸檔，祝您工作順心！";
+        appendMessage('user', "✅ 已經解決了，謝謝小威！");
+        appendMessage('ai', text);
+        speakText(text);
+      } else {
+        handleUserSpeechTurn("試過了依然無法排除，請小威幫我派工程師處理！");
+      }
+    }
+
+    function handleQuickClick(txt) {
+      handleUserSpeechTurn(txt);
+    }
+
+    function handleSend() {
+      const input = document.getElementById('userMsgInput');
+      const val = input.value.trim();
+      if (!val) return;
+      input.value = '';
+      handleUserSpeechTurn(val);
+    }
+
+    document.getElementById('userMsgInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') handleSend();
+    });
+  </script>
+</body>
+</html>
