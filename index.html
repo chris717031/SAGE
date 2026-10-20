@@ -1,254 +1,462 @@
-<script>
-  let knowledgeBase = [];
-  let currentMatchedSOP = null;
-  let recognition = null;
-  let isListening = false;
-
-  // 1. 初始化語音辨識 (STT) - 兼顧 Webkit 與標準語法
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  function initSpeechRecognition() {
-    if (!SpeechRecognition) {
-      console.warn("此手機瀏覽器環境不支援 Web Speech API 語音辨識");
-      return;
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>小威 - IT 智慧報修與排查助手</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+    body {
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
-    try {
-      recognition = new SpeechRecognition();
-      recognition.lang = 'zh-TW';
-      recognition.continuous = false; // 手機端建議設為 false，單次辨識較穩定
-      recognition.interimResults = false;
-
-      recognition.onstart = () => {
-        isListening = true;
-        updateMicStatus(true);
-      };
-
-      recognition.onresult = (event) => {
-        const text = event.results[0][0].transcript;
-        if (text) {
-          document.getElementById('userMsgInput').value = text;
-          handleUserSend();
-        }
-      };
-
-      recognition.onerror = (e) => {
-        console.warn("麥克風收音失敗或中斷:", e.error);
-        stopListening();
-      };
-
-      recognition.onend = () => {
-        stopListening();
-      };
-    } catch (err) {
-      console.error("STT 初始化錯誤:", err);
-    }
-  }
-
-  function startListening() {
-    if (!recognition) {
-      alert("目前的手機瀏覽器限制了網頁麥克風辨識。iPhone 請務必使用 Safari 開啟；若仍無法使用，可直接打字或點擊下方快捷選項！");
-      return;
-    }
-    try {
-      recognition.start();
-    } catch (e) {
-      // 避免重複啟動報錯
-    }
-  }
-
-  function stopListening() {
-    isListening = false;
-    updateMicStatus(false);
-    if (recognition) {
-      try { recognition.stop(); } catch(e){}
-    }
-  }
-
-  function toggleListening() {
-    if (isListening) {
-      stopListening();
-    } else {
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-      startListening();
-    }
-  }
-
-  function updateMicStatus(active) {
-    const micBtn = document.getElementById('micBtn');
-    if (!micBtn) return;
-    if (active) {
-      micBtn.classList.add('bg-rose-500', 'text-white', 'animate-pulse');
-      micBtn.classList.remove('bg-slate-100', 'text-slate-600');
-    } else {
-      micBtn.classList.remove('bg-rose-500', 'text-white', 'animate-pulse');
-      micBtn.classList.add('bg-slate-100', 'text-slate-600');
-    }
-  }
-
-  // 2. 語音合成朗讀 (TTS)
-  function speak(text, onComplete = null) {
-    if (!('speechSynthesis' in window)) {
-      if (onComplete) onComplete();
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    const cleanText = text.replace(/<[^>]*>/g, '').replace(/📷|💻|💡|✅|❌|📋|⚠️/g, '');
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.lang = 'zh-TW';
-    utterance.rate = 1.05;
-
-    utterance.onend = () => {
-      if (onComplete) onComplete();
-    };
-    utterance.onerror = () => {
-      if (onComplete) onComplete();
-    };
-
-    window.speechSynthesis.speak(utterance);
-  }
-
-  // 3. 載入知識庫
-  async function loadKB() {
-    try {
-      const res = await fetch('kb.json');
-      knowledgeBase = await res.json();
-    } catch (e) {
-      console.error("知識庫載入失敗:", e);
-    }
-  }
-
-  // 4. 使用者點擊進入（在主線程事件中同時解鎖 TTS 與 STT）
-  function startApp() {
-    document.getElementById('welcomeSplash').style.display = 'none';
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .safe-bottom { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
     
-    // 初始化 STT
-    initSpeechRecognition();
-    loadKB();
+    @keyframes micPulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+      70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .mic-listening {
+      animation: micPulse 1.4s infinite ease-out;
+      background-color: #ef4444 !important;
+      color: white !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 h-screen w-screen flex flex-col overflow-hidden relative">
 
-    const hello = "我在！我是小威，請問今天電腦遇到什麼問題呢？請直接說給我聽！";
-    appendChat('ai', hello);
-
-    // 關鍵：在使用者點擊按鈕的當下立即發聲解鎖音訊
-    speak(hello, () => {
-      // 朗讀完畢後嘗試自動聆聽
-      startListening();
-    });
-  }
-
-  function appendChat(role, text, buttons = null, ticket = null) {
-    const area = document.getElementById('chatArea');
-    const box = document.createElement('div');
-    if (role === 'user') {
-      box.className = "flex justify-end";
-      box.innerHTML = `<div class="bg-sky-600 text-white text-sm rounded-2xl rounded-tr-sm p-3 max-w-[85%] leading-relaxed">${text}</div>`;
-    } else {
-      box.className = "flex space-x-2 items-start";
-      let btnHtml = '';
-      if (buttons) {
-        btnHtml = `
-          <div class="mt-2.5 pt-2 border-t border-slate-100 flex space-x-2">
-            <button onclick="handleResult(true)" class="flex-1 py-1.5 bg-emerald-600 active:bg-emerald-700 text-white text-xs font-bold rounded">✅ 已解決</button>
-            <button onclick="handleResult(false)" class="flex-1 py-1.5 bg-rose-600 active:bg-rose-700 text-white text-xs font-bold rounded">❌ 仍無法解決</button>
-          </div>
-        `;
-      }
-      let ticketHtml = '';
-      if (ticket) {
-        ticketHtml = `
-          <div class="mt-2.5 p-2 bg-slate-50 border border-slate-200 rounded text-xs space-y-1">
-            <div class="font-bold text-rose-600">🚨 報修工單已自動建立</div>
-            <div><b>工單編號：</b>${ticket.id}</div>
-            <div><b>指派組別：</b>${ticket.dept}</div>
-            <div><b>故障摘要：</b>${ticket.symptom}</div>
-            <div class="text-[11px] text-slate-500">已自動推播通知外派工程師。</div>
-          </div>
-        `;
-      }
-      box.innerHTML = `
-        <div class="w-7 h-7 rounded-full bg-sky-600 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">威</div>
-        <div class="bg-white border border-slate-200 text-slate-800 text-sm rounded-2xl rounded-tl-sm p-3 max-w-[85%] shadow-sm leading-relaxed">
-          ${text}${btnHtml}${ticketHtml}
+  <!-- 1. 使用者註冊彈窗 (未註冊時強制要求填寫) -->
+  <div id="registerModal" class="hidden absolute inset-0 bg-slate-900/90 z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl text-slate-800">
+      <div class="flex items-center space-x-2.5 mb-3">
+        <div class="w-8 h-8 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-sm">威</div>
+        <div>
+          <h2 class="text-base font-bold">歡迎使用 IT 報修小助手</h2>
+          <p class="text-xs text-slate-500">初次使用請先登錄基本聯絡資料</p>
         </div>
-      `;
+      </div>
+
+      <form id="regForm" onsubmit="handleRegister(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">所屬單位 / 部門 <span class="text-rose-500">*</span></label>
+          <input type="text" id="regDept" required placeholder="例：醫療事務課、3F 總務部" 
+                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">姓名 <span class="text-rose-500">*</span></label>
+          <input type="text" id="regName" required placeholder="例：王小明" 
+                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">電子信箱 <span class="text-rose-500">*</span></label>
+          <input type="email" id="regEmail" required placeholder="例：user@company.com" 
+                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">聯絡電話 / 分機 <span class="text-rose-500">*</span></label>
+          <input type="tel" id="regPhone" required placeholder="例：0912-345-678 / 分機 123" 
+                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
+        </div>
+
+        <button type="submit" class="w-full mt-2 py-3 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold rounded-xl shadow-md transition text-sm">
+          完成登錄・進入對話
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. 喚醒啟用覆蓋層 (解鎖手機瀏覽器語音權限) -->
+  <div id="welcomeSplash" class="hidden absolute inset-0 bg-slate-900 z-40 flex flex-col items-center justify-center p-6 text-center text-white">
+    <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center text-3xl mb-4 shadow-lg shadow-sky-500/40">
+      🎙️
+    </div>
+    <h2 class="text-xl font-bold mb-1">我是小威，您的 IT 助手</h2>
+    <p id="welcomeUserText" class="text-xs text-sky-300 mb-6 font-medium">歡迎使用！點擊下方開始排查</p>
+    <button onclick="startApp()" class="w-full max-w-xs py-3.5 bg-sky-500 active:bg-sky-600 text-white font-bold text-sm rounded-full shadow-lg">
+      開始對話
+    </button>
+    <button onclick="reRegister()" class="mt-4 text-xs text-slate-400 underline">重新登錄或修改身分資訊</button>
+  </div>
+
+  <!-- 3. 頂部狀態列 -->
+  <header class="bg-sky-700 text-white px-4 py-2.5 shrink-0 flex items-center justify-between shadow-sm">
+    <div class="flex items-center space-x-2.5">
+      <div id="headerAvatar" class="w-8 h-8 rounded-full bg-sky-800 flex items-center justify-center text-xs border border-sky-300 font-bold">
+        威
+      </div>
+      <div>
+        <h1 class="text-sm font-bold leading-tight flex items-center gap-1.5">
+          小威同學
+          <span id="turnCounterBadge" class="text-[10px] bg-sky-800 border border-sky-400/60 text-sky-200 px-1.5 py-0.2 rounded">
+            追問: 0/5 輪
+          </span>
+        </h1>
+        <p id="userDeptLabel" class="text-[11px] text-sky-200 truncate max-w-[170px]">未登錄身分</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-1.5">
+      <span id="kbStatusBadge" class="text-[10px] bg-sky-800 border border-sky-400/50 text-sky-200 px-2 py-0.5 rounded-full">
+        連線中...
+      </span>
+      <button onclick="toggleVoiceOutput()" id="voiceToggleBtn" class="text-xs bg-sky-800 border border-sky-500/50 text-sky-100 px-2.5 py-1 rounded-full">
+        🔊 語音開
+      </button>
+    </div>
+  </header>
+
+  <!-- 4. 中間：對話滾動區 -->
+  <main id="chatArea" class="flex-1 p-3.5 space-y-3.5 overflow-y-auto no-scrollbar"></main>
+
+  <!-- 5. 底部輸入控制列 -->
+  <footer class="bg-white border-t border-slate-200 px-3 pt-2 safe-bottom shrink-0">
+    <!-- 語音聆聽提示條 -->
+    <div id="voiceStatusBanner" class="hidden mb-2 p-2 bg-rose-50 border border-rose-200 rounded-lg flex items-center justify-between">
+      <div class="flex items-center space-x-2 text-xs text-rose-800">
+        <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+        <span class="font-medium">小威正在聽，請說話...</span>
+      </div>
+      <button onclick="stopListening()" class="text-[11px] bg-rose-600 text-white px-2 py-0.5 rounded font-bold">
+        說完了
+      </button>
+    </div>
+
+    <!-- 輸入工具列 -->
+    <div class="flex items-center space-x-1.5 pb-1">
+      <button id="micBtn" onclick="toggleListening()" class="p-2.5 text-slate-600 bg-slate-100 active:bg-slate-200 rounded-full shrink-0" title="語音輸入">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+        </svg>
+      </button>
+
+      <div class="flex-1">
+        <input id="userMsgInput" type="text" placeholder="描述故障，例如：印表機無法列印..."
+               class="w-full bg-slate-100 text-slate-800 text-sm rounded-full px-3.5 py-2 border border-slate-200 focus:outline-none">
+      </div>
+
+      <button onclick="handleUserSend()" class="p-2 bg-sky-600 active:bg-sky-700 text-white rounded-full shadow shrink-0">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+        </svg>
+      </button>
+    </div>
+  </footer>
+
+  <script>
+    // 全域變數
+    let currentUser = null;
+    let turnCount = 0;
+    const MAX_TURNS = 5;
+    let isVoiceEnabled = true;
+    let knowledgeBase = [];
+    let currentMatchedSOP = null;
+    let userOriginalFirstQuery = ""; // 記錄使用者第一次提問內容
+
+    // 語音辨識 (STT) 初始化
+    let recognition = null;
+    let isListening = false;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    function initSTT() {
+      if (!SpeechRecognition) return;
+      try {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'zh-TW';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+          isListening = true;
+          document.getElementById('voiceStatusBanner').classList.remove('hidden');
+          document.getElementById('micBtn').classList.add('mic-listening');
+        };
+        recognition.onresult = (event) => {
+          const text = event.results[0][0].transcript;
+          if (text) {
+            document.getElementById('userMsgInput').value = text;
+            handleUserSend();
+          }
+        };
+        recognition.onerror = () => stopListening();
+        recognition.onend = () => stopListening();
+      } catch (e) {
+        console.warn("STT 初始化異常:", e);
+      }
     }
-    area.appendChild(box);
-    area.scrollTop = area.scrollHeight;
-  }
 
-  function handleUserSend() {
-    const input = document.getElementById('userMsgInput');
-    const q = input.value.trim();
-    if (!q) return;
-    input.value = '';
-    appendChat('user', q);
+    function startListening() {
+      if (!recognition) return;
+      try { recognition.start(); } catch (e) {}
+    }
 
-    const matched = knowledgeBase.find(item => 
-      item.keywords.some(k => q.toLowerCase().includes(k.toLowerCase()))
-    );
+    function stopListening() {
+      isListening = false;
+      document.getElementById('voiceStatusBanner').classList.add('hidden');
+      document.getElementById('micBtn').classList.remove('mic-listening');
+      if (recognition) {
+        try { recognition.stop(); } catch(e){}
+      }
+    }
 
-    setTimeout(() => {
-      if (!matched) {
-        const noMatchMsg = "抱歉，在目前 SOP 庫中找不到完全相符的指引。為了避免誤判，小威已直接為您建立派修單！";
-        appendChat('ai', noMatchMsg, false, {
-          id: "TCK-" + Date.now().toString().slice(-4),
-          dept: "一般維護工程師",
-          symptom: q
-        });
-        speak("找不到相符的指引，已直接為您安排工程師！");
+    function toggleListening() {
+      if (isListening) stopListening();
+      else {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        startListening();
+      }
+    }
+
+    // 語音朗讀合成 (TTS)
+    function speak(text, onComplete = null) {
+      if (!isVoiceEnabled || !('speechSynthesis' in window)) {
+        if (onComplete) onComplete();
         return;
       }
+      window.speechSynthesis.cancel();
+      const cleanText = text.replace(/<[^>]*>/g, '').replace(/📷|💻|💡|✅|❌|📋|⚠️/g, '');
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = 'zh-TW';
+      utterance.rate = 1.05;
+      utterance.onend = () => { if (onComplete) onComplete(); };
+      utterance.onerror = () => { if (onComplete) onComplete(); };
+      window.speechSynthesis.speak(utterance);
+    }
 
-      currentMatchedSOP = matched;
-
-      if (!matched.allow_self_resolve) {
-        appendChat('ai', matched.safe_steps, false, {
-          id: "TCK-" + Date.now().toString().slice(-4),
-          dept: matched.escalate_dept,
-          symptom: matched.symptom
-        });
-        speak(matched.safe_steps);
-        return;
+    function toggleVoiceOutput() {
+      isVoiceEnabled = !isVoiceEnabled;
+      const btn = document.getElementById('voiceToggleBtn');
+      if (isVoiceEnabled) {
+        btn.innerText = "🔊 語音開";
+      } else {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        btn.innerText = "🔇 語音關";
       }
+    }
 
-      let imgHtml = '';
-      if (matched.image_url) {
-        imgHtml = `<div class="mt-2 rounded overflow-hidden border"><img src="${matched.image_url}" class="w-full max-h-40 object-cover"></div>`;
+    // 核心：非同步串接同目錄下的 KB.JSON
+    async function loadKnowledgeBase() {
+      const badge = document.getElementById('kbStatusBadge');
+      try {
+        // 加入時間戳記避免 GitHub Pages 快取舊檔
+        const res = await fetch('KB.JSON?t=' + Date.now());
+        if (!res.ok) {
+          throw new Error(`HTTP 錯誤狀態碼: ${res.status}`);
+        }
+        knowledgeBase = await res.json();
+        console.log("✅ KB.JSON 載入成功，條目數:", knowledgeBase.length);
+        badge.innerText = `已連線 SOP (${knowledgeBase.length})`;
+        badge.className = "text-[10px] bg-emerald-700 border border-emerald-400 text-emerald-100 px-2 py-0.5 rounded-full";
+      } catch (err) {
+        console.error("❌ 無法載入 KB.JSON，嘗試讀取 kb.json 備援:", err);
+        try {
+          const fallbackRes = await fetch('kb.json?t=' + Date.now());
+          knowledgeBase = await fallbackRes.json();
+          badge.innerText = `已連線 SOP (${knowledgeBase.length})`;
+          badge.className = "text-[10px] bg-emerald-700 border border-emerald-400 text-emerald-100 px-2 py-0.5 rounded-full";
+        } catch (e2) {
+          badge.innerText = "SOP 庫讀取失敗";
+          badge.className = "text-[10px] bg-rose-700 border border-rose-400 text-white px-2 py-0.5 rounded-full";
+        }
       }
+    }
 
-      const guideMsg = `小威為您找到【${matched.symptom}】的排除步驟：<br><br>${matched.safe_steps}${imgHtml}<br><br>請問執行後問題是否已解決？`;
-      appendChat('ai', guideMsg, true);
-      speak(`小威為您找到排除指引：${matched.safe_steps}。請問是否解決？`);
-    }, 400);
-  }
+    // 頁面初次載入
+    window.onload = () => {
+      initSTT();
+      loadKnowledgeBase();
 
-  function handleResult(resolved) {
-    if (resolved) {
-      const msg = "太好了！很高興能幫上忙，本次案件已歸檔為自主排除，祝您工作順利！";
-      appendChat('user', "✅ 已經解決了，謝謝！");
-      appendChat('ai', msg);
-      speak(msg);
-    } else {
-      const msg = "收到，已確認排除無效。小威已為您建立派工單，工程師將儘速前往處理！";
-      appendChat('user', "❌ 嘗試過還是無法解決，請派工程師！");
-      appendChat('ai', msg, false, {
-        id: "TCK-" + Date.now().toString().slice(-4),
-        dept: currentMatchedSOP ? currentMatchedSOP.escalate_dept : "硬體維護組",
-        symptom: currentMatchedSOP ? currentMatchedSOP.symptom : "使用者排除未果"
+      const storedUser = localStorage.getItem('sage_user_profile');
+      if (storedUser) {
+        currentUser = JSON.parse(storedUser);
+        showWelcomeSplash();
+      } else {
+        document.getElementById('registerModal').classList.remove('hidden');
+      }
+    };
+
+    function handleRegister(e) {
+      e.preventDefault();
+      currentUser = {
+        dept: document.getElementById('regDept').value.trim(),
+        name: document.getElementById('regName').value.trim(),
+        email: document.getElementById('regEmail').value.trim(),
+        phone: document.getElementById('regPhone').value.trim()
+      };
+      localStorage.setItem('sage_user_profile', JSON.stringify(currentUser));
+      document.getElementById('registerModal').classList.add('hidden');
+      showWelcomeSplash();
+    }
+
+    function showWelcomeSplash() {
+      document.getElementById('userDeptLabel').innerText = `${currentUser.dept}・${currentUser.name}`;
+      document.getElementById('welcomeUserText').innerText = `你好，${currentUser.name} (${currentUser.dept})！請點擊下方開啟對話`;
+      document.getElementById('welcomeSplash').classList.remove('hidden');
+    }
+
+    function reRegister() {
+      localStorage.removeItem('sage_user_profile');
+      location.reload();
+    }
+
+    function startApp() {
+      document.getElementById('welcomeSplash').classList.add('hidden');
+      const hello = `${currentUser.name} 您好！我是小威。請問今天您的電腦或設備遇到什麼問題呢？請直接說給我聽！`;
+      appendChat('ai', hello);
+      speak(hello, () => startListening());
+    }
+
+    function updateTurnUI() {
+      document.getElementById('turnCounterBadge').innerText = `追問: ${turnCount}/${MAX_TURNS} 輪`;
+      if (turnCount >= MAX_TURNS) {
+        document.getElementById('turnCounterBadge').className = "text-[10px] bg-rose-600 text-white px-1.5 py-0.2 rounded font-bold";
+      }
+    }
+
+    // 檢索知識庫比對
+    function searchKB(queryText) {
+      if (!knowledgeBase || knowledgeBase.length === 0) return null;
+      const lower = queryText.toLowerCase();
+      return knowledgeBase.find(item => {
+        return item.keywords && item.keywords.some(k => lower.includes(k.toLowerCase()));
       });
-      speak(msg);
     }
-  }
 
-  // 綁定輸入列麥克風按鈕
-  document.addEventListener('DOMContentLoaded', () => {
-    const micBtn = document.getElementById('micBtn');
-    if (micBtn) {
-      micBtn.addEventListener('click', toggleListening);
+    function handleUserSend() {
+      const input = document.getElementById('userMsgInput');
+      const q = input.value.trim();
+      if (!q) return;
+      input.value = '';
+      
+      // 記錄使用者的最初問題描述
+      if (!userOriginalFirstQuery) {
+        userOriginalFirstQuery = q;
+      }
+
+      appendChat('user', q);
+      turnCount++;
+      updateTurnUI();
+
+      // 檢索 KB.JSON
+      const matched = searchKB(q);
+
+      setTimeout(() => {
+        // 條件 A：達到 5 輪追問上限，強制收斂派工
+        if (turnCount >= MAX_TURNS) {
+          const limitMsg = `小威已為您進行了 ${MAX_TURNS} 輪前置排查，為避免耽誤您的寶貴時間，現已自動為您建立派工單，工程師將依您的聯絡資訊主動聯繫！`;
+          generateTicket(limitMsg, "已達最大排查輪數 (自動升級派工)", userOriginalFirstQuery);
+          return;
+        }
+
+        // 條件 B：知識庫查無完全相符指引
+        if (!matched) {
+          const noMatchMsg = "抱歉，在現有 SOP 庫中找不到完全相符的自解方案。為了保障系統安全，小威直接為您派工！";
+          generateTicket(noMatchMsg, "SOP 庫無匹配結果", userOriginalFirstQuery);
+          return;
+        }
+
+        currentMatchedSOP = matched;
+
+        // 條件 C：高危損壞 (0 輪追問直接建單)
+        if (!matched.allow_self_resolve) {
+          generateTicket(matched.safe_steps, "高危險性硬體故障", matched.symptom);
+          return;
+        }
+
+        // 條件 D：提供初步安全指引
+        let imgHtml = '';
+        if (matched.image_url) {
+          imgHtml = `<div class="mt-2 rounded overflow-hidden border"><img src="${matched.image_url}" class="w-full max-h-40 object-cover"></div>`;
+        }
+        const guide = `小威為您找到【${matched.symptom}】的排除步驟：<br><br>${matched.safe_steps}${imgHtml}<br><br>請問照著執行後，問題是否已解決？`;
+        appendChat('ai', guide, true);
+        speak(`建議排查步驟：${matched.safe_steps}。請問是否解決？`);
+      }, 400);
     }
-  });
 
-  document.getElementById('userMsgInput').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleUserSend();
-  });
-</script>
+    // 自動建案生成器 (嚴格套用註冊資訊與使用者提問)
+    function generateTicket(aiReplyText, reason, problemDescription) {
+      const ticketId = "TCK-" + Date.now().toString().slice(-6);
+      appendChat('ai', aiReplyText, false, {
+        id: ticketId,
+        user: `${currentUser.name} (${currentUser.phone})`,
+        dept: currentUser.dept,
+        email: currentUser.email,
+        originalQuery: problemDescription || userOriginalFirstQuery,
+        reason: reason
+      });
+      speak(aiReplyText);
+    }
+
+    function handleResult(resolved) {
+      if (resolved) {
+        const msg = "太好了！很高興能幫上忙 🎉 本次案件已歸檔為自主排除，祝您辦公順心！";
+        appendChat('user', "✅ 已經按照步驟解決了，謝謝！");
+        appendChat('ai', msg);
+        speak(msg);
+      } else {
+        appendChat('user', "❌ 嘗試過還是無法解決，請安排工程師！");
+        turnCount++;
+        updateTurnUI();
+        const msg = "收到，已確認排除無效。小威已將您的單位、聯絡方式與報修問題打包派單，工程師會儘速聯繫！";
+        generateTicket(msg, "使用者自力排除未果 (Escalation)", currentMatchedSOP ? currentMatchedSOP.symptom : userOriginalFirstQuery);
+      }
+    }
+
+    function appendChat(role, text, showButtons = false, ticket = null) {
+      const area = document.getElementById('chatArea');
+      const box = document.createElement('div');
+      if (role === 'user') {
+        box.className = "flex justify-end";
+        box.innerHTML = `<div class="bg-sky-600 text-white text-[13px] rounded-2xl rounded-tr-sm p-3 max-w-[85%] leading-relaxed">${text}</div>`;
+      } else {
+        box.className = "flex space-x-2 items-start";
+        let btnHtml = '';
+        if (showButtons) {
+          btnHtml = `
+            <div class="mt-2.5 pt-2 border-t border-slate-100 flex space-x-2">
+              <button onclick="handleResult(true)" class="flex-1 py-1.5 bg-emerald-600 active:bg-emerald-700 text-white text-xs font-bold rounded shadow-sm">✅ 已解決</button>
+              <button onclick="handleResult(false)" class="flex-1 py-1.5 bg-rose-600 active:bg-rose-700 text-white text-xs font-bold rounded shadow-sm">❌ 仍未解決</button>
+            </div>
+          `;
+        }
+        let ticketHtml = '';
+        if (ticket) {
+          ticketHtml = `
+            <div class="mt-2.5 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1.5 text-slate-700">
+              <div class="flex justify-between items-center border-b border-slate-200 pb-1 font-bold text-rose-600">
+                <span>📋 報修案件已建立</span>
+                <span>單號: ${ticket.id}</span>
+              </div>
+              <div><span class="text-slate-400">報修單位：</span><span class="font-medium text-slate-900">${ticket.dept}</span></div>
+              <div><span class="text-slate-400">聯絡人員：</span><span class="font-medium text-slate-900">${ticket.user}</span></div>
+              <div><span class="text-slate-400">電子信箱：</span><span class="font-medium text-slate-900">${ticket.email}</span></div>
+              <div class="bg-sky-50 text-sky-900 p-2 rounded border border-sky-200 mt-1">
+                <b>報修問題描述：</b><br>${ticket.originalQuery}
+              </div>
+              <div class="bg-amber-50 text-amber-800 p-1.5 rounded border border-amber-200">
+                <b>轉派原因：</b>${ticket.reason}
+              </div>
+            </div>
+          `;
+        }
+        box.innerHTML = `
+          <div class="w-7 h-7 rounded-full bg-sky-600 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">威</div>
+          <div class="bg-white border border-slate-200 text-slate-800 text-[13px] rounded-2xl rounded-tl-sm p-3 max-w-[85%] shadow-sm leading-relaxed">
+            ${text}${btnHtml}${ticketHtml}
+          </div>
+        `;
+      }
+      area.appendChild(box);
+      area.scrollTop = area.scrollHeight;
+    }
+
+    document.getElementById('userMsgInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleUserSend();
+    });
+  </script>
+</body>
+</html>
