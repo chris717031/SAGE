@@ -53,7 +53,9 @@
 </head>
 <body class="bg-slate-900 text-slate-100 h-screen w-screen flex flex-col overflow-hidden relative">
 
-  <!-- 頂部導覽列 -->
+  <!-- ======================================================== -->
+  <!-- 頂部通用導覽列                                           -->
+  <!-- ======================================================== -->
   <header class="bg-[#10183d] border-b border-indigo-950 px-3.5 py-2.5 flex items-center justify-between shrink-0 shadow-md">
     <div class="flex items-center space-x-2.5">
       <div class="bg-white px-2 py-1 rounded shadow-inner flex items-center justify-center">
@@ -61,24 +63,27 @@
       </div>
       <div>
         <h1 class="text-xs font-bold tracking-wide text-white flex items-center gap-1.5">
-          IT 智慧維護管理系統 (SAGE)
+          IT 智慧維護管理系統
           <span id="roleBadge" class="text-[9px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full border border-slate-600">訪客</span>
         </h1>
         <p id="userInfoSubtitle" class="text-[10px] text-slate-300">未登入系統</p>
       </div>
     </div>
 
-    <div class="flex items-center space-x-2">
-      <span id="supabaseStatusBadge" class="text-[9px] bg-emerald-950 text-emerald-300 border border-emerald-600/50 px-2 py-0.5 rounded-full">
-        ● SAGE 專案就緒
-      </span>
+    <!-- 右側：變更密碼、狀態與登出按鈕 -->
+    <div class="flex items-center space-x-1.5">
+      <button id="changePwdBtn" onclick="openChangePasswordModal()" class="hidden px-2 py-1 bg-indigo-900/80 hover:bg-indigo-800 border border-indigo-400/40 rounded text-indigo-200 text-xs transition">
+        🔑 變更密碼
+      </button>
       <button id="logoutBtn" onclick="handleLogout()" class="hidden px-2.5 py-1 bg-rose-600/80 hover:bg-rose-600 rounded text-white text-xs font-medium transition">
         登出
       </button>
     </div>
   </header>
 
-  <!-- 主內容工作區 -->
+  <!-- ======================================================== -->
+  <!-- 主內容工作區                                             -->
+  <!-- ======================================================== -->
   <main class="flex-1 overflow-hidden relative">
 
     <!-- 1. 訪客介面：登入 / 註冊視窗 -->
@@ -86,7 +91,7 @@
       <div class="bg-white text-slate-800 w-full max-w-sm rounded-2xl p-5 shadow-2xl border border-slate-200">
         <div class="text-center mb-4">
           <h2 class="text-base font-bold text-[#10183d]">威策電腦 智慧維護平台</h2>
-          <p class="text-[11px] text-slate-500 mt-0.5">請登入帳號以進行障礙引導或管理作業</p>
+          <p class="text-[11px] text-slate-500 mt-0.5">預設密碼為 123456，初次登入後可自行變更</p>
         </div>
 
         <!-- 頁籤切換 -->
@@ -103,12 +108,12 @@
         <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-3 text-xs" style="display: block;">
           <div>
             <label class="block font-medium mb-1">電子信箱 (帳號) <span class="text-rose-500">*</span></label>
-            <input type="email" id="loginEmail" required placeholder="user@company.com" value="admin@welltake.com.tw"
+            <input type="email" id="loginEmail" required placeholder="user@company.com"
                    class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-600">
           </div>
           <div>
-            <label class="block font-medium mb-1">密碼</label>
-            <input type="password" id="loginPassword" placeholder="••••••••" value="123456"
+            <label class="block font-medium mb-1">密碼 <span class="text-slate-400 font-normal">(預設 123456)</span></label>
+            <input type="password" id="loginPassword" required placeholder="••••••••" value="123456"
                    class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-600">
           </div>
           <button type="submit" id="loginSubmitBtn" class="w-full py-2.5 bg-[#131b4d] hover:bg-[#1c276b] text-white font-bold rounded-xl shadow transition text-sm mt-2">
@@ -143,14 +148,17 @@
             <input type="tel" id="regPhone" required placeholder="例：0912-345-678 / 分機 123"
                    class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-600">
           </div>
-          <button type="submit" id="regSubmitBtn" class="w-full py-2.5 bg-sky-700 hover:bg-sky-600 text-white font-bold rounded-xl shadow transition text-sm mt-3">
-            送出註冊 (寫入 Supabase 等待審核)
+          <div class="p-2 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-500">
+            ℹ️ 註冊完成後，您的預設登入密碼將為：<b>123456</b>，登入後可隨時自行變更。
+          </div>
+          <button type="submit" id="regSubmitBtn" class="w-full py-2.5 bg-sky-700 hover:bg-sky-600 text-white font-bold rounded-xl shadow transition text-sm mt-2">
+            送出註冊 (等待管理者審核)
           </button>
         </form>
 
         <div id="pendingReviewBanner" class="hidden mt-3 p-3 bg-amber-50 border border-amber-300 text-amber-900 rounded-xl text-xs leading-relaxed">
           <b>⏳ 帳號審核中：</b><br>
-          已將註冊資訊寫入 Supabase 並送交系統管理者審核，開通權限後即可登入！
+          已將註冊資訊送交系統管理者審核，管理者核准開通後，即可使用信箱與預設密碼 <b>123456</b> 登入！
         </div>
       </div>
     </section>
@@ -220,7 +228,7 @@
         <!-- 分頁 A: 帳號審核 -->
         <div id="tabUsers" class="space-y-3">
           <div class="flex justify-between items-center">
-            <h3 class="text-sm font-bold text-white">Supabase 使用者帳號審核與權限設定</h3>
+            <h3 class="text-sm font-bold text-white">使用者帳號審核與權限設定</h3>
             <button onclick="fetchUsersFromSupabase()" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200">
               🔄 重新整理清單
             </button>
@@ -268,7 +276,41 @@
 
   </main>
 
-  <!-- 4. 威策電腦叫修表單確認 Modal -->
+  <!-- ======================================================== -->
+  <!-- 4. 變更密碼 Modal                                         -->
+  <!-- ======================================================== -->
+  <div id="changePwdModal" class="hidden absolute inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white text-slate-800 w-full max-w-sm rounded-2xl p-5 shadow-2xl border border-slate-200">
+      <div class="flex justify-between items-center mb-3 border-b border-slate-200 pb-2">
+        <h3 class="font-bold text-sm text-[#10183d]">🔑 變更登入密碼</h3>
+        <button onclick="closeChangePasswordModal()" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+      </div>
+      <form onsubmit="handleChangePasswordSubmit(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">請輸入新密碼 <span class="text-rose-500">*</span></label>
+          <input type="password" id="newPasswordInput" required minlength="6" placeholder="至少 6 位字元"
+                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-600">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">再次確認新密碼 <span class="text-rose-500">*</span></label>
+          <input type="password" id="confirmPasswordInput" required minlength="6" placeholder="請再次輸入新密碼"
+                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-600">
+        </div>
+        <div class="flex space-x-2 pt-2">
+          <button type="button" onclick="closeChangePasswordModal()" class="flex-1 py-2 border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-100 font-medium">
+            取消
+          </button>
+          <button type="submit" id="btnSubmitNewPwd" class="flex-1 py-2 bg-[#10183d] hover:bg-indigo-900 text-white rounded-xl font-bold shadow">
+            確認儲存
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 5. 威策電腦叫修表單確認 Modal                             -->
+  <!-- ======================================================== -->
   <div id="ticketModal" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
     <div class="bg-white text-slate-900 w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
       <div class="bg-[#10183d] text-white px-4 py-2.5 flex justify-between items-center shrink-0">
@@ -409,9 +451,11 @@
     </div>
   </div>
 
-  <!-- 5. 核心 JavaScript (綁定新專案 SAGE) -->
+  <!-- ======================================================== -->
+  <!-- 6. 核心 JavaScript (整合不分大小寫與密碼機制)           -->
+  <!-- ======================================================== -->
   <script>
-    // 定義切換頁籤函式
+    // 切換頁籤
     window.switchAuthTab = function(tab) {
       const loginForm = document.getElementById('loginForm');
       const registerForm = document.getElementById('registerForm');
@@ -434,7 +478,7 @@
       }
     };
 
-    // 配置新 SAGE 專案金鑰與端點
+    // 配置專案金鑰
     const SUPABASE_URL = 'https://tgvuxmlkbhnnjsyajjow.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_EE0J2uwbUorM9ywIXsbjdw_usVeipmc';
     let supabaseClient = null;
@@ -534,35 +578,40 @@
       }
     }
 
-    // 登入與註冊
+    // -------------------------------------------------------------
+    // 登入驗證 (強制不分大小寫 ilike + 密碼比對)
+    // -------------------------------------------------------------
     async function handleLoginSubmit(e) {
       e.preventDefault();
       if (!supabaseClient) {
-        alert("資料庫連線尚未就緒，請檢查網路連線。");
+        alert("資料庫連線尚未就緒，請稍候重試。");
         return;
       }
 
-      const email = document.getElementById('loginEmail').value.trim();
+      // 將輸入的信箱一律轉為純小寫並去除前後空白
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      const inputPwd = document.getElementById('loginPassword').value.trim();
       const submitBtn = document.getElementById('loginSubmitBtn');
       submitBtn.innerText = "驗證中...";
       submitBtn.disabled = true;
 
       try {
+        // 使用 ilike 確保完全不分大小寫
         const { data, error } = await supabaseClient
           .from('profiles')
           .select('*')
-          .eq('email', email)
+          .ilike('email', email)
           .maybeSingle();
 
         if (error) throw error;
 
         if (!data) {
-          alert("查無此帳號，請先切換至「新用戶註冊」進行登記！");
+          alert("查無此帳號，請確認信箱是否輸入正確，或切換至「新用戶註冊」進行登記！");
           return;
         }
 
         if (data.status === 'pending') {
-          alert("您的帳號已建立，目前正等待系統管理者審核，請稍候再登入！");
+          alert("您的帳號已建立，目前正等待系統管理者審核，審核通過後即可登入！");
           return;
         }
 
@@ -571,20 +620,30 @@
           return;
         }
 
+        // 比對密碼 (若資料庫尚無 password 則視為 123456)
+        const dbPassword = data.password || '123456';
+        if (inputPwd !== dbPassword) {
+          alert("❌ 密碼輸入錯誤！新用戶預設密碼為 123456。");
+          return;
+        }
+
         loginUserSuccess(data);
       } catch (err) {
         console.error("登入錯誤:", err);
-        alert("登入驗證失敗：" + (err.message || "請檢查 profiles 表結構"));
+        alert("登入驗證失敗：" + (err.message || "請檢查網路"));
       } finally {
         submitBtn.innerText = "登入系統";
         submitBtn.disabled = false;
       }
     }
 
+    // -------------------------------------------------------------
+    // 註冊提交 (強制純小寫 email，預設密碼 123456)
+    // -------------------------------------------------------------
     async function handleRegisterSubmit(e) {
       e.preventDefault();
       if (!supabaseClient) {
-        alert("資料庫連線尚未就緒，請檢查網路連線。");
+        alert("資料庫連線尚未就緒，請稍候重試。");
         return;
       }
 
@@ -592,14 +651,17 @@
       submitBtn.innerText = "寫入 Supabase 中...";
       submitBtn.disabled = true;
 
+      const cleanEmail = document.getElementById('regEmail').value.trim().toLowerCase();
+
       const profilePayload = {
         company: document.getElementById('regCompany').value.trim(),
         dept: document.getElementById('regDept').value.trim(),
         name: document.getElementById('regName').value.trim(),
-        email: document.getElementById('regEmail').value.trim(),
+        email: cleanEmail,
         phone: document.getElementById('regPhone').value.trim(),
         role: 'user',
-        status: 'pending'
+        status: 'pending',
+        password: '123456' // 註冊預設密碼
       };
 
       try {
@@ -612,10 +674,10 @@
 
         document.getElementById('registerForm').reset();
         document.getElementById('pendingReviewBanner').classList.remove('hidden');
-        alert("✅ 註冊資料已成功寫入 Supabase SAGE 專案！請等待管理者開通權限！");
+        alert("✅ 註冊資料已成功送出！預設密碼為 123456，請等待管理者審核開通！");
       } catch (err) {
         console.error("註冊失敗:", err);
-        alert("註冊寫入失敗：" + (err.message || "請確認 profiles 表已建立且 RLS 已開放"));
+        alert("註冊寫入失敗：" + (err.message || "信箱可能已被註冊"));
       } finally {
         submitBtn.innerText = "送出註冊 (等待管理者審核)";
         submitBtn.disabled = false;
@@ -626,6 +688,7 @@
       currentUser = user;
       document.getElementById('authSection').classList.add('hidden');
       document.getElementById('logoutBtn').classList.remove('hidden');
+      document.getElementById('changePwdBtn').classList.remove('hidden');
       document.getElementById('userInfoSubtitle').innerText = `${user.company} / ${user.dept} - ${user.name}`;
 
       const badge = document.getElementById('roleBadge');
@@ -662,9 +725,60 @@
       document.getElementById('userSection').classList.add('hidden');
       document.getElementById('managementSection').classList.add('hidden');
       document.getElementById('logoutBtn').classList.add('hidden');
+      document.getElementById('changePwdBtn').classList.add('hidden');
       document.getElementById('userInfoSubtitle').innerText = "未登入系統";
       document.getElementById('roleBadge').innerText = "訪客";
       document.getElementById('roleBadge').className = "text-[9px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full border border-slate-600";
+    }
+
+    // -------------------------------------------------------------
+    // 變更密碼 Modal 控制
+    // -------------------------------------------------------------
+    function openChangePasswordModal() {
+      document.getElementById('newPasswordInput').value = '';
+      document.getElementById('confirmPasswordInput').value = '';
+      document.getElementById('changePwdModal').classList.remove('hidden');
+    }
+
+    function closeChangePasswordModal() {
+      document.getElementById('changePwdModal').classList.add('hidden');
+    }
+
+    async function handleChangePasswordSubmit(e) {
+      e.preventDefault();
+      const p1 = document.getElementById('newPasswordInput').value.trim();
+      const p2 = document.getElementById('confirmPasswordInput').value.trim();
+
+      if (p1 !== p2) {
+        alert("兩次輸入的新密碼不一致，請重新確認！");
+        return;
+      }
+      if (p1.length < 6) {
+        alert("新密碼長度至少需要 6 個字元！");
+        return;
+      }
+
+      const btn = document.getElementById('btnSubmitNewPwd');
+      btn.innerText = "更新中...";
+      btn.disabled = true;
+
+      try {
+        const { error } = await supabaseClient
+          .from('profiles')
+          .update({ password: p1 })
+          .eq('id', currentUser.id);
+
+        if (error) throw error;
+
+        currentUser.password = p1;
+        alert("🎉 密碼變更成功！下次登入請使用新密碼。");
+        closeChangePasswordModal();
+      } catch (err) {
+        alert("變更密碼失敗：" + err.message);
+      } finally {
+        btn.innerText = "確認儲存";
+        btn.disabled = false;
+      }
     }
 
     // 後台管理
