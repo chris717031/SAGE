@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>小威 - IT 智慧報修與排查助手</title>
+  <title>威策電腦 - 小威 IT 智慧報修助手</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
@@ -16,6 +16,26 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .safe-bottom { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
     
+    /* 聊天室背景設定：加入 Welltake 浮水印底圖 */
+    .chat-bg {
+      background-color: #f8fafc;
+      background-image: url('Welltake.png');
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: contain;
+      background-attachment: local;
+    }
+
+    /* 氣泡微透明磨砂效果，襯托出底圖浮水印同時保證文字易讀 */
+    .bubble-ai {
+      background-color: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(4px);
+    }
+    .bubble-user {
+      background-color: #1e293b;
+      color: #ffffff;
+    }
+
     @keyframes micPulse {
       0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
       70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
@@ -30,14 +50,14 @@
 </head>
 <body class="bg-slate-100 h-screen w-screen flex flex-col overflow-hidden relative">
 
-  <!-- 1. 使用者註冊彈窗 (未註冊時強制要求填寫) -->
+  <!-- 1. 使用者註冊彈窗 (附帶 Welltake Logo) -->
   <div id="registerModal" class="hidden absolute inset-0 bg-slate-900/90 z-50 flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl text-slate-800">
-      <div class="flex items-center space-x-2.5 mb-3">
-        <div class="w-8 h-8 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-sm">威</div>
+      <div class="flex items-center space-x-3 mb-4 border-b border-slate-100 pb-3">
+        <img src="Welltake_Logo_light.png" alt="威策電腦 Logo" class="h-9 w-auto object-contain">
         <div>
-          <h2 class="text-base font-bold">歡迎使用 IT 報修小助手</h2>
-          <p class="text-xs text-slate-500">初次使用請先登錄基本聯絡資料</p>
+          <h2 class="text-sm font-bold text-slate-900 leading-tight">IT 智慧報修小助手</h2>
+          <p class="text-[11px] text-slate-500">初次使用請登錄基本聯絡資料</p>
         </div>
       </div>
 
@@ -45,75 +65,76 @@
         <div>
           <label class="block font-medium text-slate-700 mb-1">所屬單位 / 部門 <span class="text-rose-500">*</span></label>
           <input type="text" id="regDept" required placeholder="例：醫療事務課、3F 總務部" 
-                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
+                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-600">
         </div>
         <div>
           <label class="block font-medium text-slate-700 mb-1">姓名 <span class="text-rose-500">*</span></label>
           <input type="text" id="regName" required placeholder="例：王小明" 
-                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
+                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-600">
         </div>
         <div>
           <label class="block font-medium text-slate-700 mb-1">電子信箱 <span class="text-rose-500">*</span></label>
           <input type="email" id="regEmail" required placeholder="例：user@company.com" 
-                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
+                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-600">
         </div>
         <div>
           <label class="block font-medium text-slate-700 mb-1">聯絡電話 / 分機 <span class="text-rose-500">*</span></label>
           <input type="tel" id="regPhone" required placeholder="例：0912-345-678 / 分機 123" 
-                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
+                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-600">
         </div>
 
-        <button type="submit" class="w-full mt-2 py-3 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold rounded-xl shadow-md transition text-sm">
+        <button type="submit" class="w-full mt-2 py-3 bg-[#131b4d] hover:bg-[#1a2569] active:bg-[#0f153a] text-white font-bold rounded-xl shadow-md transition text-sm">
           完成登錄・進入對話
         </button>
       </form>
     </div>
   </div>
 
-  <!-- 2. 喚醒啟用覆蓋層 (解鎖手機瀏覽器語音權限) -->
+  <!-- 2. 喚醒啟用覆蓋層 (解鎖手機瀏覽器音訊) -->
   <div id="welcomeSplash" class="hidden absolute inset-0 bg-slate-900 z-40 flex flex-col items-center justify-center p-6 text-center text-white">
-    <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center text-3xl mb-4 shadow-lg shadow-sky-500/40">
-      🎙️
+    <div class="bg-white/10 p-3 rounded-2xl mb-4 backdrop-blur-sm border border-white/10">
+      <img src="Welltake_Logo_light.png" alt="威策電腦 Logo" class="h-12 w-auto object-contain">
     </div>
-    <h2 class="text-xl font-bold mb-1">我是小威，您的 IT 助手</h2>
-    <p id="welcomeUserText" class="text-xs text-sky-300 mb-6 font-medium">歡迎使用！點擊下方開始排查</p>
-    <button onclick="startApp()" class="w-full max-w-xs py-3.5 bg-sky-500 active:bg-sky-600 text-white font-bold text-sm rounded-full shadow-lg">
-      開始對話
+    <h2 class="text-xl font-bold mb-1">我是小威，您的 IT 專屬助手</h2>
+    <p id="welcomeUserText" class="text-xs text-sky-200 mb-6 font-medium">歡迎使用！點擊下方開始排查</p>
+    <button onclick="startApp()" class="w-full max-w-xs py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 active:scale-95 text-white font-bold text-sm rounded-full shadow-lg transition">
+      開啟對話
     </button>
     <button onclick="reRegister()" class="mt-4 text-xs text-slate-400 underline">重新登錄或修改身分資訊</button>
   </div>
 
-  <!-- 3. 頂部狀態列 -->
-  <header class="bg-sky-700 text-white px-4 py-2.5 shrink-0 flex items-center justify-between shadow-sm">
-    <div class="flex items-center space-x-2.5">
-      <div id="headerAvatar" class="w-8 h-8 rounded-full bg-sky-800 flex items-center justify-center text-xs border border-sky-300 font-bold">
-        威
+  <!-- 3. 頂部狀態列 (整合 Welltake Logo) -->
+  <header class="bg-[#10183d] text-white px-3.5 py-2.5 shrink-0 flex items-center justify-between shadow-md border-b border-indigo-950">
+    <div class="flex items-center space-x-2">
+      <!-- 企業 Logo 圖示 -->
+      <div class="bg-white px-2 py-1 rounded-md flex items-center justify-center shadow-inner">
+        <img src="Welltake_Logo_light.png" alt="Welltake Logo" class="h-5 w-auto object-contain">
       </div>
       <div>
-        <h1 class="text-sm font-bold leading-tight flex items-center gap-1.5">
+        <h1 class="text-xs font-bold leading-tight flex items-center gap-1.5">
           小威同學
-          <span id="turnCounterBadge" class="text-[10px] bg-sky-800 border border-sky-400/60 text-sky-200 px-1.5 py-0.2 rounded">
+          <span id="turnCounterBadge" class="text-[9px] bg-indigo-950 border border-indigo-400/50 text-indigo-200 px-1 py-0.2 rounded">
             追問: 0/5 輪
           </span>
         </h1>
-        <p id="userDeptLabel" class="text-[11px] text-sky-200 truncate max-w-[170px]">未登錄身分</p>
+        <p id="userDeptLabel" class="text-[10px] text-slate-300 truncate max-w-[150px]">未登錄身分</p>
       </div>
     </div>
     <div class="flex items-center space-x-1.5">
-      <span id="kbStatusBadge" class="text-[10px] bg-sky-800 border border-sky-400/50 text-sky-200 px-2 py-0.5 rounded-full">
+      <span id="kbStatusBadge" class="text-[9px] bg-indigo-900 border border-indigo-400/40 text-indigo-200 px-2 py-0.5 rounded-full">
         連線中...
       </span>
-      <button onclick="toggleVoiceOutput()" id="voiceToggleBtn" class="text-xs bg-sky-800 border border-sky-500/50 text-sky-100 px-2.5 py-1 rounded-full">
+      <button onclick="toggleVoiceOutput()" id="voiceToggleBtn" class="text-[10px] bg-indigo-900/80 border border-indigo-400/40 text-indigo-100 px-2 py-1 rounded-full">
         🔊 語音開
       </button>
     </div>
   </header>
 
-  <!-- 4. 中間：對話滾動區 -->
-  <main id="chatArea" class="flex-1 p-3.5 space-y-3.5 overflow-y-auto no-scrollbar"></main>
+  <!-- 4. 中間：對話滾動區 (套用 Welltake.png 浮水印底圖) -->
+  <main id="chatArea" class="flex-1 p-3.5 space-y-3.5 overflow-y-auto no-scrollbar chat-bg"></main>
 
   <!-- 5. 底部輸入控制列 -->
-  <footer class="bg-white border-t border-slate-200 px-3 pt-2 safe-bottom shrink-0">
+  <footer class="bg-white border-t border-slate-200 px-3 pt-2 safe-bottom shrink-0 shadow-lg">
     <!-- 語音聆聽提示條 -->
     <div id="voiceStatusBanner" class="hidden mb-2 p-2 bg-rose-50 border border-rose-200 rounded-lg flex items-center justify-between">
       <div class="flex items-center space-x-2 text-xs text-rose-800">
@@ -135,11 +156,11 @@
 
       <div class="flex-1">
         <input id="userMsgInput" type="text" placeholder="描述故障，例如：印表機無法列印..."
-               class="w-full bg-slate-100 text-slate-800 text-sm rounded-full px-3.5 py-2 border border-slate-200 focus:outline-none">
+               class="w-full bg-slate-100 text-slate-800 text-sm rounded-full px-3.5 py-2 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-600">
       </div>
 
-      <button onclick="handleUserSend()" class="p-2 bg-sky-600 active:bg-sky-700 text-white rounded-full shadow shrink-0">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <button onclick="handleUserSend()" class="p-2 bg-[#131b4d] hover:bg-[#1a2569] active:bg-[#0f153a] text-white rounded-full shadow shrink-0">
+        <svg class="w-5 h-5 fill-none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
         </svg>
       </button>
@@ -147,14 +168,13 @@
   </footer>
 
   <script>
-    // 全域變數
     let currentUser = null;
     let turnCount = 0;
     const MAX_TURNS = 5;
     let isVoiceEnabled = true;
     let knowledgeBase = [];
     let currentMatchedSOP = null;
-    let userOriginalFirstQuery = ""; // 記錄使用者第一次提問內容
+    let userOriginalFirstQuery = "";
 
     // 語音辨識 (STT) 初始化
     let recognition = null;
@@ -210,7 +230,7 @@
       }
     }
 
-    // 語音朗讀合成 (TTS)
+    // 語音合成朗讀 (TTS)
     function speak(text, onComplete = null) {
       if (!isVoiceEnabled || !('speechSynthesis' in window)) {
         if (onComplete) onComplete();
@@ -237,34 +257,28 @@
       }
     }
 
-    // 核心：非同步串接同目錄下的 KB.JSON
+    // 非同步讀取 KB.JSON
     async function loadKnowledgeBase() {
       const badge = document.getElementById('kbStatusBadge');
       try {
-        // 加入時間戳記避免 GitHub Pages 快取舊檔
         const res = await fetch('KB.JSON?t=' + Date.now());
-        if (!res.ok) {
-          throw new Error(`HTTP 錯誤狀態碼: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP 狀態碼: ${res.status}`);
         knowledgeBase = await res.json();
-        console.log("✅ KB.JSON 載入成功，條目數:", knowledgeBase.length);
-        badge.innerText = `已連線 SOP (${knowledgeBase.length})`;
-        badge.className = "text-[10px] bg-emerald-700 border border-emerald-400 text-emerald-100 px-2 py-0.5 rounded-full";
+        badge.innerText = `SOP 就緒 (${knowledgeBase.length})`;
+        badge.className = "text-[9px] bg-emerald-700 border border-emerald-400 text-emerald-100 px-2 py-0.5 rounded-full";
       } catch (err) {
-        console.error("❌ 無法載入 KB.JSON，嘗試讀取 kb.json 備援:", err);
         try {
           const fallbackRes = await fetch('kb.json?t=' + Date.now());
           knowledgeBase = await fallbackRes.json();
-          badge.innerText = `已連線 SOP (${knowledgeBase.length})`;
-          badge.className = "text-[10px] bg-emerald-700 border border-emerald-400 text-emerald-100 px-2 py-0.5 rounded-full";
+          badge.innerText = `SOP 就緒 (${knowledgeBase.length})`;
+          badge.className = "text-[9px] bg-emerald-700 border border-emerald-400 text-emerald-100 px-2 py-0.5 rounded-full";
         } catch (e2) {
-          badge.innerText = "SOP 庫讀取失敗";
-          badge.className = "text-[10px] bg-rose-700 border border-rose-400 text-white px-2 py-0.5 rounded-full";
+          badge.innerText = "SOP 載入失敗";
+          badge.className = "text-[9px] bg-rose-700 border border-rose-400 text-white px-2 py-0.5 rounded-full";
         }
       }
     }
 
-    // 頁面初次載入
     window.onload = () => {
       initSTT();
       loadKnowledgeBase();
@@ -304,7 +318,7 @@
 
     function startApp() {
       document.getElementById('welcomeSplash').classList.add('hidden');
-      const hello = `${currentUser.name} 您好！我是小威。請問今天您的電腦或設備遇到什麼問題呢？請直接說給我聽！`;
+      const hello = `${currentUser.name} 您好！我是威策 IT 智慧助手小威。請問今天您的設備遇到了什麼問題呢？請直接說給我聽！`;
       appendChat('ai', hello);
       speak(hello, () => startListening());
     }
@@ -312,11 +326,10 @@
     function updateTurnUI() {
       document.getElementById('turnCounterBadge').innerText = `追問: ${turnCount}/${MAX_TURNS} 輪`;
       if (turnCount >= MAX_TURNS) {
-        document.getElementById('turnCounterBadge').className = "text-[10px] bg-rose-600 text-white px-1.5 py-0.2 rounded font-bold";
+        document.getElementById('turnCounterBadge').className = "text-[9px] bg-rose-600 text-white px-1 py-0.2 rounded font-bold";
       }
     }
 
-    // 檢索知識庫比對
     function searchKB(queryText) {
       if (!knowledgeBase || knowledgeBase.length === 0) return null;
       const lower = queryText.toLowerCase();
@@ -330,8 +343,7 @@
       const q = input.value.trim();
       if (!q) return;
       input.value = '';
-      
-      // 記錄使用者的最初問題描述
+
       if (!userOriginalFirstQuery) {
         userOriginalFirstQuery = q;
       }
@@ -340,18 +352,15 @@
       turnCount++;
       updateTurnUI();
 
-      // 檢索 KB.JSON
       const matched = searchKB(q);
 
       setTimeout(() => {
-        // 條件 A：達到 5 輪追問上限，強制收斂派工
         if (turnCount >= MAX_TURNS) {
           const limitMsg = `小威已為您進行了 ${MAX_TURNS} 輪前置排查，為避免耽誤您的寶貴時間，現已自動為您建立派工單，工程師將依您的聯絡資訊主動聯繫！`;
           generateTicket(limitMsg, "已達最大排查輪數 (自動升級派工)", userOriginalFirstQuery);
           return;
         }
 
-        // 條件 B：知識庫查無完全相符指引
         if (!matched) {
           const noMatchMsg = "抱歉，在現有 SOP 庫中找不到完全相符的自解方案。為了保障系統安全，小威直接為您派工！";
           generateTicket(noMatchMsg, "SOP 庫無匹配結果", userOriginalFirstQuery);
@@ -360,24 +369,21 @@
 
         currentMatchedSOP = matched;
 
-        // 條件 C：高危損壞 (0 輪追問直接建單)
         if (!matched.allow_self_resolve) {
           generateTicket(matched.safe_steps, "高危險性硬體故障", matched.symptom);
           return;
         }
 
-        // 條件 D：提供初步安全指引
         let imgHtml = '';
         if (matched.image_url) {
           imgHtml = `<div class="mt-2 rounded overflow-hidden border"><img src="${matched.image_url}" class="w-full max-h-40 object-cover"></div>`;
         }
-        const guide = `小威為您找到【${matched.symptom}】的排除步驟：<br><br>${matched.safe_steps}${imgHtml}<br><br>請問照著執行後，問題是否已解決？`;
+        const guide = `小威為您找到【${matched.symptom}】的建議步驟：<br><br>${matched.safe_steps}${imgHtml}<br><br>請問照著執行後，問題是否已解決？`;
         appendChat('ai', guide, true);
         speak(`建議排查步驟：${matched.safe_steps}。請問是否解決？`);
       }, 400);
     }
 
-    // 自動建案生成器 (嚴格套用註冊資訊與使用者提問)
     function generateTicket(aiReplyText, reason, problemDescription) {
       const ticketId = "TCK-" + Date.now().toString().slice(-6);
       appendChat('ai', aiReplyText, false, {
@@ -401,7 +407,7 @@
         appendChat('user', "❌ 嘗試過還是無法解決，請安排工程師！");
         turnCount++;
         updateTurnUI();
-        const msg = "收到，已確認排除無效。小威已將您的單位、聯絡方式與報修問題打包派單，工程師會儘速聯繫！";
+        const msg = "收到，已確認排除無效。小威已將您的單位、聯絡方式與報修問題打包派單，威策維護工程師會儘速聯繫處理！";
         generateTicket(msg, "使用者自力排除未果 (Escalation)", currentMatchedSOP ? currentMatchedSOP.symptom : userOriginalFirstQuery);
       }
     }
@@ -411,7 +417,7 @@
       const box = document.createElement('div');
       if (role === 'user') {
         box.className = "flex justify-end";
-        box.innerHTML = `<div class="bg-sky-600 text-white text-[13px] rounded-2xl rounded-tr-sm p-3 max-w-[85%] leading-relaxed">${text}</div>`;
+        box.innerHTML = `<div class="bubble-user text-[13px] rounded-2xl rounded-tr-sm p-3 max-w-[85%] leading-relaxed shadow-sm">${text}</div>`;
       } else {
         box.className = "flex space-x-2 items-start";
         let btnHtml = '';
@@ -426,7 +432,7 @@
         let ticketHtml = '';
         if (ticket) {
           ticketHtml = `
-            <div class="mt-2.5 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1.5 text-slate-700">
+            <div class="mt-2.5 p-3 bg-slate-50/95 border border-slate-200 rounded-xl text-xs space-y-1.5 text-slate-700 shadow-sm">
               <div class="flex justify-between items-center border-b border-slate-200 pb-1 font-bold text-rose-600">
                 <span>📋 報修案件已建立</span>
                 <span>單號: ${ticket.id}</span>
@@ -434,18 +440,18 @@
               <div><span class="text-slate-400">報修單位：</span><span class="font-medium text-slate-900">${ticket.dept}</span></div>
               <div><span class="text-slate-400">聯絡人員：</span><span class="font-medium text-slate-900">${ticket.user}</span></div>
               <div><span class="text-slate-400">電子信箱：</span><span class="font-medium text-slate-900">${ticket.email}</span></div>
-              <div class="bg-sky-50 text-sky-900 p-2 rounded border border-sky-200 mt-1">
+              <div class="bg-indigo-50 text-indigo-950 p-2 rounded border border-indigo-100 mt-1">
                 <b>報修問題描述：</b><br>${ticket.originalQuery}
               </div>
-              <div class="bg-amber-50 text-amber-800 p-1.5 rounded border border-amber-200">
+              <div class="bg-amber-50 text-amber-900 p-1.5 rounded border border-amber-200">
                 <b>轉派原因：</b>${ticket.reason}
               </div>
             </div>
           `;
         }
         box.innerHTML = `
-          <div class="w-7 h-7 rounded-full bg-sky-600 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">威</div>
-          <div class="bg-white border border-slate-200 text-slate-800 text-[13px] rounded-2xl rounded-tl-sm p-3 max-w-[85%] shadow-sm leading-relaxed">
+          <div class="w-7 h-7 rounded-full bg-[#131b4d] text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 border border-indigo-200 shadow-sm">威</div>
+          <div class="bubble-ai border border-slate-200/80 text-slate-800 text-[13px] rounded-2xl rounded-tl-sm p-3 max-w-[85%] shadow-sm leading-relaxed">
             ${text}${btnHtml}${ticketHtml}
           </div>
         `;
