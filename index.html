@@ -165,6 +165,20 @@
 
     <!-- 2. 使用者介面：小威 5 輪智慧對話排查 (User) -->
     <section id="userSection" class="hidden absolute inset-0 flex flex-col bg-white text-slate-800">
+      
+      <!-- 語音授權啟動覆蓋層 (解鎖瀏覽器 Autoplay 限制) -->
+      <div id="voiceWakeOverlay" class="absolute inset-0 z-30 bg-slate-900/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center text-white">
+        <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-3xl mb-3 shadow-lg shadow-indigo-500/30">
+          🎙️
+        </div>
+        <h2 id="wakeUserName" class="text-lg font-bold mb-1">你好！我是威策 IT 助手小威</h2>
+        <p class="text-xs text-sky-200 mb-6 max-w-xs leading-relaxed">點擊下方按鈕啟動雙向語音與故障排查引導</p>
+        <button onclick="unlockAndStartChat()" class="w-full max-w-xs py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white font-bold text-sm rounded-full shadow-lg transition">
+          🚀 啟動對話排查
+        </button>
+      </div>
+
+      <!-- 頂部排查次數列 -->
       <div class="bg-indigo-900/10 border-b border-indigo-900/20 px-3 py-1.5 flex justify-between items-center text-xs">
         <span class="font-medium text-indigo-950 flex items-center gap-1">
           💬 專屬 IT 智慧排查
@@ -179,7 +193,12 @@
 
       <div id="chatArea" class="flex-1 p-3.5 space-y-3.5 overflow-y-auto chat-bg no-scrollbar"></div>
 
+      <!-- 底部輸入工具列 (新增相機/圖片上傳功能) -->
       <div class="bg-white border-t border-slate-200 px-3 pt-2 safe-bottom shrink-0 shadow-lg">
+        
+        <!-- 隱藏式檔案上傳 Input (支援手機直接拍照或選取照片) -->
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleImageSelected(event)">
+
         <div id="voiceStatusBanner" class="hidden mb-2 p-2 bg-rose-50 border border-rose-200 rounded-lg flex items-center justify-between">
           <div class="flex items-center space-x-2 text-xs text-rose-800">
             <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
@@ -191,16 +210,29 @@
         </div>
 
         <div class="flex items-center space-x-1.5 pb-1">
+          <!-- 📷 拍照 / 圖片上傳按鈕 -->
+          <button onclick="triggerCameraUpload()" class="p-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 rounded-full shrink-0" title="拍照或上傳故障畫面">
+            <svg class="w-5 h-5 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          </button>
+
+          <!-- 語音輸入按鈕 -->
           <button id="micBtn" onclick="toggleListening()" class="p-2.5 text-slate-600 bg-slate-100 active:bg-slate-200 rounded-full shrink-0" title="語音輸入">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
             </svg>
           </button>
+
+          <!-- 文字輸入框 -->
           <div class="flex-1">
-            <input id="userMsgInput" type="text" placeholder="描述故障，例如：印表機無法列印..."
+            <input id="userMsgInput" type="text" placeholder="描述問題或點擊左側拍照上傳..."
                    class="w-full bg-slate-100 text-slate-800 text-sm rounded-full px-3.5 py-2 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-600"
                    onkeypress="if(event.key==='Enter') handleUserSend()">
           </div>
+
+          <!-- 送出按鈕 -->
           <button onclick="handleUserSend()" class="p-2 bg-[#10183d] hover:bg-[#192763] text-white rounded-full shadow shrink-0">
             <svg class="w-5 h-5 fill-none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
@@ -276,9 +308,7 @@
 
   </main>
 
-  <!-- ======================================================== -->
-  <!-- 4. 變更密碼 Modal                                         -->
-  <!-- ======================================================== -->
+  <!-- 4. 變更密碼 Modal -->
   <div id="changePwdModal" class="hidden absolute inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white text-slate-800 w-full max-w-sm rounded-2xl p-5 shadow-2xl border border-slate-200">
       <div class="flex justify-between items-center mb-3 border-b border-slate-200 pb-2">
@@ -308,9 +338,7 @@
     </div>
   </div>
 
-  <!-- ======================================================== -->
-  <!-- 5. 威策電腦叫修表單確認 Modal                             -->
-  <!-- ======================================================== -->
+  <!-- 5. 威策電腦叫修表單確認 Modal -->
   <div id="ticketModal" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
     <div class="bg-white text-slate-900 w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
       <div class="bg-[#10183d] text-white px-4 py-2.5 flex justify-between items-center shrink-0">
@@ -452,7 +480,7 @@
   </div>
 
   <!-- ======================================================== -->
-  <!-- 6. 核心 JavaScript (整合不分大小寫與密碼機制)           -->
+  <!-- 6. 核心 JavaScript                                       -->
   <!-- ======================================================== -->
   <script>
     // 切換頁籤
@@ -497,6 +525,7 @@
     let knowledgeBase = [];
     let currentInquiryLog = [];
     let isVoiceEnabled = true;
+    let uploadedImageBase64 = null; // 暫存上傳的照片
 
     // 語音辨識 (STT) 與朗讀 (TTS)
     let recognition = null;
@@ -519,662 +548,4 @@
         recognition.onresult = (event) => {
           const text = event.results[0][0].transcript;
           if (text) {
-            document.getElementById('userMsgInput').value = text;
-            handleUserSend();
-          }
-        };
-        recognition.onerror = () => stopListening();
-        recognition.onend = () => stopListening();
-      } catch (e) {
-        console.warn("STT 初始化異常:", e);
-      }
-    }
-
-    function startListening() {
-      if (!recognition) return;
-      try { recognition.start(); } catch (e) {}
-    }
-
-    function stopListening() {
-      isListening = false;
-      document.getElementById('voiceStatusBanner').classList.add('hidden');
-      document.getElementById('micBtn').classList.remove('mic-listening');
-      if (recognition) {
-        try { recognition.stop(); } catch(e){}
-      }
-    }
-
-    function toggleListening() {
-      if (isListening) stopListening();
-      else {
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-        startListening();
-      }
-    }
-
-    function speak(text, onComplete = null) {
-      if (!isVoiceEnabled || !('speechSynthesis' in window)) {
-        if (onComplete) onComplete();
-        return;
-      }
-      window.speechSynthesis.cancel();
-      const cleanText = text.replace(/<[^>]*>/g, '').replace(/📷|💻|💡|✅|❌|📋|⚠️/g, '');
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = 'zh-TW';
-      utterance.rate = 1.05;
-      utterance.onend = () => { if (onComplete) onComplete(); };
-      utterance.onerror = () => { if (onComplete) onComplete(); };
-      window.speechSynthesis.speak(utterance);
-    }
-
-    function toggleVoiceOutput() {
-      isVoiceEnabled = !isVoiceEnabled;
-      const btn = document.getElementById('voiceToggleBtn');
-      if (isVoiceEnabled) {
-        btn.innerText = "🔊 語音開";
-      } else {
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-        btn.innerText = "🔇 語音關";
-      }
-    }
-
-    // -------------------------------------------------------------
-    // 登入驗證 (強制不分大小寫 ilike + 密碼比對)
-    // -------------------------------------------------------------
-    async function handleLoginSubmit(e) {
-      e.preventDefault();
-      if (!supabaseClient) {
-        alert("資料庫連線尚未就緒，請稍候重試。");
-        return;
-      }
-
-      // 將輸入的信箱一律轉為純小寫並去除前後空白
-      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-      const inputPwd = document.getElementById('loginPassword').value.trim();
-      const submitBtn = document.getElementById('loginSubmitBtn');
-      submitBtn.innerText = "驗證中...";
-      submitBtn.disabled = true;
-
-      try {
-        // 使用 ilike 確保完全不分大小寫
-        const { data, error } = await supabaseClient
-          .from('profiles')
-          .select('*')
-          .ilike('email', email)
-          .maybeSingle();
-
-        if (error) throw error;
-
-        if (!data) {
-          alert("查無此帳號，請確認信箱是否輸入正確，或切換至「新用戶註冊」進行登記！");
-          return;
-        }
-
-        if (data.status === 'pending') {
-          alert("您的帳號已建立，目前正等待系統管理者審核，審核通過後即可登入！");
-          return;
-        }
-
-        if (data.status === 'rejected') {
-          alert("抱歉，此帳號已被管理者停用或拒絕存取。");
-          return;
-        }
-
-        // 比對密碼 (若資料庫尚無 password 則視為 123456)
-        const dbPassword = data.password || '123456';
-        if (inputPwd !== dbPassword) {
-          alert("❌ 密碼輸入錯誤！新用戶預設密碼為 123456。");
-          return;
-        }
-
-        loginUserSuccess(data);
-      } catch (err) {
-        console.error("登入錯誤:", err);
-        alert("登入驗證失敗：" + (err.message || "請檢查網路"));
-      } finally {
-        submitBtn.innerText = "登入系統";
-        submitBtn.disabled = false;
-      }
-    }
-
-    // -------------------------------------------------------------
-    // 註冊提交 (強制純小寫 email，預設密碼 123456)
-    // -------------------------------------------------------------
-    async function handleRegisterSubmit(e) {
-      e.preventDefault();
-      if (!supabaseClient) {
-        alert("資料庫連線尚未就緒，請稍候重試。");
-        return;
-      }
-
-      const submitBtn = document.getElementById('regSubmitBtn');
-      submitBtn.innerText = "寫入 Supabase 中...";
-      submitBtn.disabled = true;
-
-      const cleanEmail = document.getElementById('regEmail').value.trim().toLowerCase();
-
-      const profilePayload = {
-        company: document.getElementById('regCompany').value.trim(),
-        dept: document.getElementById('regDept').value.trim(),
-        name: document.getElementById('regName').value.trim(),
-        email: cleanEmail,
-        phone: document.getElementById('regPhone').value.trim(),
-        role: 'user',
-        status: 'pending',
-        password: '123456' // 註冊預設密碼
-      };
-
-      try {
-        const { data, error } = await supabaseClient
-          .from('profiles')
-          .insert([profilePayload])
-          .select();
-
-        if (error) throw error;
-
-        document.getElementById('registerForm').reset();
-        document.getElementById('pendingReviewBanner').classList.remove('hidden');
-        alert("✅ 註冊資料已成功送出！預設密碼為 123456，請等待管理者審核開通！");
-      } catch (err) {
-        console.error("註冊失敗:", err);
-        alert("註冊寫入失敗：" + (err.message || "信箱可能已被註冊"));
-      } finally {
-        submitBtn.innerText = "送出註冊 (等待管理者審核)";
-        submitBtn.disabled = false;
-      }
-    }
-
-    function loginUserSuccess(user) {
-      currentUser = user;
-      document.getElementById('authSection').classList.add('hidden');
-      document.getElementById('logoutBtn').classList.remove('hidden');
-      document.getElementById('changePwdBtn').classList.remove('hidden');
-      document.getElementById('userInfoSubtitle').innerText = `${user.company} / ${user.dept} - ${user.name}`;
-
-      const badge = document.getElementById('roleBadge');
-      badge.innerText = user.role === 'admin' ? '管理者' : (user.role === 'engineer' ? '工程師' : '一般使用者');
-      badge.className = user.role === 'admin' ? 'text-[9px] bg-indigo-900 border border-indigo-400 text-indigo-200 px-2 py-0.5 rounded-full' 
-                      : (user.role === 'engineer' ? 'text-[9px] bg-emerald-900 border border-emerald-400 text-emerald-200 px-2 py-0.5 rounded-full'
-                      : 'text-[9px] bg-sky-900 border border-sky-400 text-sky-200 px-2 py-0.5 rounded-full');
-
-      if (user.role === 'admin' || user.role === 'engineer') {
-        document.getElementById('userSection').classList.add('hidden');
-        document.getElementById('managementSection').classList.remove('hidden');
-
-        if (user.role === 'engineer') {
-          document.getElementById('navUsersBtn').classList.add('hidden');
-          switchMgmtTab('kb');
-        } else {
-          document.getElementById('navUsersBtn').classList.remove('hidden');
-          switchMgmtTab('users');
-        }
-        fetchUsersFromSupabase();
-        fetchKbFromSupabase();
-        fetchTicketsFromSupabase();
-      } else {
-        document.getElementById('managementSection').classList.add('hidden');
-        document.getElementById('userSection').classList.remove('hidden');
-        fetchKbFromSupabase();
-        initUserChat();
-      }
-    }
-
-    function handleLogout() {
-      currentUser = null;
-      document.getElementById('authSection').classList.remove('hidden');
-      document.getElementById('userSection').classList.add('hidden');
-      document.getElementById('managementSection').classList.add('hidden');
-      document.getElementById('logoutBtn').classList.add('hidden');
-      document.getElementById('changePwdBtn').classList.add('hidden');
-      document.getElementById('userInfoSubtitle').innerText = "未登入系統";
-      document.getElementById('roleBadge').innerText = "訪客";
-      document.getElementById('roleBadge').className = "text-[9px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full border border-slate-600";
-    }
-
-    // -------------------------------------------------------------
-    // 變更密碼 Modal 控制
-    // -------------------------------------------------------------
-    function openChangePasswordModal() {
-      document.getElementById('newPasswordInput').value = '';
-      document.getElementById('confirmPasswordInput').value = '';
-      document.getElementById('changePwdModal').classList.remove('hidden');
-    }
-
-    function closeChangePasswordModal() {
-      document.getElementById('changePwdModal').classList.add('hidden');
-    }
-
-    async function handleChangePasswordSubmit(e) {
-      e.preventDefault();
-      const p1 = document.getElementById('newPasswordInput').value.trim();
-      const p2 = document.getElementById('confirmPasswordInput').value.trim();
-
-      if (p1 !== p2) {
-        alert("兩次輸入的新密碼不一致，請重新確認！");
-        return;
-      }
-      if (p1.length < 6) {
-        alert("新密碼長度至少需要 6 個字元！");
-        return;
-      }
-
-      const btn = document.getElementById('btnSubmitNewPwd');
-      btn.innerText = "更新中...";
-      btn.disabled = true;
-
-      try {
-        const { error } = await supabaseClient
-          .from('profiles')
-          .update({ password: p1 })
-          .eq('id', currentUser.id);
-
-        if (error) throw error;
-
-        currentUser.password = p1;
-        alert("🎉 密碼變更成功！下次登入請使用新密碼。");
-        closeChangePasswordModal();
-      } catch (err) {
-        alert("變更密碼失敗：" + err.message);
-      } finally {
-        btn.innerText = "確認儲存";
-        btn.disabled = false;
-      }
-    }
-
-    // 後台管理
-    function switchMgmtTab(tab) {
-      ['users', 'kb', 'logs'].forEach(t => {
-        document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.add('hidden');
-        const nav = document.getElementById('nav' + t.charAt(0).toUpperCase() + t.slice(1) + 'Btn');
-        if (nav) nav.className = "py-2.5 text-slate-400 hover:text-white";
-      });
-
-      if (tab === 'users') {
-        document.getElementById('tabUsers').classList.remove('hidden');
-        document.getElementById('navUsersBtn').className = "py-2.5 border-b-2 border-indigo-400 text-indigo-400 font-bold";
-      } else if (tab === 'kb') {
-        document.getElementById('tabKb').classList.remove('hidden');
-        document.getElementById('navKbBtn').className = "py-2.5 border-b-2 border-indigo-400 text-indigo-400 font-bold";
-      } else if (tab === 'logs') {
-        document.getElementById('tabLogs').classList.remove('hidden');
-        document.getElementById('navLogsBtn').className = "py-2.5 border-b-2 border-indigo-400 text-indigo-400 font-bold";
-      }
-    }
-
-    async function fetchUsersFromSupabase() {
-      if (!supabaseClient) return;
-      const tbody = document.getElementById('userTableBody');
-      tbody.innerHTML = '<tr><td colspan="6" class="p-3 text-center text-slate-400">載入帳號清單中...</td></tr>';
-
-      try {
-        const { data, error } = await supabaseClient
-          .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        tbody.innerHTML = '';
-        let pending = 0;
-
-        data.forEach(u => {
-          if (u.status === 'pending') pending++;
-          const tr = document.createElement('tr');
-          tr.className = "hover:bg-slate-700/40";
-          tr.innerHTML = `
-            <td class="p-2.5 font-medium">${u.name} <br><span class="text-slate-400 text-[10px]">${u.company}</span></td>
-            <td class="p-2.5">${u.dept}</td>
-            <td class="p-2.5">${u.email}<br><span class="text-slate-400 text-[10px]">${u.phone}</span></td>
-            <td class="p-2.5">
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${u.status === 'approved' ? 'bg-emerald-900/60 text-emerald-300 border border-emerald-500' : 'bg-amber-900/60 text-amber-300 border border-amber-500'}">
-                ${u.status === 'approved' ? '已核准' : '待審核'}
-              </span>
-            </td>
-            <td class="p-2.5">
-              <select onchange="updateUserRoleInSupabase('${u.id}', this.value)" class="bg-slate-900 border border-slate-600 rounded px-1.5 py-1 text-xs">
-                <option value="user" ${u.role === 'user' ? 'selected' : ''}>一般使用者</option>
-                <option value="engineer" ${u.role === 'engineer' ? 'selected' : ''}>維護工程師</option>
-                <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>系統管理者</option>
-              </select>
-            </td>
-            <td class="p-2.5 text-right">
-              ${u.status === 'pending' ? `<button onclick="approveUserInSupabase('${u.id}', '${u.name}')" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold">通過審核</button>` : `<span class="text-slate-500 text-[11px]">正常</span>`}
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-        document.getElementById('pendingCount').innerText = pending;
-      } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-rose-400">無法讀取 profiles 表：${err.message}</td></tr>`;
-      }
-    }
-
-    async function approveUserInSupabase(id, name) {
-      if (!supabaseClient) return;
-      try {
-        const { error } = await supabaseClient
-          .from('profiles')
-          .update({ status: 'approved', approved_at: new Date().toISOString() })
-          .eq('id', id);
-
-        if (error) throw error;
-        alert(`已核准 [${name}] 的存取權限！`);
-        fetchUsersFromSupabase();
-      } catch (err) {
-        alert("審核失敗：" + err.message);
-      }
-    }
-
-    async function updateUserRoleInSupabase(id, newRole) {
-      if (!supabaseClient) return;
-      try {
-        const { error } = await supabaseClient
-          .from('profiles')
-          .update({ role: newRole })
-          .eq('id', id);
-
-        if (error) throw error;
-        alert("權限調整成功！");
-      } catch (err) {
-        alert("權限修改失敗：" + err.message);
-      }
-    }
-
-    async function fetchKbFromSupabase() {
-      if (!supabaseClient) return;
-      try {
-        const { data, error } = await supabaseClient
-          .from('kb_solutions')
-          .select('*');
-
-        if (error) throw error;
-        knowledgeBase = data || [];
-        document.getElementById('kbCount').innerText = knowledgeBase.length;
-        renderKbList();
-      } catch (err) {
-        console.warn("讀取 kb_solutions 表失敗:", err);
-      }
-    }
-
-    function renderKbList() {
-      const c = document.getElementById('kbListContainer');
-      c.innerHTML = '';
-      knowledgeBase.forEach(k => {
-        const d = document.createElement('div');
-        d.className = "p-3 bg-slate-800 border border-slate-700 rounded-xl space-y-1.5";
-        const kwStr = Array.isArray(k.keywords) ? k.keywords.join(', ') : k.keywords;
-        d.innerHTML = `
-          <div class="flex justify-between items-center">
-            <span class="font-bold text-sky-400">${k.title}</span>
-            <span class="text-[10px] bg-slate-700 px-1.5 py-0.5 rounded text-slate-300">${k.escalate_dept || '硬體維護組'}</span>
-          </div>
-          <p class="text-slate-300 text-[11px] whitespace-pre-line leading-relaxed bg-slate-900/60 p-2 rounded">${k.safe_steps || k.steps}</p>
-          <div class="text-[10px] text-slate-400">關鍵字: ${kwStr}</div>
-        `;
-        c.appendChild(d);
-      });
-    }
-
-    async function promptNewSOP() {
-      if (!supabaseClient) return;
-      const title = prompt("請輸入問題標題：", "印表機卡紙排除");
-      if (!title) return;
-      const steps = prompt("請輸入排除 SOP 指引步驟：", "1. 關閉電源。\n2. 順著滾輪抽出紙張。\n3. 蓋回機蓋開機。");
-      const kw = prompt("請輸入關鍵字（逗號隔開）：", "卡紙, 夾紙");
-
-      const payload = {
-        sop_id: "SOP-" + Date.now().toString().slice(-6),
-        category: "HARDWARE",
-        title: title,
-        keywords: kw ? kw.split(',').map(s => s.trim()) : [title],
-        symptom: title,
-        safe_steps: steps,
-        escalate_dept: "硬體維護組"
-      };
-
-      try {
-        const { error } = await supabaseClient.from('kb_solutions').insert([payload]);
-        if (error) throw error;
-        alert("SOP 已成功寫入 Supabase 知識庫！");
-        fetchKbFromSupabase();
-      } catch (err) {
-        alert("寫入失敗：" + err.message);
-      }
-    }
-
-    async function fetchTicketsFromSupabase() {
-      if (!supabaseClient) return;
-      const c = document.getElementById('ticketsLogContainer');
-      c.innerHTML = '<div class="text-slate-400 p-3">載入工單中...</div>';
-
-      try {
-        const { data, error } = await supabaseClient
-          .from('tickets')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        c.innerHTML = '';
-        if (!data || data.length === 0) {
-          c.innerHTML = '<div class="text-slate-500 p-4 text-center">目前尚無叫修案件紀錄</div>';
-          return;
-        }
-
-        data.forEach(t => {
-          const item = document.createElement('div');
-          item.className = "p-3 bg-slate-800 border border-slate-700 rounded-xl space-y-1";
-          item.innerHTML = `
-            <div class="flex justify-between font-bold text-sky-300">
-              <span>單號：${t.service_id} (${t.company_plant} - ${t.client_name})</span>
-              <span class="text-amber-400 font-mono">${t.status}</span>
-            </div>
-            <div class="text-[11px] text-slate-300"><b>報修問題：</b>${(t.problem_description || '').replace(/\n/g, '<br>')}</div>
-            <div class="text-[10px] text-slate-400 flex justify-between pt-1 border-t border-slate-700/60 mt-1">
-              <span>電話：${t.phone}</span>
-              <span>叫修時間：${t.call_time}</span>
-            </div>
-          `;
-          c.appendChild(item);
-        });
-      } catch (err) {
-        c.innerHTML = `<div class="text-rose-400 p-3">載入 tickets 表失敗：${err.message}</div>`;
-      }
-    }
-
-    // 使用者對話流程
-    function initUserChat() {
-      turnCount = 0;
-      currentInquiryLog = [];
-      updateTurnUI();
-      const hello = `${currentUser.name} 您好！我是威策 IT 智慧助手小威。請問今天您的設備遇到什麼問題呢？請直接說給我聽！`;
-      document.getElementById('chatArea').innerHTML = '';
-      appendUserChat('ai', hello);
-      speak(hello, () => startListening());
-    }
-
-    function updateTurnUI() {
-      const badge = document.getElementById('turnCounterBadge');
-      badge.innerText = `追問: ${turnCount}/${MAX_TURNS} 輪`;
-      if (turnCount >= MAX_TURNS) {
-        badge.className = "text-[10px] bg-rose-600 text-white px-1.5 py-0.2 rounded font-bold font-mono";
-      }
-    }
-
-    function appendUserChat(role, text, showButtons = false) {
-      const area = document.getElementById('chatArea');
-      const box = document.createElement('div');
-      if (role === 'user') {
-        box.className = "flex justify-end";
-        box.innerHTML = `<div class="bg-[#10183d] text-white text-[13px] rounded-2xl rounded-tr-sm p-3 max-w-[85%] leading-relaxed shadow-sm">${text}</div>`;
-      } else {
-        box.className = "flex space-x-2 items-start";
-        let btns = '';
-        if (showButtons) {
-          btns = `
-            <div class="mt-2.5 pt-2 border-t border-slate-100 flex space-x-2">
-              <button onclick="handleResolve(true)" class="flex-1 py-1.5 bg-emerald-600 active:bg-emerald-700 text-white text-xs font-bold rounded shadow-sm">✅ 已解決</button>
-              <button onclick="handleResolve(false)" class="flex-1 py-1.5 bg-rose-600 active:bg-rose-700 text-white text-xs font-bold rounded shadow-sm">❌ 仍未解決，預覽叫修單</button>
-            </div>
-          `;
-        }
-        box.innerHTML = `
-          <div class="w-7 h-7 rounded-full bg-[#10183d] text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 border border-indigo-200">威</div>
-          <div class="bg-white/95 border border-slate-200 text-slate-800 text-[13px] rounded-2xl rounded-tl-sm p-3 max-w-[85%] shadow-sm leading-relaxed backdrop-blur-sm">
-            ${text}${btns}
-          </div>
-        `;
-      }
-      area.appendChild(box);
-      area.scrollTop = area.scrollHeight;
-    }
-
-    function handleUserSend() {
-      const input = document.getElementById('userMsgInput');
-      const q = input.value.trim();
-      if (!q) return;
-      input.value = '';
-
-      appendUserChat('user', q);
-      currentInquiryLog.push(q);
-      turnCount++;
-      updateTurnUI();
-
-      const matched = knowledgeBase.find(k => {
-        const kwList = Array.isArray(k.keywords) ? k.keywords : [k.keywords];
-        return kwList.some(w => q.toLowerCase().includes((w || '').toLowerCase()));
-      });
-
-      setTimeout(() => {
-        if (turnCount >= MAX_TURNS || !matched) {
-          const reason = turnCount >= MAX_TURNS ? "已排查達 5 輪上限" : "SOP 庫無匹配指引";
-          const msg = `小威評估此問題需要工程師現場/遠端協助 (${reason})。已為您整理好【叫修表單】，請點擊下方預覽確認：`;
-          appendUserChat('ai', msg, false);
-          speak(msg);
-          openTicketModalPreview(currentInquiryLog[0] || q);
-          return;
-        }
-
-        if (matched.allow_self_resolve === false) {
-          appendUserChat('ai', matched.safe_steps || matched.steps, false);
-          speak(matched.safe_steps || matched.steps);
-          openTicketModalPreview(currentInquiryLog[0] || q);
-          return;
-        }
-
-        const guide = `小威為您找到【${matched.title}】的建議排查步驟：<br><br>${(matched.safe_steps || matched.steps || '').replace(/\n/g, '<br>')}<br><br>請問照著執行後，問題是否已解決？`;
-        appendUserChat('ai', guide, true);
-        speak(`建議排查步驟：${matched.safe_steps || matched.steps}。請問是否解決？`);
-      }, 400);
-    }
-
-    function handleResolve(isResolved) {
-      if (isResolved) {
-        const msg = "太棒了！很高興能幫上忙 🎉 本次諮詢已歸檔，祝您工作順心！";
-        appendUserChat('ai', msg);
-        speak(msg);
-      } else {
-        const msg = "收到，已確認未能排除。我已自動抓取您的註冊資料填入【叫修表單】，請您檢閱確認無誤後正式送出！";
-        appendUserChat('ai', msg);
-        speak(msg);
-        openTicketModalPreview(currentInquiryLog[0] || "電腦設備故障排查未果");
-      }
-    }
-
-    // 叫修表單確認與寫入
-    function openTicketModalPreview(userProblemQuery) {
-      const now = new Date();
-      const sId = now.getFullYear().toString() + 
-                  String(now.getMonth() + 1).padStart(2, '0') + 
-                  String(now.getDate()).padStart(2, '0') + 
-                  String(now.getHours()).padStart(2, '0') + 
-                  String(now.getMinutes()).padStart(2, '0') + 
-                  String(now.getSeconds()).padStart(2, '0').slice(-2);
-
-      document.getElementById('m_service_id').innerText = sId;
-      document.getElementById('m_client_name').innerText = currentUser.name;
-      document.getElementById('m_phone').value = currentUser.phone;
-      document.getElementById('m_plant').innerText = currentUser.company;
-      document.getElementById('m_dept').value = currentUser.dept;
-      document.getElementById('m_email').innerText = currentUser.email;
-      document.getElementById('m_call_time').innerText = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-
-      const problemFullText = `委辦事項：電腦故障報修\n使用者問題描述：${userProblemQuery}\nAI 前置診斷：經小威引導多輪排除未果，轉派外派工程師現場處理。`;
-      document.getElementById('m_problem').value = problemFullText;
-
-      document.getElementById('ticketModal').classList.remove('hidden');
-    }
-
-    function closeTicketModal() {
-      document.getElementById('ticketModal').classList.add('hidden');
-    }
-
-    async function confirmSubmitTicket() {
-      if (!supabaseClient) {
-        alert("資料庫連線尚未就緒。");
-        return;
-      }
-
-      const confirmBtn = document.getElementById('btnConfirmTicket');
-      confirmBtn.innerText = "寫入 Supabase 中...";
-      confirmBtn.disabled = true;
-
-      const ticketPayload = {
-        service_id: document.getElementById('m_service_id').innerText,
-        user_id: currentUser.id,
-        client_name: currentUser.name,
-        phone: document.getElementById('m_phone').value,
-        company_plant: currentUser.company,
-        department: document.getElementById('m_dept').value,
-        location: document.getElementById('m_location').value || "辦公室",
-        bu: document.getElementById('m_bu').value || "資訊部",
-        cost_center: document.getElementById('m_cost_center').value || "",
-        email: currentUser.email,
-        address: document.getElementById('m_address').value,
-        device_model: document.getElementById('m_model').value || "一般主機",
-        device_sn: document.getElementById('m_sn').value || "",
-        call_time: document.getElementById('m_call_time').innerText,
-        problem_description: document.getElementById('m_problem').value,
-        solution: document.getElementById('m_solution').value || "",
-        dispatch_type: "外派案件",
-        status: "叫修資料確認",
-        engineer: "Jady.Lin (指派中)",
-        urgency: "一般"
-      };
-
-      try {
-        const { data, error } = await supabaseClient
-          .from('tickets')
-          .insert([ticketPayload])
-          .select();
-
-        if (error) throw error;
-
-        closeTicketModal();
-        const successMsg = `🎉 <b>叫修單已成功寫入 Supabase SAGE 專案！</b><br>服務編號：<span class="font-mono text-indigo-900 font-bold">${ticketPayload.service_id}</span><br>威策維護工程師已接收通知，將依登記電話主動聯繫您！`;
-        appendUserChat('ai', successMsg);
-        speak("叫修單已成功建立，工程師已接收通知，將儘速聯繫您！");
-      } catch (err) {
-        console.error("建單錯誤:", err);
-        alert("工單寫入 Supabase 失敗：" + err.message);
-      } finally {
-        confirmBtn.innerText = "✅ 確認無誤，寫入 Supabase 建案";
-        confirmBtn.disabled = false;
-      }
-    }
-
-    // 啟動監聽
-    window.addEventListener('DOMContentLoaded', () => {
-      initSTT();
-
-      const btnLogin = document.getElementById('tabLoginBtn');
-      const btnRegister = document.getElementById('tabRegisterBtn');
-
-      if (btnLogin) {
-        btnLogin.addEventListener('click', () => window.switchAuthTab('login'));
-      }
-      if (btnRegister) {
-        btnRegister.addEventListener('click', () => window.switchAuthTab('register'));
-      }
-    });
-  </script>
-</body>
-</html>
+            document.getElementById('user
