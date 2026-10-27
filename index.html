@@ -5,14 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>威策電腦 - IT 智慧服務台與案件管理系統</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Supabase 官方 JavaScript 客戶端 SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Supabase UMD 客戶端 SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
     body {
       font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
       -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
     }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -27,7 +26,7 @@
       background-size: contain;
     }
 
-    /* 叫修單 1:1 仿實體表格樣式 */
+    /* 叫修單 1:1 實體表格樣式 */
     .ticket-table td, .ticket-table th {
       border: 1px solid #475569;
       padding: 4px 6px;
@@ -40,7 +39,6 @@
       font-weight: 600;
     }
 
-    /* 麥克風呼吸燈動畫 */
     @keyframes micPulse {
       0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
       70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
@@ -55,9 +53,7 @@
 </head>
 <body class="bg-slate-900 text-slate-100 h-screen w-screen flex flex-col overflow-hidden relative">
 
-  <!-- ======================================================== -->
-  <!-- 頂部通用導覽列                                           -->
-  <!-- ======================================================== -->
+  <!-- 頂部導覽列 -->
   <header class="bg-[#10183d] border-b border-indigo-950 px-3.5 py-2.5 flex items-center justify-between shrink-0 shadow-md">
     <div class="flex items-center space-x-2.5">
       <div class="bg-white px-2 py-1 rounded shadow-inner flex items-center justify-center">
@@ -65,17 +61,16 @@
       </div>
       <div>
         <h1 class="text-xs font-bold tracking-wide text-white flex items-center gap-1.5">
-          IT 智慧維護管理系統
+          IT 智慧維護管理系統 (SAGE)
           <span id="roleBadge" class="text-[9px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full border border-slate-600">訪客</span>
         </h1>
         <p id="userInfoSubtitle" class="text-[10px] text-slate-300">未登入系統</p>
       </div>
     </div>
 
-    <!-- 狀態標籤與登出按鈕 -->
     <div class="flex items-center space-x-2">
       <span id="supabaseStatusBadge" class="text-[9px] bg-emerald-950 text-emerald-300 border border-emerald-600/50 px-2 py-0.5 rounded-full">
-        ● Supabase 連線中
+        ● SAGE 專案就緒
       </span>
       <button id="logoutBtn" onclick="handleLogout()" class="hidden px-2.5 py-1 bg-rose-600/80 hover:bg-rose-600 rounded text-white text-xs font-medium transition">
         登出
@@ -83,12 +78,10 @@
     </div>
   </header>
 
-  <!-- ======================================================== -->
-  <!-- 主內容工作區                                             -->
-  <!-- ======================================================== -->
+  <!-- 主內容工作區 -->
   <main class="flex-1 overflow-hidden relative">
 
-    <!-- 1. 訪客介面：登入 / 註冊視窗 (修復點擊切換問題) -->
+    <!-- 1. 訪客介面：登入 / 註冊視窗 -->
     <section id="authSection" class="absolute inset-0 flex items-center justify-center p-4 bg-slate-950 overflow-y-auto z-40">
       <div class="bg-white text-slate-800 w-full max-w-sm rounded-2xl p-5 shadow-2xl border border-slate-200">
         <div class="text-center mb-4">
@@ -96,12 +89,12 @@
           <p class="text-[11px] text-slate-500 mt-0.5">請登入帳號以進行障礙引導或管理作業</p>
         </div>
 
-        <!-- 登入 / 註冊 頁籤切換 (明確加入 type="button" 與自定義樣式，避免被 form 阻擋) -->
+        <!-- 頁籤切換 -->
         <div class="flex border-b border-slate-200 mb-3 text-xs font-bold">
-          <button type="button" id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 py-2 border-b-2 border-indigo-600 text-indigo-600 cursor-pointer select-none">
+          <button type="button" id="tabLoginBtn" class="flex-1 py-2 border-b-2 border-indigo-600 text-indigo-600 cursor-pointer select-none">
             帳號登入
           </button>
-          <button type="button" id="tabRegisterBtn" onclick="switchAuthTab('register')" class="flex-1 py-2 border-b-2 border-transparent text-slate-400 cursor-pointer select-none">
+          <button type="button" id="tabRegisterBtn" class="flex-1 py-2 border-b-2 border-transparent text-slate-400 cursor-pointer select-none">
             新用戶註冊
           </button>
         </div>
@@ -110,11 +103,11 @@
         <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-3 text-xs" style="display: block;">
           <div>
             <label class="block font-medium mb-1">電子信箱 (帳號) <span class="text-rose-500">*</span></label>
-            <input type="email" id="loginEmail" required placeholder="user@company.com"
+            <input type="email" id="loginEmail" required placeholder="user@company.com" value="admin@welltake.com.tw"
                    class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-600">
           </div>
           <div>
-            <label class="block font-medium mb-1">密碼 (測試階段可填任一密碼)</label>
+            <label class="block font-medium mb-1">密碼</label>
             <input type="password" id="loginPassword" placeholder="••••••••" value="123456"
                    class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-600">
           </div>
@@ -123,7 +116,7 @@
           </button>
         </form>
 
-        <!-- 註冊表單 (依順序：服務公司、科室單位、姓名、電子信箱、聯絡電話/分機) -->
+        <!-- 註冊表單 -->
         <form id="registerForm" onsubmit="handleRegisterSubmit(event)" class="space-y-2 text-xs" style="display: none;">
           <div>
             <label class="block font-medium text-slate-700">1. 服務公司 / 廠別 <span class="text-rose-500">*</span></label>
@@ -155,7 +148,6 @@
           </button>
         </form>
 
-        <!-- 審核狀態提示 -->
         <div id="pendingReviewBanner" class="hidden mt-3 p-3 bg-amber-50 border border-amber-300 text-amber-900 rounded-xl text-xs leading-relaxed">
           <b>⏳ 帳號審核中：</b><br>
           已將註冊資訊寫入 Supabase 並送交系統管理者審核，開通權限後即可登入！
@@ -177,10 +169,8 @@
         </button>
       </div>
 
-      <!-- 對話串流區 -->
       <div id="chatArea" class="flex-1 p-3.5 space-y-3.5 overflow-y-auto chat-bg no-scrollbar"></div>
 
-      <!-- 輸入工具列 -->
       <div class="bg-white border-t border-slate-200 px-3 pt-2 safe-bottom shrink-0 shadow-lg">
         <div id="voiceStatusBanner" class="hidden mb-2 p-2 bg-rose-50 border border-rose-200 rounded-lg flex items-center justify-between">
           <div class="flex items-center space-x-2 text-xs text-rose-800">
@@ -227,7 +217,7 @@
       </nav>
 
       <div class="flex-1 p-4 overflow-y-auto text-xs text-slate-200">
-        <!-- 分頁 A: 帳號權限審核 (管理者可見) -->
+        <!-- 分頁 A: 帳號審核 -->
         <div id="tabUsers" class="space-y-3">
           <div class="flex justify-between items-center">
             <h3 class="text-sm font-bold text-white">Supabase 使用者帳號審核與權限設定</h3>
@@ -252,7 +242,7 @@
           </div>
         </div>
 
-        <!-- 分頁 B: SOP 知識庫管理 (管理者 & 工程師可見) -->
+        <!-- 分頁 B: SOP 知識庫維護 -->
         <div id="tabKb" class="hidden space-y-3">
           <div class="flex justify-between items-center">
             <h3 class="text-sm font-bold text-white">SOP 知識庫 (同步 Supabase `kb_solutions` 表)</h3>
@@ -263,7 +253,7 @@
           <div id="kbListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         </div>
 
-        <!-- 分頁 C: 工單記錄 (管理者 & 工程師可見) -->
+        <!-- 分頁 C: 工單記錄 -->
         <div id="tabLogs" class="hidden space-y-3">
           <div class="flex justify-between items-center">
             <h3 class="text-sm font-bold text-white">報修案件與 Log (同步 Supabase `tickets` 表)</h3>
@@ -278,9 +268,7 @@
 
   </main>
 
-  <!-- ======================================================== -->
-  <!-- 4. 威策電腦叫修表單確認 Modal (1:1 對照送出至 Supabase)  -->
-  <!-- ======================================================== -->
+  <!-- 4. 威策電腦叫修表單確認 Modal -->
   <div id="ticketModal" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
     <div class="bg-white text-slate-900 w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
       <div class="bg-[#10183d] text-white px-4 py-2.5 flex justify-between items-center shrink-0">
@@ -291,7 +279,6 @@
         <button onclick="closeTicketModal()" class="text-slate-400 hover:text-white text-base">✕</button>
       </div>
 
-      <!-- 表單預覽內容 -->
       <div class="p-4 overflow-y-auto flex-1 text-slate-800">
         <table class="w-full ticket-table border-collapse border border-slate-700">
           <tbody>
@@ -422,18 +409,44 @@
     </div>
   </div>
 
-  <!-- ======================================================== -->
-  <!-- 5. 核心 JavaScript：Supabase API 整合與排查邏輯           -->
-  <!-- ======================================================== -->
+  <!-- 5. 核心 JavaScript (綁定新專案 SAGE) -->
   <script>
-    // -------------------------------------------------------------
-    // A. 初始化 Supabase 客戶端連線
-    // -------------------------------------------------------------
-    const SUPABASE_URL = 'https://obscgrpdjesmrqjgjcxp.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_Kr5h9hGa-mI9Q4h8nxnS6w_gMZLzN4F';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // 定義切換頁籤函式
+    window.switchAuthTab = function(tab) {
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const tabLoginBtn = document.getElementById('tabLoginBtn');
+      const tabRegisterBtn = document.getElementById('tabRegisterBtn');
+      const reviewBanner = document.getElementById('pendingReviewBanner');
 
-    // 系統運作狀態
+      if (reviewBanner) reviewBanner.classList.add('hidden');
+
+      if (tab === 'login') {
+        if (loginForm) loginForm.style.display = 'block';
+        if (registerForm) registerForm.style.display = 'none';
+        if (tabLoginBtn) tabLoginBtn.className = "flex-1 py-2 border-b-2 border-indigo-600 text-indigo-600 font-bold cursor-pointer select-none";
+        if (tabRegisterBtn) tabRegisterBtn.className = "flex-1 py-2 border-b-2 border-transparent text-slate-400 cursor-pointer select-none";
+      } else {
+        if (loginForm) loginForm.style.display = 'none';
+        if (registerForm) registerForm.style.display = 'block';
+        if (tabLoginBtn) tabLoginBtn.className = "flex-1 py-2 border-b-2 border-transparent text-slate-400 cursor-pointer select-none";
+        if (tabRegisterBtn) tabRegisterBtn.className = "flex-1 py-2 border-b-2 border-sky-600 text-sky-600 font-bold cursor-pointer select-none";
+      }
+    };
+
+    // 配置新 SAGE 專案金鑰與端點
+    const SUPABASE_URL = 'https://tgvuxmlkbhnnjsyajjow.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_EE0J2uwbUorM9ywIXsbjdw_usVeipmc';
+    let supabaseClient = null;
+
+    try {
+      if (window.supabase && typeof window.supabase.createClient === 'function') {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+    } catch (e) {
+      console.error("Supabase Client 初始化異常:", e);
+    }
+
     let currentUser = null;
     let turnCount = 0;
     const MAX_TURNS = 5;
@@ -441,9 +454,7 @@
     let currentInquiryLog = [];
     let isVoiceEnabled = true;
 
-    // -------------------------------------------------------------
-    // B. 語音辨識 (STT) 與朗讀 (TTS)
-    // -------------------------------------------------------------
+    // 語音辨識 (STT) 與朗讀 (TTS)
     let recognition = null;
     let isListening = false;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -523,43 +534,21 @@
       }
     }
 
-    // -------------------------------------------------------------
-    // C. 使用者登入、註冊與審核 (修復切換事件)
-    // -------------------------------------------------------------
-    function switchAuthTab(tab) {
-      const loginForm = document.getElementById('loginForm');
-      const registerForm = document.getElementById('registerForm');
-      const tabLoginBtn = document.getElementById('tabLoginBtn');
-      const tabRegisterBtn = document.getElementById('tabRegisterBtn');
-      const reviewBanner = document.getElementById('pendingReviewBanner');
-
-      if (reviewBanner) reviewBanner.classList.add('hidden');
-
-      if (tab === 'login') {
-        loginForm.style.display = 'block';
-        registerForm.style.display = 'none';
-
-        tabLoginBtn.className = "flex-1 py-2 border-b-2 border-indigo-600 text-indigo-600 font-bold cursor-pointer select-none";
-        tabRegisterBtn.className = "flex-1 py-2 border-b-2 border-transparent text-slate-400 cursor-pointer select-none";
-      } else {
-        loginForm.style.display = 'none';
-        registerForm.style.display = 'block';
-
-        tabLoginBtn.className = "flex-1 py-2 border-b-2 border-transparent text-slate-400 cursor-pointer select-none";
-        tabRegisterBtn.className = "flex-1 py-2 border-b-2 border-sky-600 text-sky-600 font-bold cursor-pointer select-none";
-      }
-    }
-
-    // 登入驗證
+    // 登入與註冊
     async function handleLoginSubmit(e) {
       e.preventDefault();
+      if (!supabaseClient) {
+        alert("資料庫連線尚未就緒，請檢查網路連線。");
+        return;
+      }
+
       const email = document.getElementById('loginEmail').value.trim();
       const submitBtn = document.getElementById('loginSubmitBtn');
       submitBtn.innerText = "驗證中...";
       submitBtn.disabled = true;
 
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from('profiles')
           .select('*')
           .eq('email', email)
@@ -582,20 +571,23 @@
           return;
         }
 
-        // 登入成功
         loginUserSuccess(data);
       } catch (err) {
         console.error("登入錯誤:", err);
-        alert("連線驗證失敗：" + (err.message || "請檢查網路或 Supabase 表設定"));
+        alert("登入驗證失敗：" + (err.message || "請檢查 profiles 表結構"));
       } finally {
         submitBtn.innerText = "登入系統";
         submitBtn.disabled = false;
       }
     }
 
-    // 註冊提交
     async function handleRegisterSubmit(e) {
       e.preventDefault();
+      if (!supabaseClient) {
+        alert("資料庫連線尚未就緒，請檢查網路連線。");
+        return;
+      }
+
       const submitBtn = document.getElementById('regSubmitBtn');
       submitBtn.innerText = "寫入 Supabase 中...";
       submitBtn.disabled = true;
@@ -607,11 +599,11 @@
         email: document.getElementById('regEmail').value.trim(),
         phone: document.getElementById('regPhone').value.trim(),
         role: 'user',
-        status: 'pending' // 預設需審核
+        status: 'pending'
       };
 
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from('profiles')
           .insert([profilePayload])
           .select();
@@ -620,10 +612,10 @@
 
         document.getElementById('registerForm').reset();
         document.getElementById('pendingReviewBanner').classList.remove('hidden');
-        alert("✅ 註冊資料已成功寫入 Supabase！系統已發送審核通知給管理者，請待開通！");
+        alert("✅ 註冊資料已成功寫入 Supabase SAGE 專案！請等待管理者開通權限！");
       } catch (err) {
         console.error("註冊失敗:", err);
-        alert("註冊寫入失敗：" + (err.message || "請確認 profiles 表已建立且 RLS 開放寫入"));
+        alert("註冊寫入失敗：" + (err.message || "請確認 profiles 表已建立且 RLS 已開放"));
       } finally {
         submitBtn.innerText = "送出註冊 (等待管理者審核)";
         submitBtn.disabled = false;
@@ -642,7 +634,6 @@
                       : (user.role === 'engineer' ? 'text-[9px] bg-emerald-900 border border-emerald-400 text-emerald-200 px-2 py-0.5 rounded-full'
                       : 'text-[9px] bg-sky-900 border border-sky-400 text-sky-200 px-2 py-0.5 rounded-full');
 
-      // 依身分權限顯示介面
       if (user.role === 'admin' || user.role === 'engineer') {
         document.getElementById('userSection').classList.add('hidden');
         document.getElementById('managementSection').classList.remove('hidden');
@@ -658,7 +649,6 @@
         fetchKbFromSupabase();
         fetchTicketsFromSupabase();
       } else {
-        // 使用者介面：進入小威智慧對話
         document.getElementById('managementSection').classList.add('hidden');
         document.getElementById('userSection').classList.remove('hidden');
         fetchKbFromSupabase();
@@ -677,9 +667,7 @@
       document.getElementById('roleBadge').className = "text-[9px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full border border-slate-600";
     }
 
-    // -------------------------------------------------------------
-    // D. 後台資料庫讀取與管理 (Admin / Engineer)
-    // -------------------------------------------------------------
+    // 後台管理
     function switchMgmtTab(tab) {
       ['users', 'kb', 'logs'].forEach(t => {
         document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.add('hidden');
@@ -699,13 +687,13 @@
       }
     }
 
-    // 從 Supabase 取得使用者列表並審核
     async function fetchUsersFromSupabase() {
+      if (!supabaseClient) return;
       const tbody = document.getElementById('userTableBody');
       tbody.innerHTML = '<tr><td colspan="6" class="p-3 text-center text-slate-400">載入帳號清單中...</td></tr>';
 
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from('profiles')
           .select('*')
           .order('created_at', { ascending: false });
@@ -747,8 +735,9 @@
     }
 
     async function approveUserInSupabase(id, name) {
+      if (!supabaseClient) return;
       try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from('profiles')
           .update({ status: 'approved', approved_at: new Date().toISOString() })
           .eq('id', id);
@@ -762,8 +751,9 @@
     }
 
     async function updateUserRoleInSupabase(id, newRole) {
+      if (!supabaseClient) return;
       try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from('profiles')
           .update({ role: newRole })
           .eq('id', id);
@@ -775,10 +765,10 @@
       }
     }
 
-    // 從 Supabase 取得 SOP 知識庫
     async function fetchKbFromSupabase() {
+      if (!supabaseClient) return;
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from('kb_solutions')
           .select('*');
 
@@ -787,13 +777,7 @@
         document.getElementById('kbCount').innerText = knowledgeBase.length;
         renderKbList();
       } catch (err) {
-        console.warn("讀取 kb_solutions 表失敗，嘗試載入本地備援 KB.JSON:", err);
-        try {
-          const res = await fetch('KB.JSON?t=' + Date.now());
-          knowledgeBase = await res.json();
-          document.getElementById('kbCount').innerText = knowledgeBase.length;
-          renderKbList();
-        } catch(e) {}
+        console.warn("讀取 kb_solutions 表失敗:", err);
       }
     }
 
@@ -817,6 +801,7 @@
     }
 
     async function promptNewSOP() {
+      if (!supabaseClient) return;
       const title = prompt("請輸入問題標題：", "印表機卡紙排除");
       if (!title) return;
       const steps = prompt("請輸入排除 SOP 指引步驟：", "1. 關閉電源。\n2. 順著滾輪抽出紙張。\n3. 蓋回機蓋開機。");
@@ -833,7 +818,7 @@
       };
 
       try {
-        const { error } = await supabase.from('kb_solutions').insert([payload]);
+        const { error } = await supabaseClient.from('kb_solutions').insert([payload]);
         if (error) throw error;
         alert("SOP 已成功寫入 Supabase 知識庫！");
         fetchKbFromSupabase();
@@ -842,13 +827,13 @@
       }
     }
 
-    // 從 Supabase 取得工單紀錄
     async function fetchTicketsFromSupabase() {
+      if (!supabaseClient) return;
       const c = document.getElementById('ticketsLogContainer');
       c.innerHTML = '<div class="text-slate-400 p-3">載入工單中...</div>';
 
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from('tickets')
           .select('*')
           .order('created_at', { ascending: false });
@@ -881,9 +866,7 @@
       }
     }
 
-    // -------------------------------------------------------------
-    // E. 使用者小威 5 輪對話排查流程 (User Flow)
-    // -------------------------------------------------------------
+    // 使用者對話流程
     function initUserChat() {
       turnCount = 0;
       currentInquiryLog = [];
@@ -941,14 +924,12 @@
       turnCount++;
       updateTurnUI();
 
-      // 檢索知識庫關鍵字
       const matched = knowledgeBase.find(k => {
         const kwList = Array.isArray(k.keywords) ? k.keywords : [k.keywords];
         return kwList.some(w => q.toLowerCase().includes((w || '').toLowerCase()));
       });
 
       setTimeout(() => {
-        // 達到 5 輪上限或知識庫無相符條目，引導建立工單
         if (turnCount >= MAX_TURNS || !matched) {
           const reason = turnCount >= MAX_TURNS ? "已排查達 5 輪上限" : "SOP 庫無匹配指引";
           const msg = `小威評估此問題需要工程師現場/遠端協助 (${reason})。已為您整理好【叫修表單】，請點擊下方預覽確認：`;
@@ -958,7 +939,6 @@
           return;
         }
 
-        // 高危直接派單
         if (matched.allow_self_resolve === false) {
           appendUserChat('ai', matched.safe_steps || matched.steps, false);
           speak(matched.safe_steps || matched.steps);
@@ -966,7 +946,6 @@
           return;
         }
 
-        // 匹配成功提供步驟
         const guide = `小威為您找到【${matched.title}】的建議排查步驟：<br><br>${(matched.safe_steps || matched.steps || '').replace(/\n/g, '<br>')}<br><br>請問照著執行後，問題是否已解決？`;
         appendUserChat('ai', guide, true);
         speak(`建議排查步驟：${matched.safe_steps || matched.steps}。請問是否解決？`);
@@ -986,9 +965,7 @@
       }
     }
 
-    // -------------------------------------------------------------
-    // F. 1:1 叫修表單預覽確認與寫入 Supabase (Ticket Modal)
-    // -------------------------------------------------------------
+    // 叫修表單確認與寫入
     function openTicketModalPreview(userProblemQuery) {
       const now = new Date();
       const sId = now.getFullYear().toString() + 
@@ -998,7 +975,6 @@
                   String(now.getMinutes()).padStart(2, '0') + 
                   String(now.getSeconds()).padStart(2, '0').slice(-2);
 
-      // 自動套用使用者註冊資料
       document.getElementById('m_service_id').innerText = sId;
       document.getElementById('m_client_name').innerText = currentUser.name;
       document.getElementById('m_phone').value = currentUser.phone;
@@ -1007,7 +983,6 @@
       document.getElementById('m_email').innerText = currentUser.email;
       document.getElementById('m_call_time').innerText = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
-      // 自動套用使用者提問內容
       const problemFullText = `委辦事項：電腦故障報修\n使用者問題描述：${userProblemQuery}\nAI 前置診斷：經小威引導多輪排除未果，轉派外派工程師現場處理。`;
       document.getElementById('m_problem').value = problemFullText;
 
@@ -1019,6 +994,11 @@
     }
 
     async function confirmSubmitTicket() {
+      if (!supabaseClient) {
+        alert("資料庫連線尚未就緒。");
+        return;
+      }
+
       const confirmBtn = document.getElementById('btnConfirmTicket');
       confirmBtn.innerText = "寫入 Supabase 中...";
       confirmBtn.disabled = true;
@@ -1047,7 +1027,7 @@
       };
 
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from('tickets')
           .insert([ticketPayload])
           .select();
@@ -1055,7 +1035,7 @@
         if (error) throw error;
 
         closeTicketModal();
-        const successMsg = `🎉 <b>叫修單已成功寫入 Supabase 資料庫！</b><br>服務編號：<span class="font-mono text-indigo-900 font-bold">${ticketPayload.service_id}</span><br>威策維護工程師已接收通知，將依登記電話主動聯繫您！`;
+        const successMsg = `🎉 <b>叫修單已成功寫入 Supabase SAGE 專案！</b><br>服務編號：<span class="font-mono text-indigo-900 font-bold">${ticketPayload.service_id}</span><br>威策維護工程師已接收通知，將依登記電話主動聯繫您！`;
         appendUserChat('ai', successMsg);
         speak("叫修單已成功建立，工程師已接收通知，將儘速聯繫您！");
       } catch (err) {
@@ -1067,10 +1047,20 @@
       }
     }
 
-    // 初始化啟動
-    window.onload = () => {
+    // 啟動監聽
+    window.addEventListener('DOMContentLoaded', () => {
       initSTT();
-    };
+
+      const btnLogin = document.getElementById('tabLoginBtn');
+      const btnRegister = document.getElementById('tabRegisterBtn');
+
+      if (btnLogin) {
+        btnLogin.addEventListener('click', () => window.switchAuthTab('login'));
+      }
+      if (btnRegister) {
+        btnRegister.addEventListener('click', () => window.switchAuthTab('register'));
+      }
+    });
   </script>
 </body>
 </html>
