@@ -251,6 +251,7 @@
       </nav>
 
       <div class="flex-1 p-4 overflow-y-auto text-xs text-slate-200">
+        <!-- 分頁 A: 帳號審核 -->
         <div id="tabUsers" class="space-y-3">
           <div class="flex justify-between items-center">
             <h3 class="text-sm font-bold text-white">使用者帳號審核與權限設定</h3>
@@ -275,16 +276,29 @@
           </div>
         </div>
 
+        <!-- 分頁 B: SOP 知識庫維護 (新增批次匯入 JSON 按鈕) -->
         <div id="tabKb" class="hidden space-y-3">
-          <div class="flex justify-between items-center">
-            <h3 class="text-sm font-bold text-white">SOP 知識庫</h3>
-            <button onclick="promptNewSOP()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold shadow">
-              + 新增 SOP
-            </button>
+          <div class="flex flex-wrap justify-between items-center gap-2">
+            <h3 class="text-sm font-bold text-white">SOP 知識庫 (同步 Supabase `kb_solutions` 表)</h3>
+            <div class="flex items-center space-x-2">
+              <!-- 隱藏的檔案上傳輸入框 -->
+              <input type="file" id="kbJsonFileInput" accept=".json" class="hidden" onchange="handleBatchJsonUpload(event)">
+              
+              <!-- 批次匯入 JSON 按鈕 -->
+              <button onclick="document.getElementById('kbJsonFileInput').click()" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded font-bold shadow flex items-center gap-1">
+                <span>📂</span> 批次匯入 JSON 檔
+              </button>
+              
+              <!-- 新增單筆 SOP 按鈕 -->
+              <button onclick="promptNewSOP()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded font-bold shadow">
+                + 新增單筆 SOP
+              </button>
+            </div>
           </div>
           <div id="kbListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         </div>
 
+        <!-- 分頁 C: 工單記錄 -->
         <div id="tabLogs" class="hidden space-y-3">
           <div class="flex justify-between items-center">
             <h3 class="text-sm font-bold text-white">報修案件與 Log</h3>
@@ -471,7 +485,7 @@
   </div>
 
   <!-- ======================================================== -->
-  <!-- 6. 核心 JavaScript (具備精準除錯提示)                     -->
+  <!-- 6. 核心 JavaScript                                       -->
   <!-- ======================================================== -->
   <script>
     window.switchAuthTab = function(tab) {
@@ -496,7 +510,7 @@
       }
     };
 
-    // 配置專案金鑰 (若專案有 anon public key 請填入此處)
+    // 配置專案金鑰
     const SUPABASE_URL = 'https://tgvuxmlkbhnnjsyajjow.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_EE0J2uwbUorM9ywIXsbjdw_usVeipmc';
     let supabaseClient = null;
@@ -638,9 +652,7 @@
       reader.readAsDataURL(file);
     }
 
-    // -------------------------------------------------------------
-    // 登入驗證 (含明確錯誤提示)
-    // -------------------------------------------------------------
+    // 登入驗證
     async function handleLoginSubmit(e) {
       e.preventDefault();
       if (!supabaseClient) {
@@ -662,20 +674,19 @@
           .maybeSingle();
 
         if (error) {
-          // 常見錯誤詳細提示
           if (error.message.includes('relation "public.profiles" does not exist')) {
             alert("❌ 資料庫錯誤：未在 Supabase 找到 profiles 資料表！\n請先前往 Supabase SQL Editor 執行建立資料表的語法。");
             return;
           }
           if (error.message.includes('API key') || error.message.includes('JWT') || error.code === '401') {
-            alert("❌ 金鑰錯誤 (401)：當前使用的 Publishable Key 可能不支援資料庫查詢。\n請前往 Supabase 後台 Project Settings -> API，複製「anon public」金鑰（以 eyJ 開頭）替換。");
+            alert("❌ 金鑰錯誤 (401)：請確認使用有效之 anon public key。");
             return;
           }
           throw error;
         }
 
         if (!data) {
-          alert(`❌ 查無此帳號：[${email}]\n如果您剛換了新專案，舊帳號不會自動保留，請點選「新用戶註冊」重新登記！\n(管理者預設帳號：admin@welltake.com.tw)`);
+          alert(`❌ 查無此帳號：[${email}]\n請點選「新用戶註冊」進行登記！\n(管理者預設帳號：admin@welltake.com.tw)`);
           return;
         }
 
@@ -955,7 +966,8 @@
       try {
         const { data, error } = await supabaseClient
           .from('kb_solutions')
-          .select('*');
+          .select('*')
+          .order('sop_id', { ascending: true });
 
         if (error) throw error;
         knowledgeBase = data || [];
@@ -975,7 +987,7 @@
         const kwStr = Array.isArray(k.keywords) ? k.keywords.join(', ') : k.keywords;
         d.innerHTML = `
           <div class="flex justify-between items-center">
-            <span class="font-bold text-sky-400">${k.title}</span>
+            <span class="font-bold text-sky-400">${k.sop_id ? `[${k.sop_id}] ` : ''}${k.title}</span>
             <span class="text-[10px] bg-slate-700 px-1.5 py-0.5 rounded text-slate-300">${k.escalate_dept || '硬體維護組'}</span>
           </div>
           <p class="text-slate-300 text-[11px] whitespace-pre-line leading-relaxed bg-slate-900/60 p-2 rounded">${k.safe_steps || k.steps}</p>
@@ -983,6 +995,125 @@
         `;
         c.appendChild(d);
       });
+    }
+
+    // -------------------------------------------------------------
+    // 批次匯入 JSON 核心函式
+    // -------------------------------------------------------------
+    async function handleBatchJsonUpload(event) {
+      if (!supabaseClient) {
+        alert("資料庫連線尚未就緒，請重新整理頁面後再試。");
+        return;
+      }
+
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const raw = JSON.parse(e.target.result);
+          // 支援 { records: [...] } 格式或直接陣列 [...]
+          const records = raw.records || (Array.isArray(raw) ? raw : [raw]);
+
+          if (!records || records.length === 0) {
+            alert("上傳的 JSON 檔內未找到有效的知識庫資料！");
+            return;
+          }
+
+          if (!confirm(`確定要將檔案內的 ${records.length} 筆 SOP 資料匯入 Supabase 嗎？\n(相同編號將會自動更新覆蓋)`)) {
+            return;
+          }
+
+          // 欄位標準化對照轉換
+          const payload = records.map((r, idx) => {
+            const sopId = r['KB編號'] || r['sop_id'] || `KB-${Date.now()}-${idx}`;
+            const category = r['大類'] ? `${r['大類']}-${r['子類'] || ''}` : (r['category'] || '通用分類');
+            const title = r['標題'] || r['title'] || '未命名問題';
+
+            // 處理關鍵字 (支援陣列或字串切分)
+            let keywords = [];
+            if (Array.isArray(r['檢索關鍵字陣列']) && r['檢索關鍵字陣列'].length > 0) {
+              keywords = r['檢索關鍵字陣列'];
+            } else if (Array.isArray(r['keywords'])) {
+              keywords = r['keywords'];
+            } else if (r['使用者常見說法(檢索關鍵字)']) {
+              keywords = r['使用者常見說法(檢索關鍵字)'].split(/[,，、/ \t\n]+/).map(s => s.trim()).filter(Boolean);
+            } else {
+              keywords = [title];
+            }
+            if (!keywords.includes(title)) keywords.push(title);
+
+            // 組合排查確認、步驟與升級條件
+            const steps = r['處理步驟/解答'] || r['safe_steps'] || (Array.isArray(r['處理步驟陣列']) ? r['處理步驟陣列'].join('\n') : '');
+            const followup = r['AI 追問問題'] || (Array.isArray(r['AI追問問題陣列']) ? r['AI追問問題陣列'].join('、') : '');
+            const escalate = r['升級條件(轉工程師)'] || '';
+
+            let safeSteps = steps;
+            if (followup || escalate) {
+              safeSteps = '';
+              if (followup) safeSteps += `💡【排查確認】：${followup}\n\n`;
+              safeSteps += `🛠️【排除步驟】：\n${steps}`;
+              if (escalate) safeSteps += `\n\n⚠️【升級派工條件】：${escalate}`;
+            }
+
+            const allowSelf = (r['使用者可自行處理'] === '是' || r['使用者可自行處理'] === '部分' || r['allow_self_resolve'] === true);
+
+            // 部門指派
+            const deptMap = {
+              '醫療資訊系統': '醫療資訊系統組',
+              '醫療專用設備': '醫療硬體組',
+              '印表機': '硬體週邊維護組',
+              '基礎電腦': '終端桌面維護組',
+              '軟體應用': '軟體服務組',
+              '網路連線': '網路工程組',
+              '系統更新': '作業系統維護組',
+              '帳號權限': '資安系統課',
+              '資訊安全': '資安系統課',
+              '週邊設備': '硬體週邊維護組',
+              '報修流程': 'IT服務台',
+              '郵件協作': '軟體服務組',
+              '資料備份': '系統管理組'
+            };
+            const escalateDept = r['escalate_dept'] || deptMap[r['大類']] || '維護工程組';
+            const urgency = r['urgency'] || ((category.includes('HIS') || category.includes('急診') || category.includes('門診')) ? 'P1' : 'P2');
+
+            return {
+              sop_id: sopId,
+              category: category,
+              title: title,
+              keywords: keywords,
+              symptom: r['symptom'] || `【${r['子類'] || ''}】${title}`,
+              safe_steps: safeSteps,
+              allow_self_resolve: allowSelf,
+              escalate_dept: escalateDept,
+              urgency: urgency
+            };
+          });
+
+          // 分包上傳 (每批 50 筆)
+          const chunkSize = 50;
+          let successCount = 0;
+          for (let i = 0; i < payload.length; i += chunkSize) {
+            const chunk = payload.slice(i, i + chunkSize);
+            const { error } = await supabaseClient
+              .from('kb_solutions')
+              .upsert(chunk, { onConflict: 'sop_id' });
+
+            if (error) throw error;
+            successCount += chunk.length;
+          }
+
+          alert(`🎉 成功匯入 / 更新 ${successCount} 筆 SOP 知識庫資料！`);
+          fetchKbFromSupabase(); // 重新讀取顯示
+        } catch (err) {
+          console.error("批次匯入失敗:", err);
+          alert("❌ 匯入失敗，原因：" + (err.message || "JSON 格式錯誤"));
+        } finally {
+          event.target.value = ''; // 重設選擇器
+        }
+      };
+      reader.readAsText(file);
     }
 
     async function promptNewSOP() {
