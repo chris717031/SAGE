@@ -274,21 +274,18 @@
           </div>
         </div>
 
-        <!-- 分頁 B: SOP 知識庫維護 (支援 Excel / JSON 雙格式) -->
+        <!-- 分頁 B: SOP 知識庫維護 -->
         <div id="tabKb" class="hidden space-y-3">
           <div class="flex flex-wrap justify-between items-center gap-2">
             <h3 class="text-sm font-bold text-white">SOP 知識庫 (同步 Supabase `kb_solutions` 表)</h3>
             <div class="flex items-center space-x-2">
-              <!-- 支援直接選取 .xlsx, .xls, .json -->
               <input type="file" id="kbBatchFileInput" accept=".xlsx, .xls, .json" class="hidden" onchange="handleSmartKbUpload(event)">
               
-              <!-- 批次匯入按鈕 -->
-              <button onclick="document.getElementById('kbBatchFileInput').click()" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded font-bold shadow flex items-center gap-1.5">
+              <button onclick="document.getElementById('kbBatchFileInput').click()" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded font-bold shadow flex items-center gap-1.5 text-xs">
                 <span>📂</span> 批次匯入 (支援 Excel / JSON)
               </button>
               
-              <!-- 新增單筆按鈕 -->
-              <button onclick="promptNewSOP()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded font-bold shadow">
+              <button onclick="openEditSopModal(null)" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded font-bold shadow text-xs">
                 + 新增單筆 SOP
               </button>
             </div>
@@ -311,7 +308,9 @@
 
   </main>
 
-  <!-- 4. 變更密碼 Modal -->
+  <!-- ======================================================== -->
+  <!-- 4. 變更密碼 Modal                                         -->
+  <!-- ======================================================== -->
   <div id="changePwdModal" class="hidden absolute inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white text-slate-800 w-full max-w-sm rounded-2xl p-5 shadow-2xl border border-slate-200">
       <div class="flex justify-between items-center mb-3 border-b border-slate-200 pb-2">
@@ -341,7 +340,9 @@
     </div>
   </div>
 
-  <!-- 5. 威策電腦叫修表單確認 Modal -->
+  <!-- ======================================================== -->
+  <!-- 5. 威策電腦叫修表單確認 Modal (地址欄位已完全清空)        -->
+  <!-- ======================================================== -->
   <div id="ticketModal" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
     <div class="bg-white text-slate-900 w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
       <div class="bg-[#10183d] text-white px-4 py-2.5 flex justify-between items-center shrink-0">
@@ -403,7 +404,10 @@
             </tr>
             <tr>
               <th>地址</th>
-              <td colspan="3"><input id="m_address" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" value="台北市北平西路3號"></td>
+              <!-- 地址欄位預設清空，不殘留舊地址資訊 -->
+              <td colspan="3">
+                <input id="m_address" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" placeholder="請填寫設備所在詳細地址 / 樓層診間室號">
+              </td>
             </tr>
             <tr>
               <th>機型</th>
@@ -483,7 +487,80 @@
   </div>
 
   <!-- ======================================================== -->
-  <!-- 6. 核心 JavaScript                                       -->
+  <!-- 6. 新增/修改 SOP 條目專用 Modal (單筆維護)                -->
+  <!-- ======================================================== -->
+  <div id="sopEditModal" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white text-slate-800 w-full max-w-xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div class="bg-[#10183d] text-white px-4 py-2.5 flex justify-between items-center shrink-0">
+        <h3 id="sopEditModalTitle" class="font-bold text-sm text-sky-300 flex items-center gap-1.5">
+          ✏️ 編輯 SOP 知識庫
+        </h3>
+        <button type="button" onclick="closeEditSopModal()" class="text-slate-400 hover:text-white text-base">✕</button>
+      </div>
+
+      <form onsubmit="handleSaveSopSubmit(event)" class="p-4 space-y-3 overflow-y-auto flex-1 text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">SOP 編號 (Primary Key) <span class="text-rose-500">*</span></label>
+            <input type="text" id="edit_sop_id" required class="w-full bg-slate-100 border border-slate-300 rounded px-2.5 py-1.5 text-xs font-mono font-bold focus:outline-none focus:border-indigo-600">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">大類-子類分類 <span class="text-rose-500">*</span></label>
+            <input type="text" id="edit_sop_category" required placeholder="例：基礎電腦-開機" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-600">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">問題標題 <span class="text-rose-500">*</span></label>
+          <input type="text" id="edit_sop_title" required placeholder="例：電腦完全無法開機(按電源無反應)" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:border-indigo-600">
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">檢索關鍵字 (逗號、頓號或空格隔開) <span class="text-rose-500">*</span></label>
+          <input type="text" id="edit_sop_keywords" required placeholder="例：開不了機, 按電源沒反應, 沒有燈, 黑屏" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-600">
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">排除指引與步驟說明 <span class="text-rose-500">*</span></label>
+          <textarea id="edit_sop_steps" rows="6" required placeholder="請輸入完整排除步驟與排查指引..." class="w-full border border-slate-300 rounded p-2 text-xs leading-relaxed focus:outline-none focus:border-indigo-600"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">指派維護組別</label>
+            <input type="text" id="edit_sop_dept" value="硬體維護組" class="w-full border border-slate-300 rounded px-2 py-1.5 text-xs">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">緊急程度</label>
+            <select id="edit_sop_urgency" class="w-full border border-slate-300 rounded px-2 py-1.5 text-xs bg-white">
+              <option value="P1">P1 (高 / 急診醫療)</option>
+              <option value="P2" selected>P2 (一般障礙)</option>
+              <option value="P3">P3 (低 / 諮詢流程)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">允許使用者自解</label>
+            <select id="edit_sop_self_resolve" class="w-full border border-slate-300 rounded px-2 py-1.5 text-xs bg-white">
+              <option value="true">是 (引導排查步驟)</option>
+              <option value="false">否 (直接彈出叫修單)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-2 border-t border-slate-200">
+          <button type="button" onclick="closeEditSopModal()" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-100 font-medium">
+            取消
+          </button>
+          <button type="submit" id="btnSaveSop" class="px-5 py-2 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg font-bold shadow">
+            💾 儲存更新
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 7. 核心 JavaScript                                       -->
   <!-- ======================================================== -->
   <script>
     window.switchAuthTab = function(tab) {
@@ -972,6 +1049,7 @@
       }
     }
 
+    // 渲染知識庫清單（每張卡片附有修改 ✏️ 與刪除 🗑️ 按鈕）
     function renderKbList() {
       const c = document.getElementById('kbListContainer');
       c.innerHTML = '';
@@ -982,18 +1060,24 @@
 
       knowledgeBase.forEach(k => {
         const d = document.createElement('div');
-        d.className = "p-3 bg-slate-800 border border-slate-700 rounded-xl space-y-1.5 relative";
+        d.className = "p-3 bg-slate-800 border border-slate-700 rounded-xl space-y-1.5 relative hover:border-slate-600 transition";
         const kwStr = Array.isArray(k.keywords) ? k.keywords.join(', ') : k.keywords;
         d.innerHTML = `
           <div class="flex justify-between items-start gap-2">
             <span class="font-bold text-sky-400 leading-snug">${k.sop_id ? `[${k.sop_id}] ` : ''}${k.title}</span>
-            <div class="flex items-center space-x-1.5 shrink-0">
+            <div class="flex items-center space-x-1 shrink-0">
               <span class="text-[10px] bg-slate-700 px-1.5 py-0.5 rounded text-slate-300">${k.escalate_dept || '硬體維護組'}</span>
-              <button onclick="deleteSopInSupabase('${k.sop_id}')" class="text-rose-400 hover:text-rose-300 text-xs px-1" title="刪除此筆">🗑️</button>
+              <!-- ✏️ 修改按鈕 -->
+              <button onclick="openEditSopModal('${k.sop_id}')" class="text-amber-400 hover:text-amber-300 text-xs px-1.5 py-0.5 bg-slate-700 hover:bg-slate-600 rounded" title="修改此筆 SOP">✏️ 修改</button>
+              <!-- 🗑️ 刪除按鈕 -->
+              <button onclick="deleteSopInSupabase('${k.sop_id}')" class="text-rose-400 hover:text-rose-300 text-xs px-1 py-0.5" title="刪除此筆">🗑️</button>
             </div>
           </div>
           <p class="text-slate-300 text-[11px] whitespace-pre-line leading-relaxed bg-slate-900/60 p-2 rounded">${k.safe_steps || k.steps || '暫無步驟說明'}</p>
-          <div class="text-[10px] text-slate-400">關鍵字: ${kwStr}</div>
+          <div class="text-[10px] text-slate-400 flex justify-between items-center">
+            <span>關鍵字: ${kwStr}</span>
+            <span class="font-mono text-slate-500 text-[9px]">${k.category || ''}</span>
+          </div>
         `;
         c.appendChild(d);
       });
@@ -1014,6 +1098,103 @@
     }
 
     // -------------------------------------------------------------
+    // 單筆 SOP 新增 / 修改 Modal 控制
+    // -------------------------------------------------------------
+    function openEditSopModal(sopId = null) {
+      const modal = document.getElementById('sopEditModal');
+      const titleElem = document.getElementById('sopEditModalTitle');
+      const idInput = document.getElementById('edit_sop_id');
+
+      if (sopId) {
+        titleElem.innerText = `✏️ 編輯 SOP 知識庫 [${sopId}]`;
+        const item = knowledgeBase.find(k => k.sop_id === sopId);
+        if (!item) {
+          alert("查無此 SOP 資料");
+          return;
+        }
+        idInput.value = item.sop_id;
+        idInput.readOnly = true;
+        idInput.classList.add('bg-slate-100');
+
+        document.getElementById('edit_sop_category').value = item.category || '基礎電腦-常規';
+        document.getElementById('edit_sop_title').value = item.title || '';
+        document.getElementById('edit_sop_keywords').value = Array.isArray(item.keywords) ? item.keywords.join(', ') : (item.keywords || '');
+        document.getElementById('edit_sop_steps').value = item.safe_steps || item.steps || '';
+        document.getElementById('edit_sop_dept').value = item.escalate_dept || '硬體維護組';
+        document.getElementById('edit_sop_urgency').value = item.urgency || 'P2';
+        document.getElementById('edit_sop_self_resolve').value = (item.allow_self_resolve !== false) ? 'true' : 'false';
+      } else {
+        titleElem.innerText = '➕ 新增 SOP 知識庫條目';
+        idInput.value = 'SOP-' + Date.now().toString().slice(-6);
+        idInput.readOnly = false;
+        idInput.classList.remove('bg-slate-100');
+
+        document.getElementById('edit_sop_category').value = '基礎電腦-一般問題';
+        document.getElementById('edit_sop_title').value = '';
+        document.getElementById('edit_sop_keywords').value = '';
+        document.getElementById('edit_sop_steps').value = '';
+        document.getElementById('edit_sop_dept').value = '硬體維護組';
+        document.getElementById('edit_sop_urgency').value = 'P2';
+        document.getElementById('edit_sop_self_resolve').value = 'true';
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeEditSopModal() {
+      document.getElementById('sopEditModal').classList.add('hidden');
+    }
+
+    async function handleSaveSopSubmit(e) {
+      e.preventDefault();
+      if (!supabaseClient) return;
+
+      const btn = document.getElementById('btnSaveSop');
+      btn.innerText = "儲存中...";
+      btn.disabled = true;
+
+      const sopId = document.getElementById('edit_sop_id').value.trim();
+      const title = document.getElementById('edit_sop_title').value.trim();
+      const category = document.getElementById('edit_sop_category').value.trim();
+      const kwStr = document.getElementById('edit_sop_keywords').value.trim();
+      const safeSteps = document.getElementById('edit_sop_steps').value.trim();
+      const escalateDept = document.getElementById('edit_sop_dept').value.trim() || '硬體維護組';
+      const urgency = document.getElementById('edit_sop_urgency').value;
+      const allowSelf = document.getElementById('edit_sop_self_resolve').value === 'true';
+
+      let keywords = kwStr.split(/[,，、/ \t\n]+/).map(s => s.trim()).filter(Boolean);
+      if (!keywords.includes(title)) keywords.push(title);
+
+      const payload = {
+        sop_id: sopId,
+        category: category,
+        title: title,
+        keywords: keywords,
+        symptom: title,
+        safe_steps: safeSteps,
+        allow_self_resolve: allowSelf,
+        escalate_dept: escalateDept,
+        urgency: urgency
+      };
+
+      try {
+        const { error } = await supabaseClient
+          .from('kb_solutions')
+          .upsert([payload], { onConflict: 'sop_id' });
+
+        if (error) throw error;
+
+        alert(`🎉 [${sopId}] 知識庫條目儲存成功！`);
+        closeEditSopModal();
+        fetchKbFromSupabase();
+      } catch (err) {
+        alert("儲存失敗：" + err.message);
+      } finally {
+        btn.innerText = "💾 儲存更新";
+        btn.disabled = false;
+      }
+    }
+
+    // -------------------------------------------------------------
     // 智慧批次匯入（同時支援 Excel .xlsx / .xls 與 JSON）
     // -------------------------------------------------------------
     async function handleSmartKbUpload(event) {
@@ -1030,7 +1211,7 @@
       try {
         let rawRecords = [];
 
-        // 1. 如果是 Excel 檔案 (.xlsx / .xls)，使用 SheetJS 解析
+        // 1. 如果是 Excel 檔案 (.xlsx / .xls)
         if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
           const buffer = await file.arrayBuffer();
           const workbook = XLSX.read(buffer, { type: 'array' });
@@ -1045,7 +1226,6 @@
           if (Array.isArray(parsed)) {
             rawRecords = parsed;
           } else if (parsed && typeof parsed === 'object') {
-            // 自動搜尋任何身為陣列的子屬性 (例如 records, 知識庫, Sheet1, data, rows)
             for (const key of Object.keys(parsed)) {
               if (Array.isArray(parsed[key]) && parsed[key].length > 0) {
                 rawRecords = parsed[key];
@@ -1066,7 +1246,6 @@
           return;
         }
 
-        // 智慧欄位尋找函式 (忽略前後空格、BOM、大小寫)
         const getVal = (obj, candidates) => {
           for (const cand of candidates) {
             const target = cand.trim().toLowerCase();
@@ -1079,7 +1258,6 @@
           return null;
         };
 
-        // 轉換為 Supabase kb_solutions 欄位結構
         const payload = [];
         for (let i = 0; i < rawRecords.length; i++) {
           const r = rawRecords[i];
@@ -1088,7 +1266,6 @@
           const sopIdRaw = getVal(r, ['KB編號', 'sop_id', 'id', '編號']);
           const titleRaw = getVal(r, ['標題', 'title', '問題名稱', '問題說明']);
 
-          // 若 ID 與標題皆為空，代表是空行或雜訊，自動跳過
           if (!sopIdRaw && !titleRaw) continue;
 
           const sopId = String(sopIdRaw || `KB-${i + 1}`).trim();
@@ -1098,7 +1275,6 @@
           const subCat = getVal(r, ['子類', 'sub_category']) || '';
           const category = mainCat ? (subCat ? `${mainCat}-${subCat}` : mainCat) : (getVal(r, ['category']) || '一般分類');
 
-          // 處理關鍵字陣列
           let keywords = [];
           const kwArr = getVal(r, ['檢索關鍵字陣列', 'keywords']);
           const kwStr = getVal(r, ['使用者常見說法(檢索關鍵字)', '關鍵字', 'keywords']);
@@ -1112,7 +1288,6 @@
           }
           if (title && !keywords.includes(title)) keywords.push(title);
 
-          // 組合步驟與說明
           const steps = getVal(r, ['處理步驟/解答', 'safe_steps', 'steps']) || 
                         (Array.isArray(getVal(r, ['處理步驟陣列'])) ? getVal(r, ['處理步驟陣列']).join('\n') : '');
           const followup = getVal(r, ['AI 追問問題', '追問問題']) || 
@@ -1162,7 +1337,7 @@
         }
 
         if (payload.length === 0) {
-          alert("❌ 未能成功轉換任何有效資料，請確認檔案欄位名稱包含「KB編號」或「標題」！");
+          alert("❌ 未能成功轉換任何有效資料，請確認檔案包含「KB編號」或「標題」！");
           return;
         }
 
@@ -1170,7 +1345,6 @@
           return;
         }
 
-        // 分批批次寫入 (每批 50 筆)
         const chunkSize = 50;
         let successCount = 0;
         for (let i = 0; i < payload.length; i += chunkSize) {
@@ -1190,33 +1364,6 @@
         alert("❌ 匯入失敗，原因：" + (err.message || "檔案解析錯誤"));
       } finally {
         event.target.value = '';
-      }
-    }
-
-    async function promptNewSOP() {
-      if (!supabaseClient) return;
-      const title = prompt("請輸入問題標題：", "印表機卡紙排除");
-      if (!title) return;
-      const steps = prompt("請輸入排除 SOP 指引步驟：", "1. 關閉電源。\n2. 順著滾輪抽出紙張。\n3. 蓋回機蓋開機。");
-      const kw = prompt("請輸入關鍵字（逗號隔開）：", "卡紙, 夾紙");
-
-      const payload = {
-        sop_id: "SOP-" + Date.now().toString().slice(-6),
-        category: "HARDWARE",
-        title: title,
-        keywords: kw ? kw.split(',').map(s => s.trim()) : [title],
-        symptom: title,
-        safe_steps: steps,
-        escalate_dept: "硬體維護組"
-      };
-
-      try {
-        const { error } = await supabaseClient.from('kb_solutions').insert([payload]);
-        if (error) throw error;
-        alert("SOP 已成功寫入 Supabase 知識庫！");
-        fetchKbFromSupabase();
-      } catch (err) {
-        alert("寫入失敗：" + err.message);
       }
     }
 
@@ -1249,7 +1396,7 @@
             <div class="text-[11px] text-slate-300"><b>報修問題：</b>${(t.problem_description || '').replace(/\n/g, '<br>')}</div>
             <div class="text-[10px] text-slate-400 flex justify-between pt-1 border-t border-slate-700/60 mt-1">
               <span>電話：${t.phone}</span>
-              <span>叫修時間：${t.call_time}</span>
+              <span>地址：${t.address || '未填寫'}</span>
             </div>
           `;
           c.appendChild(item);
@@ -1307,7 +1454,6 @@
       turnCount++;
       updateTurnUI();
 
-      // 智慧打分加權檢索
       let bestMatch = null;
       let highestScore = 0;
 
@@ -1375,7 +1521,7 @@
       }
     }
 
-    // 叫修表單預覽
+    // 叫修表單預覽（地址欄位先清空）
     function openTicketModalPreview(userProblemQuery) {
       const now = new Date();
       const sId = now.getFullYear().toString() + 
@@ -1392,6 +1538,9 @@
       document.getElementById('m_dept').value = currentUser.dept;
       document.getElementById('m_email').innerText = currentUser.email;
       document.getElementById('m_call_time').innerText = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+      // 地址欄位先清空，避免帶入不正確的舊資訊
+      document.getElementById('m_address').value = '';
 
       let problemFullText = `委辦事項：電腦故障報修\n使用者問題描述：${userProblemQuery}\nAI 前置診斷：經小威引導多輪排除未果，轉派外派工程師現場處理。`;
       if (uploadedImageBase64) {
@@ -1427,7 +1576,7 @@
         bu: document.getElementById('m_bu').value || "資訊部",
         cost_center: document.getElementById('m_cost_center').value || "",
         email: currentUser.email,
-        address: document.getElementById('m_address').value,
+        address: document.getElementById('m_address').value.trim() || "", // 使用者輸入之最新地址
         device_model: document.getElementById('m_model').value || "一般主機",
         device_sn: document.getElementById('m_sn').value || "",
         call_time: document.getElementById('m_call_time').innerText,
