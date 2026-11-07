@@ -53,7 +53,7 @@
 </head>
 <body class="bg-slate-900 text-slate-100 h-screen w-screen flex flex-col overflow-hidden relative">
 
-  <!-- 頂部通用導覽列 -->
+  <!-- 頂部導覽列 -->
   <header class="bg-[#10183d] border-b border-indigo-950 px-3.5 py-2.5 flex items-center justify-between shrink-0 shadow-md">
     <div class="flex items-center space-x-2.5">
       <div class="bg-white px-2 py-1 rounded shadow-inner flex items-center justify-center">
@@ -85,9 +85,9 @@
   <main class="flex-1 overflow-hidden relative">
 
     <!-- 1. 訪客介面：登入 / 註冊視窗 -->
-    <section id="authSection" class="absolute inset-0 flex items-center justify-center p-4 bg-slate-950 overflow-y-auto z-40">
-      <div class="bg-white text-slate-800 w-full max-w-sm rounded-2xl p-5 shadow-2xl border border-slate-200">
-        <div class="text-center mb-4">
+    <section id="authSection" class="absolute inset-0 flex items-center justify-center p-3 sm:p-4 bg-slate-950 overflow-y-auto z-40">
+      <div class="bg-white text-slate-800 w-full max-w-md rounded-2xl p-5 shadow-2xl border border-slate-200 my-auto">
+        <div class="text-center mb-3">
           <h2 class="text-base font-bold text-[#10183d]">威策電腦 智慧維護平台</h2>
           <p class="text-[11px] text-slate-500 mt-0.5">預設密碼：123456</p>
         </div>
@@ -101,10 +101,10 @@
           </button>
         </div>
 
-        <!-- 登入區塊 (非 form 結構，徹底避免網頁原生重整) -->
+        <!-- 登入表單 -->
         <div id="loginForm" class="space-y-3 text-xs" style="display: block;">
           <div>
-            <label class="block font-medium mb-1">電子信箱 (帳號) <span class="text-rose-500">*</span></label>
+            <label class="block font-medium mb-1">電子信箱 / 帳號 <span class="text-rose-500">*</span></label>
             <input type="email" id="loginEmail" required placeholder="user@company.com" value=""
                    class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-600">
           </div>
@@ -119,38 +119,66 @@
           </button>
         </div>
 
-        <!-- 註冊表單 -->
-        <form id="registerForm" onsubmit="handleRegisterSubmit(event)" class="space-y-2 text-xs" style="display: none;">
+        <!-- 註冊表單 (依據參考圖片全面調整) -->
+        <form id="registerForm" onsubmit="handleRegisterSubmit(event)" class="space-y-2.5 text-xs" style="display: none;">
           <div>
-            <label class="block font-medium text-slate-700">1. 服務公司 / 廠別 <span class="text-rose-500">*</span></label>
-            <input type="text" id="regCompany" required placeholder="例：威策電腦、臺北市立聯合醫院"
-                   class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-600">
+            <label class="block font-medium text-slate-700 mb-1">客戶公司名稱 <span class="text-rose-500">*</span></label>
+            <input type="text" id="regCompany" required placeholder="例：臺北市立聯合醫院 或 威策電腦"
+                   class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-600">
           </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">組織形態 <span class="text-rose-500">*</span></label>
+              <select id="regOrgType" onchange="handleOrgTypeChange(this.value)" class="w-full border border-slate-300 rounded-lg px-2 py-1.5 text-xs bg-white">
+                <option value="一般企業 (分公司/部門)">一般企業 (分公司/部門)</option>
+                <option value="醫療體系 (院區/科室)">醫療體系 (院區/科室)</option>
+                <option value="製造廠區 (廠/單位)">製造廠區 (廠/單位)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">單位稱謂標籤</label>
+              <input type="text" id="regUnitLabel" value="分公司" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs bg-slate-50">
+            </div>
+          </div>
+
           <div>
-            <label class="block font-medium text-slate-700">2. 科室單位 / 部門 <span class="text-rose-500">*</span></label>
-            <input type="text" id="regDept" required placeholder="例：業務處、醫療事務課"
-                   class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-600">
+            <label class="block font-medium text-slate-700 mb-1">管轄單位 / 院區 / 分公司 / 廠別 <span class="text-rose-500">*</span></label>
+            <input type="text" id="regJurisdiction" required placeholder="例：陽明院區、新竹分公司、南港廠"
+                   class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-600">
           </div>
-          <div>
-            <label class="block font-medium text-slate-700">3. 姓名 <span class="text-rose-500">*</span></label>
-            <input type="text" id="regName" required placeholder="例：Candy.Kuo"
-                   class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-600">
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">科室 / 部門 <span class="text-rose-500">*</span></label>
+              <input type="text" id="regDept" required placeholder="例：資訊室、業務部"
+                     class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-600">
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">使用者姓名 / 稱謂 <span class="text-rose-500">*</span></label>
+              <input type="text" id="regName" required placeholder="例：資訊專員 游晨引"
+                     class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-600">
+            </div>
           </div>
-          <div>
-            <label class="block font-medium text-slate-700">4. 電子信箱 <span class="text-rose-500">*</span></label>
-            <input type="email" id="regEmail" required placeholder="例：user@company.com"
-                   class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-600">
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">帳號 (電子信箱) <span class="text-rose-500">*</span></label>
+              <input type="email" id="regEmail" required placeholder="user@company.com"
+                     class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-600">
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">聯絡電話 / 分機 <span class="text-rose-500">*</span></label>
+              <input type="tel" id="regPhone" required placeholder="例：0912-345-678 / 123"
+                     class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-600">
+            </div>
           </div>
-          <div>
-            <label class="block font-medium text-slate-700">5. 聯絡電話 / 分機 <span class="text-rose-500">*</span></label>
-            <input type="tel" id="regPhone" required placeholder="例：0912-345-678 / 分機 123"
-                   class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-600">
-          </div>
+
           <div class="p-2 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-500">
-            ℹ️ 註冊完成後，預設登入密碼為：<b>123456</b>，登入後可自行變更。
+            ℹ️ 註冊完成後預設密碼為 <b>123456</b>，待管理員審核通過後即可登入。
           </div>
-          <button type="submit" id="regSubmitBtn" class="w-full py-2.5 bg-sky-700 hover:bg-sky-600 text-white font-bold rounded-xl shadow transition text-sm mt-2">
-            送出註冊 (等待管理者審核)
+          <button type="submit" id="regSubmitBtn" class="w-full py-2.5 bg-sky-700 hover:bg-sky-600 text-white font-bold rounded-xl shadow transition text-sm mt-1">
+            送出註冊 (等待審核)
           </button>
         </form>
 
@@ -170,7 +198,7 @@
             追問: 0/5 輪
           </span>
           <span class="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.2 rounded font-medium">
-            Supabase 即時檢索
+            Supabase 即時對話紀錄
           </span>
         </span>
         <button onclick="toggleVoiceOutput()" id="voiceToggleBtn" class="text-[10px] bg-indigo-900 text-white px-2 py-0.5 rounded-full">
@@ -224,7 +252,7 @@
       </div>
     </section>
 
-    <!-- 3. 管理者 / 工程師 後台儀表板 -->
+    <!-- 3. 管理者 / 工程師 後台儀表板 (案件表單與對話LOG正式拆開) -->
     <section id="managementSection" class="hidden absolute inset-0 bg-slate-900 flex flex-col overflow-hidden">
       <nav class="bg-slate-800 border-b border-slate-700 px-4 flex space-x-4 text-xs font-medium shrink-0">
         <button id="navUsersBtn" onclick="switchMgmtTab('users')" class="py-2.5 border-b-2 border-indigo-400 text-indigo-400 font-bold">
@@ -233,12 +261,17 @@
         <button id="navKbBtn" onclick="switchMgmtTab('kb')" class="py-2.5 text-slate-400 hover:text-white">
           📚 SOP 知識庫維護 (<span id="kbCount">0</span>)
         </button>
-        <button id="navLogsBtn" onclick="switchMgmtTab('logs')" class="py-2.5 text-slate-400 hover:text-white">
-          📋 報修案件與 Log
+        <button id="navTicketsBtn" onclick="switchMgmtTab('tickets')" class="py-2.5 text-slate-400 hover:text-white">
+          🎫 報修案件表單 (<span id="ticketsCount">0</span>)
+        </button>
+        <button id="navChatLogsBtn" onclick="switchMgmtTab('chatLogs')" class="py-2.5 text-slate-400 hover:text-white">
+          💬 對話歷程 LOG (<span id="chatLogsCount">0</span>)
         </button>
       </nav>
 
       <div class="flex-1 p-4 overflow-y-auto text-xs text-slate-200">
+        
+        <!-- 分頁 A: 帳號審核 -->
         <div id="tabUsers" class="space-y-3">
           <div class="flex justify-between items-center">
             <h3 class="text-sm font-bold text-white">使用者帳號審核與權限設定 (Supabase `profiles`)</h3>
@@ -250,8 +283,10 @@
             <table class="w-full text-left">
               <thead class="bg-slate-700/80 text-slate-300">
                 <tr>
-                  <th class="p-2.5">姓名 / 服務公司</th>
-                  <th class="p-2.5">科室單位</th>
+                  <th class="p-2.5">姓名 / 稱謂</th>
+                  <th class="p-2.5">客戶公司</th>
+                  <th class="p-2.5">管轄單位/分公司</th>
+                  <th class="p-2.5">科室/部門</th>
                   <th class="p-2.5">信箱 / 電話</th>
                   <th class="p-2.5">狀態</th>
                   <th class="p-2.5">權限調整</th>
@@ -263,16 +298,15 @@
           </div>
         </div>
 
+        <!-- 分頁 B: SOP 知識庫維護 -->
         <div id="tabKb" class="hidden space-y-3">
           <div class="flex flex-wrap justify-between items-center gap-2">
-            <h3 class="text-sm font-bold text-white">SOP 知識庫 (即時連動 Supabase `kb_solutions` 表)</h3>
+            <h3 class="text-sm font-bold text-white">SOP 知識庫 (Supabase `kb_solutions` 表)</h3>
             <div class="flex items-center space-x-2">
               <input type="file" id="kbBatchFileInput" accept=".xlsx, .xls, .json" class="hidden" onchange="handleSmartKbUpload(event)">
-              
               <button onclick="document.getElementById('kbBatchFileInput').click()" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded font-bold shadow flex items-center gap-1.5 text-xs">
                 <span>📂</span> 批次匯入 (支援 Excel / JSON)
               </button>
-              
               <button onclick="openEditSopModal(null)" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded font-bold shadow text-xs">
                 + 新增單筆 SOP
               </button>
@@ -281,15 +315,28 @@
           <div id="kbListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         </div>
 
-        <div id="tabLogs" class="hidden space-y-3">
+        <!-- 分頁 C: 報修案件表單 (tickets) -->
+        <div id="tabTickets" class="hidden space-y-3">
           <div class="flex justify-between items-center">
-            <h3 class="text-sm font-bold text-white">報修案件與 Log (Supabase `tickets`)</h3>
+            <h3 class="text-sm font-bold text-white">報修案件表單 (Supabase `tickets` 表)</h3>
             <button onclick="fetchTicketsFromSupabase()" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200">
-              🔄 刷新工單
+              🔄 刷新案件
             </button>
           </div>
           <div id="ticketsLogContainer" class="space-y-2.5"></div>
         </div>
+
+        <!-- 分頁 D: 對話歷程 LOG (chat_logs) -->
+        <div id="tabChatLogs" class="hidden space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="text-sm font-bold text-white">智慧小威對話歷程 LOG (Supabase `chat_logs` 表)</h3>
+            <button onclick="fetchChatLogsFromSupabase()" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200">
+              🔄 刷新對話 LOG
+            </button>
+          </div>
+          <div id="chatLogsContainer" class="space-y-2.5"></div>
+        </div>
+
       </div>
     </section>
 
@@ -363,7 +410,7 @@
               <td><input id="m_phone" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded"></td>
             </tr>
             <tr>
-              <th>廠別</th>
+              <th>廠別/單位</th>
               <td colspan="3" id="m_plant" class="font-medium">--</td>
             </tr>
             <tr>
@@ -372,9 +419,9 @@
             </tr>
             <tr>
               <th>位置</th>
-              <td><input id="m_location" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" placeholder="例：3F 門診第 5 診間"></td>
+              <td><input id="m_location" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" placeholder="例：3F 辦公室"></td>
               <th>BU</th>
-              <td><input id="m_bu" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" placeholder="例：醫療資訊處"></td>
+              <td><input id="m_bu" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" placeholder="例：維護服務處"></td>
             </tr>
             <tr>
               <th>Cost Center</th>
@@ -462,7 +509,7 @@
           返回對話
         </button>
         <button onclick="confirmSubmitTicket()" id="btnConfirmTicket" class="px-5 py-2 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-white rounded-lg text-xs font-bold shadow-md">
-          ✅ 確認無誤，寫入 Supabase 建案
+          ✅ 確認無誤，寫入 Supabase 案件表單
         </button>
       </div>
     </div>
@@ -539,10 +586,10 @@
     </div>
   </div>
 
-  <!-- 7. 核心 JavaScript (所有全域函式頂置宣告，100% 杜絕 is not defined) -->
+  <!-- 7. 核心 JavaScript (結構化、分流 LOG 與案件) -->
   <script>
     // ==========================================
-    // A. 頂置全域 UI 與對話介面函式 (最先載入)
+    // A. 頂置全域 UI 與對話介面函式
     // ==========================================
     window.updateTurnUI = function() {
       const badge = document.getElementById('turnCounterBadge');
@@ -578,28 +625,31 @@
     };
 
     window.switchMgmtTab = function(tab) {
-      ['users', 'kb', 'logs'].forEach(t => {
+      ['users', 'kb', 'tickets', 'chatLogs'].forEach(t => {
         const tabEl = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
         if (tabEl) tabEl.classList.add('hidden');
         const navBtn = document.getElementById('nav' + t.charAt(0).toUpperCase() + t.slice(1) + 'Btn');
         if (navBtn) navBtn.className = "py-2.5 text-slate-400 hover:text-white";
       });
 
-      if (tab === 'users') {
-        const tabUsers = document.getElementById('tabUsers');
-        if (tabUsers) tabUsers.classList.remove('hidden');
-        const navUsersBtn = document.getElementById('navUsersBtn');
-        if (navUsersBtn) navUsersBtn.className = "py-2.5 border-b-2 border-indigo-400 text-indigo-400 font-bold";
-      } else if (tab === 'kb') {
-        const tabKb = document.getElementById('tabKb');
-        if (tabKb) tabKb.classList.remove('hidden');
-        const navKbBtn = document.getElementById('navKbBtn');
-        if (navKbBtn) navKbBtn.className = "py-2.5 border-b-2 border-indigo-400 text-indigo-400 font-bold";
-      } else if (tab === 'logs') {
-        const tabLogs = document.getElementById('tabLogs');
-        if (tabLogs) tabLogs.classList.remove('hidden');
-        const navLogsBtn = document.getElementById('navLogsBtn');
-        if (navLogsBtn) navLogsBtn.className = "py-2.5 border-b-2 border-indigo-400 text-indigo-400 font-bold";
+      const activeTabEl = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+      if (activeTabEl) activeTabEl.classList.remove('hidden');
+      const activeNavBtn = document.getElementById('nav' + tab.charAt(0).toUpperCase() + tab.slice(1) + 'Btn');
+      if (activeNavBtn) activeNavBtn.className = "py-2.5 border-b-2 border-indigo-400 text-indigo-400 font-bold";
+    };
+
+    window.handleOrgTypeChange = function(orgType) {
+      const labelInput = document.getElementById('regUnitLabel');
+      const jurisInput = document.getElementById('regJurisdiction');
+      if (orgType === '醫療體系 (院區/科室)') {
+        labelInput.value = '院區';
+        jurisInput.placeholder = '例：仁愛院區、陽明院區、中興院區';
+      } else if (orgType === '製造廠區 (廠/單位)') {
+        labelInput.value = '廠區';
+        jurisInput.placeholder = '例：南港一廠、竹科廠、高雄廠';
+      } else {
+        labelInput.value = '分公司';
+        jurisInput.placeholder = '例：台北總公司、台中分公司、新竹辦事處';
       }
     };
 
@@ -635,7 +685,7 @@
           actionArea = `
             <div class="mt-2.5 pt-2 border-t border-slate-100 flex space-x-2">
               <button onclick="handleResolve(true)" class="flex-1 py-1.5 bg-emerald-600 active:bg-emerald-700 text-white text-xs font-bold rounded shadow-sm">✅ 已排除解決</button>
-              <button onclick="handleResolve(false)" class="flex-1 py-1.5 bg-rose-600 active:bg-rose-700 text-white text-xs font-bold rounded shadow-sm">❌ 仍未解決，預覽叫修單</button>
+              <button onclick="handleResolve(false)" class="flex-1 py-1.5 bg-rose-600 active:bg-rose-700 text-white text-xs font-bold rounded shadow-sm">❌ 仍未解決，建立報修單</button>
             </div>
           `;
         }
@@ -649,136 +699,6 @@
       }
       area.appendChild(box);
       area.scrollTop = area.scrollHeight;
-    };
-
-    // 語音核心函式頂置宣告
-    let recognition = null;
-    let isListening = false;
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    window.initSTT = function() {
-      if (!SpeechRecognition) return;
-      try {
-        recognition = new SpeechRecognition();
-        recognition.lang = 'zh-TW';
-        recognition.continuous = false;
-        recognition.interimResults = false;
-
-        recognition.onstart = () => {
-          isListening = true;
-          const banner = document.getElementById('voiceStatusBanner');
-          if (banner) banner.classList.remove('hidden');
-          const micBtn = document.getElementById('micBtn');
-          if (micBtn) micBtn.classList.add('mic-listening');
-        };
-        recognition.onresult = (event) => {
-          const text = event.results[0][0].transcript;
-          if (text) {
-            const input = document.getElementById('userMsgInput');
-            if (input) {
-              input.value = text;
-              window.handleUserSend();
-            }
-          }
-        };
-        recognition.onerror = () => window.stopListening();
-        recognition.onend = () => window.stopListening();
-      } catch (e) {
-        console.warn("STT 初始化異常:", e);
-      }
-    };
-
-    window.startListening = function() {
-      if (!recognition) return;
-      try { recognition.start(); } catch (e) {}
-    };
-
-    window.stopListening = function() {
-      isListening = false;
-      const banner = document.getElementById('voiceStatusBanner');
-      if (banner) banner.classList.add('hidden');
-      const micBtn = document.getElementById('micBtn');
-      if (micBtn) micBtn.classList.remove('mic-listening');
-      if (recognition) {
-        try { recognition.stop(); } catch(e){}
-      }
-    };
-
-    window.toggleListening = function() {
-      if (isListening) window.stopListening();
-      else {
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-        window.startListening();
-      }
-    };
-
-    window.speak = function(text, onComplete = null) {
-      if (!isVoiceEnabled || !('speechSynthesis' in window)) {
-        if (onComplete) onComplete();
-        return;
-      }
-      window.speechSynthesis.cancel();
-      const cleanText = text.replace(/<[^>]*>/g, '').replace(/📷|💻|💡|✅|❌|📋|⚠️/g, '');
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = 'zh-TW';
-      utterance.rate = 1.05;
-      utterance.onend = () => { if (onComplete) onComplete(); };
-      utterance.onerror = () => { if (onComplete) onComplete(); };
-      window.speechSynthesis.speak(utterance);
-    };
-
-    window.toggleVoiceOutput = function() {
-      isVoiceEnabled = !isVoiceEnabled;
-      const btn = document.getElementById('voiceToggleBtn');
-      if (isVoiceEnabled) {
-        if (btn) btn.innerText = "🔊 語音開";
-      } else {
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-        if (btn) btn.innerText = "🔇 語音關";
-      }
-    };
-
-    window.unlockAndStartChat = function() {
-      if ('speechSynthesis' in window) {
-        const dummy = new SpeechSynthesisUtterance('');
-        window.speechSynthesis.speak(dummy);
-      }
-      const overlay = document.getElementById('voiceWakeOverlay');
-      if (overlay) overlay.classList.add('hidden');
-      const hello = `${currentUser.name} 您好！我是威策 IT 智慧助手小威。小威已連線 Supabase 雲端資料庫，請告訴我您的設備故障現象！`;
-      window.appendUserChat('ai', hello);
-      window.speak(hello, () => window.startListening());
-    };
-
-    window.triggerCameraUpload = function() {
-      const input = document.getElementById('cameraInput');
-      if (input) input.click();
-    };
-
-    window.handleImageSelected = function(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        uploadedImageBase64 = e.target.result;
-        const imgMessage = `
-          <div>
-            <p class="mb-1 text-xs font-medium">📷 已傳送現場照片：</p>
-            <img src="${uploadedImageBase64}" class="rounded-lg max-h-48 border border-white/20 shadow-md">
-          </div>
-        `;
-        window.appendUserChat('user', imgMessage);
-        turnCount++;
-        window.updateTurnUI();
-
-        setTimeout(() => {
-          const aiAnalysisText = "小威已接收到您上傳的設備照片！系統初步診斷顯示燈號或螢幕畫面有異常狀況。建議先確認後方連接線路是否牢固；若持續無法使用，請點選下方按鈕直接為您送出叫修單！";
-          window.appendUserChat('ai', aiAnalysisText, true);
-          window.speak("已收到您的故障照片。請問是否需要工程師到場處理？");
-        }, 800);
-      };
-      reader.readAsDataURL(file);
     };
 
     // ==========================================
@@ -797,6 +717,7 @@
     }
 
     let currentUser = null;
+    let currentSessionId = 'SESSION-' + Date.now();
     let turnCount = 0;
     const MAX_TURNS = 5;
     let knowledgeBase = [];
@@ -821,6 +742,7 @@
 
     window.resetInquiryContext = function() {
       turnCount = 0;
+      currentSessionId = 'SESSION-' + Date.now();
       uploadedImageBase64 = null;
       const now = new Date();
       inquiryContext = {
@@ -842,25 +764,47 @@
     };
 
     // ==========================================
-    // C. 登入成功處理函式 (自動觸發小威開場智能對話)
+    // C. 對話 LOG 寫入函式 (chat_logs)
+    // ==========================================
+    window.logChatToSupabase = async function(role, content, hasImg = false) {
+      if (!supabaseClient || !currentUser) return;
+      try {
+        await supabaseClient.from('chat_logs').insert([{
+          session_id: currentSessionId,
+          user_id: currentUser.id || null,
+          user_name: currentUser.name || '',
+          user_email: currentUser.email || '',
+          company: currentUser.company || '',
+          jurisdiction: currentUser.jurisdiction || currentUser.dept || '',
+          role: currentUser.role || 'user',
+          message_role: role,
+          message_content: content,
+          has_image: hasImg
+        }]);
+      } catch (err) {
+        console.warn("寫入對話 LOG 異常:", err);
+      }
+    };
+
+    // ==========================================
+    // D. 登入成功處理函式
     // ==========================================
     window.loginUserSuccess = function(user) {
       currentUser = user;
 
-      // 1. 隱藏登入區塊
       const authSec = document.getElementById('authSection');
       if (authSec) {
         authSec.style.display = 'none';
         authSec.classList.add('hidden');
       }
 
-      // 2. 更新頂部狀態列
       const logoutBtn = document.getElementById('logoutBtn');
       if (logoutBtn) logoutBtn.classList.remove('hidden');
       const changePwdBtn = document.getElementById('changePwdBtn');
       if (changePwdBtn) changePwdBtn.classList.remove('hidden');
       const userInfoSubtitle = document.getElementById('userInfoSubtitle');
-      if (userInfoSubtitle) userInfoSubtitle.innerText = `${user.company || '威策電腦'} / ${user.dept || '資訊部'} - ${user.name || '使用者'}`;
+      const unitDisplay = user.jurisdiction ? `${user.jurisdiction} / ` : '';
+      if (userInfoSubtitle) userInfoSubtitle.innerText = `${user.company || '威策電腦'} / ${unitDisplay}${user.dept || '資訊部'} - ${user.name || '使用者'}`;
 
       const badge = document.getElementById('roleBadge');
       if (badge) {
@@ -870,7 +814,6 @@
                         : 'text-[9px] bg-sky-900 border border-sky-400 text-sky-200 px-2 py-0.5 rounded-full');
       }
 
-      // 3. 依角色切換工作區
       if (user.role === 'admin' || user.role === 'engineer') {
         const userSec = document.getElementById('userSection');
         if (userSec) userSec.classList.add('hidden');
@@ -886,25 +829,25 @@
           window.switchMgmtTab('users');
         }
 
-        try { if (typeof window.fetchUsersFromSupabase === 'function') window.fetchUsersFromSupabase(); } catch(e){}
-        try { if (typeof window.fetchKbFromSupabase === 'function') window.fetchKbFromSupabase(); } catch(e){}
-        try { if (typeof window.fetchTicketsFromSupabase === 'function') window.fetchTicketsFromSupabase(); } catch(e){}
+        try { window.fetchUsersFromSupabase(); } catch(e){}
+        try { window.fetchKbFromSupabase(); } catch(e){}
+        try { window.fetchTicketsFromSupabase(); } catch(e){}
+        try { window.fetchChatLogsFromSupabase(); } catch(e){}
       } else {
-        // 一般使用者登入：切換到對話介面並直接開啟智能對話
         const mgmtSec = document.getElementById('managementSection');
         if (mgmtSec) mgmtSec.classList.add('hidden');
         const userSec = document.getElementById('userSection');
         if (userSec) userSec.classList.remove('hidden');
 
-        try { if (typeof window.fetchKbFromSupabase === 'function') window.fetchKbFromSupabase(); } catch(e){}
+        try { window.fetchKbFromSupabase(); } catch(e){}
 
-        // 重設脈絡並產生開場白氣泡
         window.resetInquiryContext();
         const chatArea = document.getElementById('chatArea');
         if (chatArea) chatArea.innerHTML = '';
 
-        const hello = `${currentUser.name} 您好！我是威策 IT 智慧助手小威。我已連線 Supabase 知識庫，隨時為您排查電腦、印表機、HIS 系統或各類週邊問題。請問今天您的設備遇到什麼狀況呢？`;
+        const hello = `${currentUser.name} 您好！我是威策 IT 智慧助手小威。我已連線 Supabase 雲端知識庫，隨時為您排查電腦、印表機、醫療系統或網路問題。請問今天您的設備遇到什麼狀況呢？`;
         window.appendUserChat('ai', hello);
+        window.logChatToSupabase('ai', hello);
         window.speak(hello, () => window.startListening());
       }
     };
@@ -953,17 +896,8 @@
         submitBtn.disabled = true;
       }
 
-      const timeoutTimer = setTimeout(() => {
-        if (submitBtn && submitBtn.disabled) {
-          submitBtn.innerText = "登入系統";
-          submitBtn.disabled = false;
-          alert("連線逾時，請檢查網路連線或 Supabase 服務狀態！");
-        }
-      }, 5000);
-
       try {
         if (email === 'admin@welltake.com.tw' && inputPwd === '123456') {
-          clearTimeout(timeoutTimer);
           window.loginUserSuccess({
             id: 'admin-master',
             company: '威策電腦',
@@ -972,13 +906,13 @@
             email: 'admin@welltake.com.tw',
             phone: '02-2311-0000',
             role: 'admin',
-            status: 'approved'
+            status: 'approved',
+            jurisdiction: 'ALL'
           });
           return;
         }
 
         if (!supabaseClient) {
-          clearTimeout(timeoutTimer);
           alert("❌ 錯誤：Supabase 客戶端尚未初始化成功！");
           return;
         }
@@ -988,8 +922,6 @@
           .select('*')
           .ilike('email', email)
           .maybeSingle();
-
-        clearTimeout(timeoutTimer);
 
         if (error) {
           alert(`資料庫查詢錯誤：${error.message}`);
@@ -1019,7 +951,6 @@
 
         window.loginUserSuccess(data);
       } catch (err) {
-        clearTimeout(timeoutTimer);
         console.error("登入例外錯誤:", err);
         alert("登入過程發生異常：" + err.message);
       } finally {
@@ -1031,7 +962,7 @@
     };
 
     // ==========================================
-    // D. 同義詞比對與智慧小助手對話處理
+    // E. 智慧對話、同義詞比對與 LOG 紀錄
     // ==========================================
     const SYNONYM_GROUPS = [
       { key: '健保卡', synonyms: ['健保卡', 'ic卡', '晶片卡', '醫事卡', '醫事人員卡', '卡片', '插卡'] },
@@ -1100,31 +1031,31 @@
       HIS_SYSTEM: [
         { key: 'function_screen', label: '發生功能畫面', prompt: '請問您是執行哪一個畫面或功能時發生異常（例如：門診看診開醫令、掛號批價、電子病歷）？' },
         { key: 'errorCode', label: '錯誤提示代碼', prompt: '請問畫面上是否有顯示錯誤代碼或彈出警示訊息？' },
-        { key: 'impactScope', label: '影響範圍', prompt: '請問是只有您這台電腦異常，還是周遭其他診間/同仁也有相同狀況？' }
+        { key: 'impactScope', label: '影響範圍', prompt: '請問是只有您這台電腦異常，還是周遭其他同仁/單位也有相同狀況？' }
       ],
       PRINTER: [
         { key: 'deviceOrSystem', label: '印表機型號', prompt: '請問該印表機的型號或種類（例如：HP 雷射、Zebra 標籤機、熱感印機）是什麼？' },
         { key: 'errorCode', label: '燈號與狀態', prompt: '請問印表機面板是否有亮紅燈、閃爍或提示缺紙、卡紙？' },
-        { key: 'impactScope', label: '影響範圍', prompt: '請問只有您的電腦無法列印，還是科室內其他同仁也都無法印？' }
+        { key: 'impactScope', label: '影響範圍', prompt: '請問只有您的電腦無法列印，還是科室/廠區內其他同仁也都無法印？' }
       ],
       CARD_READER: [
         { key: 'card_type', label: '卡片類型', prompt: '請問是讀取「健保卡」、「醫事人員卡」還是「自然人憑證」時讀不到？' },
         { key: 'errorCode', label: '燈號與嗶聲', prompt: '請問插卡時讀卡機是否有發出嗶聲，指示燈是否有亮起？' }
       ],
       NETWORK: [
-        { key: 'net_type', label: '連線方式', prompt: '請問目前是用「有線網路線」、「Wi-Fi 無線」還是「院外手機 VPN」？' },
-        { key: 'impactScope', label: '影響範圍', prompt: '請問同科室其他同仁的電腦此時能正常上網嗎？' }
+        { key: 'net_type', label: '連線方式', prompt: '請問目前是用「有線網路線」、「Wi-Fi 無線」還是「外部 VPN」？' },
+        { key: 'impactScope', label: '影響範圍', prompt: '請問同單位其他同仁的電腦此時能正常上網嗎？' }
       ],
       GENERAL: [
-        { key: 'deviceOrSystem', label: '設備類型', prompt: '請問發生問題的設備是「桌上型主機」、「筆記型電腦」還是「護理工作車」？' },
+        { key: 'deviceOrSystem', label: '設備類型', prompt: '請問發生問題的設備是「桌上型主機」、「筆記型電腦」還是「工作車」？' },
         { key: 'impactScope', label: '影響範圍', prompt: '請問只有您遇到此狀況，還是多人受影響？' }
       ]
     };
 
     function extractSlotsFromUserMsg(text) {
       const lower = text.toLowerCase();
-      if (lower.includes('大家都') || lower.includes('其他人也') || lower.includes('整個科室') || lower.includes('多間診間') || lower.includes('全部都')) {
-        inquiryContext.impactScope = '多台 / 整個科室受影響';
+      if (lower.includes('大家都') || lower.includes('其他人也') || lower.includes('整個科室') || lower.includes('全部都') || lower.includes('整廠')) {
+        inquiryContext.impactScope = '多台 / 整個單位受影響';
       } else if (lower.includes('只有我') || lower.includes('就這台') || lower.includes('單獨一台')) {
         inquiryContext.impactScope = '單機 / 個人';
       }
@@ -1133,7 +1064,7 @@
         inquiryContext.deviceOrSystem = inquiryContext.deviceOrSystem || 'HIS 醫療系統';
         inquiryContext.categoryType = 'HIS_SYSTEM';
       } else if (lower.includes('讀卡機') || lower.includes('健保卡')) {
-        inquiryContext.deviceOrSystem = inquiryContext.deviceOrSystem || '健保讀卡機設備';
+        inquiryContext.deviceOrSystem = inquiryContext.deviceOrSystem || '讀卡機設備';
         inquiryContext.categoryType = 'CARD_READER';
       } else if (lower.includes('印表機') || lower.includes('標籤機') || lower.includes('條碼機')) {
         inquiryContext.deviceOrSystem = inquiryContext.deviceOrSystem || '印表機/標籤設備';
@@ -1148,7 +1079,7 @@
         inquiryContext.errorCode = errMatch[0];
       }
 
-      const locMatch = text.match(/([0-9]+[fF樓]|第[0-9]+診|[0-9]+診間|[a-zA-Z0-9]+護理站|辦公室)/);
+      const locMatch = text.match(/([0-9]+[fF樓]|第[0-9]+診|[0-9]+診間|[a-zA-Z0-9]+護理站|辦公室|廠區)/);
       if (locMatch && !inquiryContext.location) {
         inquiryContext.location = locMatch[0];
       }
@@ -1173,6 +1104,7 @@
       input.value = '';
 
       window.appendUserChat('user', q);
+      window.logChatToSupabase('user', q);
       turnCount++;
       window.updateTurnUI();
 
@@ -1187,10 +1119,11 @@
 
       const isSevereHardware = (q.includes('冒煙') || q.includes('焦味') || q.includes('斷掉') || q.includes('摔壞') || q.includes('燒掉') || q.includes('直接派工') || q.includes('報修就好'));
       if (isSevereHardware) {
-        inquiryContext.unresolvedReason = `硬體嚴重異常/現場要求直接派工：${q}`;
-        const urgentMsg = `收到！偵測到可能為硬體嚴重異常或零件損毀。小威跳過自主排查，已自動帶入完整排查脈絡為您建立【叫修表單】，請點擊下方預覽確認：`;
+        inquiryContext.unresolvedReason = `硬體嚴重異常/要求直接派修：${q}`;
+        const urgentMsg = `收到！偵測到可能為硬體嚴重異常或零件損毀。小威已為您整理好【報修案件表單】，請點擊下方預覽確認建立！`;
         window.appendUserChat('ai', urgentMsg);
-        window.speak("偵測到硬體嚴重狀況，已為您直接整理叫修表單。");
+        window.logChatToSupabase('ai', urgentMsg);
+        window.speak("偵測到硬體嚴重狀況，已為您直接整理報修案件表單。");
         setTimeout(() => openTicketModalPreview(), 500);
         return;
       }
@@ -1220,7 +1153,9 @@
         if (matches.length >= 2 && matches[0].score >= 20 && (matches[0].score - matches[1].score <= 5)) {
           const topOptions = [matches[0].item, matches[1].item];
           if (matches[2] && matches[0].score - matches[2].score <= 8) topOptions.push(matches[2].item);
-          window.appendUserChat('ai', '小威在 Supabase 知識庫中找到幾筆相似的排除指引：', false, 'disambiguate', topOptions);
+          const clarifyMsg = '小威在知識庫中找到幾筆相似的排除指引，請問是哪一種情境？';
+          window.appendUserChat('ai', clarifyMsg, false, 'disambiguate', topOptions);
+          window.logChatToSupabase('ai', clarifyMsg);
           window.speak("比對到幾種常見情況，請問是哪一種呢？");
           return;
         }
@@ -1233,14 +1168,20 @@
     window.handleSelectDisambiguation = function(sopId) {
       const chosen = knowledgeBase.find(k => k.sop_id === sopId);
       if (chosen) {
-        inquiryContext.supplementaryInfo.push(`使用者確認問題情境：[${chosen.sop_id}] ${chosen.title}`);
+        const text = `使用者確認情境：[${chosen.sop_id}] ${chosen.title}`;
+        inquiryContext.supplementaryInfo.push(text);
+        window.logChatToSupabase('user', text);
         applySopGuidance(chosen);
       }
     };
 
     window.handleRejectDisambiguation = function() {
-      inquiryContext.supplementaryInfo.push("使用者表示皆非預設的候選問題");
-      window.appendUserChat('ai', '請您再多補充一些細節（例如設備型號、錯誤代碼或受影響範圍），小威為您重新連線 Supabase 檢索！');
+      const text = "使用者表示皆非預設的候選問題";
+      inquiryContext.supplementaryInfo.push(text);
+      window.logChatToSupabase('user', text);
+      const reply = '請您再多補充一些細節（例如設備型號、錯誤代碼或受影響範圍），小威為您重新連線 Supabase 檢索！';
+      window.appendUserChat('ai', reply);
+      window.logChatToSupabase('ai', reply);
       window.speak("請您再多補充一些細節，我為您重新比對。");
     };
 
@@ -1248,10 +1189,11 @@
       inquiryContext.matchedSop = sop;
 
       if (turnCount >= MAX_TURNS || !sop) {
-        const reason = turnCount >= MAX_TURNS ? "已排查達 5 輪上限" : "Supabase 知識庫無直接相符條目";
+        const reason = turnCount >= MAX_TURNS ? "已排查達 5 輪上限" : "知識庫無直接相符條目";
         inquiryContext.unresolvedReason = reason;
-        const msg = `小威評估此問題需要工程師現場/遠端協助處理 (${reason})。我已完整彙整您剛才提供的脈絡與設備資訊，請檢閱下方【叫修表單】：`;
+        const msg = `小威評估此問題需要工程師現場/遠端協助處理 (${reason})。我已完整彙整您剛才提供的脈絡與設備資訊，請檢閱下方【報修案件表單】：`;
         window.appendUserChat('ai', msg, false);
+        window.logChatToSupabase('ai', msg);
         window.speak(msg);
         openTicketModalPreview();
         return;
@@ -1259,9 +1201,10 @@
 
       if (sop.allow_self_resolve === false) {
         inquiryContext.unresolvedReason = `SOP 規範此項目需由工程師到場或更換備品處置 (${sop.title})`;
-        const directMsg = `【${sop.title}】依資訊規範需由工程師到場維護或更換備品。<br><br>💡 注意事項：${(sop.safe_steps || '').replace(/\n/g, '<br>')}<br><br>小威已為您填妥叫修單，請檢閱送出！`;
+        const directMsg = `【${sop.title}】依資訊規範需由工程師到場維護或更換備品。<br><br>💡 注意事項：${(sop.safe_steps || '').replace(/\n/g, '<br>')}<br><br>小威已為您填妥報修案件，請檢閱送出！`;
         window.appendUserChat('ai', directMsg, false);
-        window.speak("此問題需由工程師現場檢修，已為您準備好叫修表單。");
+        window.logChatToSupabase('ai', directMsg);
+        window.speak("此問題需由工程師現場檢修，已為您準備好報修表單。");
         openTicketModalPreview();
         return;
       }
@@ -1275,25 +1218,31 @@
         probePromptText = `<br><br><span class="text-indigo-900 font-bold">🔍 小威想向您確認：</span><br>${nextProbe.prompt}`;
       }
 
-      const guide = `小威為您從 Supabase 知識庫調出【${sop.title}】的標準排查步驟：<br><br>${(sop.safe_steps || sop.steps || '').replace(/\n/g, '<br>')}${probePromptText}<br><br>照著上述嘗試後，問題是否已解決？`;
+      const guide = `小威為您從知識庫調出【${sop.title}】的標準排查步驟：<br><br>${(sop.safe_steps || sop.steps || '').replace(/\n/g, '<br>')}${probePromptText}<br><br>照著上述嘗試後，問題是否已解決？`;
       window.appendUserChat('ai', guide, true, 'resolve');
+      window.logChatToSupabase('ai', guide);
       window.speak(`為您找到${sop.title}的排查步驟，請依照指引嘗試。請問是否解決？`);
     }
 
     window.handleResolve = function(isResolved) {
       if (isResolved) {
-        const msg = "太棒了！很高興能協助您順利排除障礙 🎉 本次諮詢歷程已歸檔，祝您工作順心！";
+        const msg = "太棒了！很高興能協助您順利排除障礙 🎉 本次諮詢對話歷程已歸檔，祝您工作順心！";
         window.appendUserChat('ai', msg);
+        window.logChatToSupabase('ai', msg);
         window.speak(msg);
       } else {
         inquiryContext.unresolvedReason = "使用者依照標準 SOP 排查後仍無法排除故障";
-        const msg = "收到，已確認未能排除。我已自動抓取您的帳號資料、排查脈絡與未解決原因填入【叫修表單】，請您檢閱確認無誤後正式送出！";
+        const msg = "收到，已確認未能排除。我已自動抓取您的帳號資料、排查脈絡與未解決原因填入【報修案件表單】，請您檢閱確認無誤後正式送出！";
         window.appendUserChat('ai', msg);
-        window.speak("已確認未能排除，正為您產出叫修單。");
+        window.logChatToSupabase('ai', msg);
+        window.speak("已確認未能排除，正為您產出報修案件。");
         openTicketModalPreview();
       }
     };
 
+    // ==========================================
+    // F. 報修工單產出 (寫入 tickets 獨立資料庫)
+    // ==========================================
     function openTicketModalPreview() {
       const now = new Date();
       const sId = now.getFullYear().toString() + 
@@ -1305,10 +1254,10 @@
 
       document.getElementById('m_service_id').innerText = sId;
       document.getElementById('m_client_name').innerText = currentUser.name;
-      document.getElementById('m_phone').value = currentUser.phone;
-      document.getElementById('m_plant').innerText = currentUser.company;
-      document.getElementById('m_dept').value = currentUser.dept;
-      document.getElementById('m_email').innerText = currentUser.email;
+      document.getElementById('m_phone').value = currentUser.phone || '';
+      document.getElementById('m_plant').innerText = `${currentUser.company || ''} ${currentUser.jurisdiction || ''}`;
+      document.getElementById('m_dept').value = currentUser.dept || '';
+      document.getElementById('m_email').innerText = currentUser.email || '';
       document.getElementById('m_call_time').innerText = inquiryContext.startTime || `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
       document.getElementById('m_address').value = '';
@@ -1324,10 +1273,10 @@
       document.getElementById('m_urgency_display').innerHTML = `<span class="px-2 py-0.5 ${urgencyVal === 'P1' ? 'bg-rose-100 text-rose-900' : 'bg-amber-100 text-amber-900'} font-bold rounded">${urgencyVal}</span>`;
 
       const suppText = inquiryContext.supplementaryInfo.length > 0 ? inquiryContext.supplementaryInfo.join('；') : '無額外補充';
-      const stepsText = inquiryContext.suggestedSteps.length > 0 ? inquiryContext.suggestedSteps.map((s, idx) => `${idx + 1}. ${s}`).join('\n  ') : '無 (直接派單)';
+      const stepsText = inquiryContext.suggestedSteps.length > 0 ? inquiryContext.suggestedSteps.map((s, idx) => `${idx + 1}. ${s}`).join('\n  ') : '無 (直接派工)';
       const failReason = inquiryContext.unresolvedReason || '嘗試排查指引後問題依舊';
 
-      let problemFullText = `【問題摘要】：${inquiryContext.originalProblem || '電腦/設備障礙報修'}
+      let problemFullText = `【問題摘要】：${inquiryContext.originalProblem || '設備障礙報修'}
 【發生時間】：${document.getElementById('m_call_time').innerText}
 【影響範圍】：${inquiryContext.impactScope}
 【設備／系統】：${inquiryContext.deviceOrSystem || matchedTitle || '未指定'}
@@ -1337,7 +1286,8 @@
   - 錯誤訊息/代碼：${inquiryContext.errorCode || '無特別標記'}
 【已執行排除步驟】：
   ${stepsText}
-【未解決／轉單原因】：${failReason}`;
+【未解決／轉單原因】：${failReason}
+【關聯對話 Session】：${currentSessionId}`;
 
       if (uploadedImageBase64) {
         problemFullText += `\n【現場照片紀錄】：使用者已於前端拍照上傳障礙照片`;
@@ -1360,7 +1310,7 @@
 
       const confirmBtn = document.getElementById('btnConfirmTicket');
       if (confirmBtn) {
-        confirmBtn.innerText = "寫入 Supabase 中...";
+        confirmBtn.innerText = "寫入案件表單中...";
         confirmBtn.disabled = true;
       }
 
@@ -1369,10 +1319,10 @@
         user_id: currentUser.id || null,
         client_name: currentUser.name,
         phone: document.getElementById('m_phone').value,
-        company_plant: currentUser.company,
+        company_plant: `${currentUser.company || ''} ${currentUser.jurisdiction || ''}`.trim(),
         department: document.getElementById('m_dept').value,
         location: document.getElementById('m_location').value || "辦公室",
-        bu: document.getElementById('m_bu').value || "資訊維護部",
+        bu: document.getElementById('m_bu').value || "資訊服務處",
         cost_center: document.getElementById('m_cost_center').value || "",
         email: currentUser.email,
         address: document.getElementById('m_address').value.trim() || "",
@@ -1383,35 +1333,35 @@
         solution: document.getElementById('m_solution').value || "",
         dispatch_type: "外派案件",
         status: "叫修資料確認",
-        engineer: "Jady.Lin (指派調度中)",
-        urgency: inquiryContext.matchedSop ? (inquiryContext.matchedSop.urgency || '一般') : '一般'
+        engineer: "Jady.Lin (調度指派中)",
+        urgency: inquiryContext.matchedSop ? (inquiryContext.matchedSop.urgency || 'P2 一般') : 'P2 一般'
       };
 
       try {
-        const { data, error } = await supabaseClient
+        const { error } = await supabaseClient
           .from('tickets')
-          .insert([ticketPayload])
-          .select();
+          .insert([ticketPayload]);
 
         if (error) throw error;
 
         window.closeTicketModal();
-        const successMsg = `🎉 <b>叫修單已成功建立並寫入 Supabase！</b><br>服務編號：<span class="font-mono text-indigo-900 font-bold">${ticketPayload.service_id}</span><br>完整問題脈絡已傳遞給工程團隊，工程師將盡速與您聯絡！`;
+        const successMsg = `🎉 <b>報修案件已成功寫入 tickets 資料表！</b><br>服務編號：<span class="font-mono text-indigo-900 font-bold">${ticketPayload.service_id}</span><br>完整問題脈絡已獨立存檔，工程師將主動聯絡您！`;
         window.appendUserChat('ai', successMsg);
-        window.speak("叫修單已成功建立，工程師已接收完整脈絡並將盡速聯繫！");
+        window.logChatToSupabase('ai', `報修工單建立完成：${ticketPayload.service_id}`);
+        window.speak("報修案件已成功建立，工程師已接收通知，將儘速聯絡您！");
       } catch (err) {
         console.error("建單錯誤:", err);
         alert("工單寫入 Supabase 失敗：" + err.message);
       } finally {
         if (confirmBtn) {
-          confirmBtn.innerText = "✅ 確認無誤，寫入 Supabase 建案";
+          confirmBtn.innerText = "✅ 確認無誤，寫入 Supabase 案件表單";
           confirmBtn.disabled = false;
         }
       }
     };
 
     // ==========================================
-    // E. 註冊、變更密碼與後台維護
+    // G. 註冊、變更密碼與後台資料讀取
     // ==========================================
     window.handleRegisterSubmit = async function(e) {
       e.preventDefault();
@@ -1428,6 +1378,9 @@
 
       const profilePayload = {
         company: document.getElementById('regCompany').value.trim(),
+        org_type: document.getElementById('regOrgType').value,
+        unit_label: document.getElementById('regUnitLabel').value,
+        jurisdiction: document.getElementById('regJurisdiction').value.trim(),
         dept: document.getElementById('regDept').value.trim(),
         name: document.getElementById('regName').value.trim(),
         email: cleanEmail,
@@ -1438,10 +1391,9 @@
       };
 
       try {
-        const { data, error } = await supabaseClient
+        const { error } = await supabaseClient
           .from('profiles')
-          .insert([profilePayload])
-          .select();
+          .insert([profilePayload]);
 
         if (error) throw error;
 
@@ -1452,7 +1404,7 @@
         console.error("註冊失敗:", err);
         alert("註冊失敗：" + (err.message || "信箱可能重複或資料表未開通權限"));
       } finally {
-        submitBtn.innerText = "送出註冊 (等待管理者審核)";
+        submitBtn.innerText = "送出註冊 (等待審核)";
         submitBtn.disabled = false;
       }
     };
@@ -1507,6 +1459,156 @@
       } finally {
         btn.innerText = "確認儲存";
         btn.disabled = false;
+      }
+    };
+
+    window.fetchUsersFromSupabase = async function() {
+      if (!supabaseClient) return;
+      const tbody = document.getElementById('userTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="8" class="p-3 text-center text-slate-400">載入帳號清單中...</td></tr>';
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        tbody.innerHTML = '';
+        let pending = 0;
+
+        (data || []).forEach(u => {
+          if (u.status === 'pending') pending++;
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-700/40";
+          tr.innerHTML = `
+            <td class="p-2.5 font-medium text-white">${u.name}</td>
+            <td class="p-2.5">${u.company || ''}</td>
+            <td class="p-2.5 font-mono text-sky-300">${u.jurisdiction || 'ALL'}</td>
+            <td class="p-2.5">${u.dept || ''}</td>
+            <td class="p-2.5">${u.email}<br><span class="text-slate-400 text-[10px]">${u.phone || ''}</span></td>
+            <td class="p-2.5">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${u.status === 'approved' ? 'bg-emerald-900/60 text-emerald-300 border border-emerald-500' : 'bg-amber-900/60 text-amber-300 border border-amber-500'}">
+                ${u.status === 'approved' ? '已核准' : '待審核'}
+              </span>
+            </td>
+            <td class="p-2.5">
+              <select onchange="updateUserRoleInSupabase('${u.id}', this.value)" class="bg-slate-900 border border-slate-600 rounded px-1.5 py-1 text-xs text-slate-200">
+                <option value="user" ${u.role === 'user' ? 'selected' : ''}>一般使用者</option>
+                <option value="engineer" ${u.role === 'engineer' ? 'selected' : ''}>維護工程師</option>
+                <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>系統管理者</option>
+              </select>
+            </td>
+            <td class="p-2.5 text-right">
+              ${u.status === 'pending' ? `<button onclick="approveUserInSupabase('${u.id}', '${u.name}')" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold">核准開通</button>` : `<span class="text-slate-500 text-[11px]">正常</span>`}
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+        const pendingBadge = document.getElementById('pendingCount');
+        if (pendingBadge) pendingBadge.innerText = pending;
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-3 text-center text-rose-400">無法讀取 profiles 表：${err.message}</td></tr>`;
+      }
+    };
+
+    window.approveUserInSupabase = async function(id, name) {
+      if (!supabaseClient) return;
+      try {
+        const { error } = await supabaseClient
+          .from('profiles')
+          .update({ status: 'approved', approved_at: new Date().toISOString() })
+          .eq('id', id);
+
+        if (error) throw error;
+        alert(`已核准 [${name}] 的存取權限！`);
+        window.fetchUsersFromSupabase();
+      } catch (err) {
+        alert("審核失敗：" + err.message);
+      }
+    };
+
+    window.updateUserRoleInSupabase = async function(id, newRole) {
+      if (!supabaseClient) return;
+      try {
+        const { error } = await supabaseClient
+          .from('profiles')
+          .update({ role: newRole })
+          .eq('id', id);
+
+        if (error) throw error;
+        alert("權限調整成功！");
+      } catch (err) {
+        alert("權限修改失敗：" + err.message);
+      }
+    };
+
+    window.fetchKbFromSupabase = async function() {
+      if (!supabaseClient) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from('kb_solutions')
+          .select('*')
+          .order('sop_id', { ascending: true });
+
+        if (error) throw error;
+        knowledgeBase = data || [];
+        const kbBadge = document.getElementById('kbCount');
+        if (kbBadge) kbBadge.innerText = knowledgeBase.length;
+        const statusBadge = document.getElementById('supabaseStatusBadge');
+        if (statusBadge) {
+          statusBadge.innerText = `● Supabase SAGE (知識庫: ${knowledgeBase.length} 筆)`;
+        }
+        renderKbList();
+      } catch (err) {
+        console.warn("讀取 kb_solutions 表失敗:", err);
+      }
+    };
+
+    function renderKbList() {
+      const c = document.getElementById('kbListContainer');
+      if (!c) return;
+      c.innerHTML = '';
+      if (!knowledgeBase || knowledgeBase.length === 0) {
+        c.innerHTML = '<div class="col-span-2 text-center text-slate-500 p-6">目前 Supabase 知識庫尚無資料，請點擊上方按鈕直接上傳 Excel 或 JSON</div>';
+        return;
+      }
+
+      knowledgeBase.forEach(k => {
+        const d = document.createElement('div');
+        d.className = "p-3 bg-slate-800 border border-slate-700 rounded-xl space-y-1.5 relative hover:border-slate-600 transition";
+        const kwStr = Array.isArray(k.keywords) ? k.keywords.join(', ') : k.keywords;
+        d.innerHTML = `
+          <div class="flex justify-between items-start gap-2">
+            <span class="font-bold text-sky-400 leading-snug">${k.sop_id ? `[${k.sop_id}] ` : ''}${k.title}</span>
+            <div class="flex items-center space-x-1 shrink-0">
+              <span class="text-[10px] bg-slate-700 px-1.5 py-0.5 rounded text-slate-300">${k.escalate_dept || '硬體維護組'}</span>
+              <button onclick="openEditSopModal('${k.sop_id}')" class="text-amber-400 hover:text-amber-300 text-xs px-1.5 py-0.5 bg-slate-700 hover:bg-slate-600 rounded" title="修改此筆 SOP">✏️ 修改</button>
+              <button onclick="deleteSopInSupabase('${k.sop_id}')" class="text-rose-400 hover:text-rose-300 text-xs px-1 py-0.5" title="刪除此筆">🗑️</button>
+            </div>
+          </div>
+          <p class="text-slate-300 text-[11px] whitespace-pre-line leading-relaxed bg-slate-900/60 p-2 rounded">${k.safe_steps || k.steps || '暫無步驟說明'}</p>
+          <div class="text-[10px] text-slate-400 flex justify-between items-center">
+            <span>關鍵字: ${kwStr}</span>
+            <span class="font-mono text-slate-500 text-[9px]">${k.category || ''}</span>
+          </div>
+        `;
+        c.appendChild(d);
+      });
+    }
+
+    window.deleteSopInSupabase = async function(sopId) {
+      if (!confirm(`確定要刪除 [${sopId}] 嗎？`)) return;
+      try {
+        const { error } = await supabaseClient
+          .from('kb_solutions')
+          .delete()
+          .eq('sop_id', sopId);
+        if (error) throw error;
+        window.fetchKbFromSupabase();
+      } catch (err) {
+        alert("刪除失敗：" + err.message);
       }
     };
 
@@ -1768,9 +1870,96 @@
       }
     };
 
-    // ==========================================
-    // F. DOM 就緒後安全綁定
-    // ==========================================
+    // 讀取獨立的 tickets 報修案件表單
+    window.fetchTicketsFromSupabase = async function() {
+      if (!supabaseClient) return;
+      const c = document.getElementById('ticketsLogContainer');
+      if (!c) return;
+      c.innerHTML = '<div class="text-slate-400 p-3">載入案件表單中...</div>';
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('tickets')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        c.innerHTML = '';
+        const countBadge = document.getElementById('ticketsCount');
+        if (countBadge) countBadge.innerText = (data || []).length;
+
+        if (!data || data.length === 0) {
+          c.innerHTML = '<div class="text-slate-500 p-4 text-center">目前尚無報修案件紀錄</div>';
+          return;
+        }
+
+        data.forEach(t => {
+          const item = document.createElement('div');
+          item.className = "p-3 bg-slate-800 border border-slate-700 rounded-xl space-y-1";
+          item.innerHTML = `
+            <div class="flex justify-between font-bold text-sky-300">
+              <span>單號：${t.service_id} (${t.company_plant || ''} - ${t.client_name})</span>
+              <span class="text-amber-400 font-mono">${t.status}</span>
+            </div>
+            <div class="text-[11px] text-slate-300 whitespace-pre-line bg-slate-900/60 p-2 rounded mt-1 font-mono">${t.problem_description || '無詳細說明'}</div>
+            <div class="text-[10px] text-slate-400 flex justify-between pt-1 border-t border-slate-700/60 mt-1">
+              <span>電話：${t.phone || '無'}</span>
+              <span>地址/位置：${t.location || ''} ${t.address || ''}</span>
+              <span>叫修時間：${t.call_time}</span>
+            </div>
+          `;
+          c.appendChild(item);
+        });
+      } catch (err) {
+        c.innerHTML = `<div class="text-rose-400 p-3">載入 tickets 表失敗：${err.message}</div>`;
+      }
+    };
+
+    // 讀取獨立的 chat_logs 對話歷程
+    window.fetchChatLogsFromSupabase = async function() {
+      if (!supabaseClient) return;
+      const c = document.getElementById('chatLogsContainer');
+      if (!c) return;
+      c.innerHTML = '<div class="text-slate-400 p-3">載入對話 LOG 中...</div>';
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('chat_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(100);
+
+        if (error) throw error;
+        c.innerHTML = '';
+        const countBadge = document.getElementById('chatLogsCount');
+        if (countBadge) countBadge.innerText = (data || []).length;
+
+        if (!data || data.length === 0) {
+          c.innerHTML = '<div class="text-slate-500 p-4 text-center">目前尚無對話歷程紀錄</div>';
+          return;
+        }
+
+        data.forEach(log => {
+          const item = document.createElement('div');
+          const isUser = log.message_role === 'user';
+          item.className = `p-2.5 rounded-xl border text-[11px] ${isUser ? 'bg-indigo-950/60 border-indigo-700/60' : 'bg-slate-800 border-slate-700'}`;
+          item.innerHTML = `
+            <div class="flex justify-between items-center mb-1 text-[10px] text-slate-400">
+              <span class="font-bold ${isUser ? 'text-sky-300' : 'text-emerald-400'}">
+                ${isUser ? '👤 使用者' : '🤖 小威 AI'}: ${log.user_name || '訪客'} (${log.company || ''} ${log.jurisdiction || ''})
+              </span>
+              <span class="font-mono">${new Date(log.created_at).toLocaleString()}</span>
+            </div>
+            <div class="text-slate-200 whitespace-pre-line leading-relaxed">${log.message_content}</div>
+          `;
+          c.appendChild(item);
+        });
+      } catch (err) {
+        c.innerHTML = `<div class="text-rose-400 p-3">載入 chat_logs 表失敗：${err.message}</div>`;
+      }
+    };
+
+    // DOM 就緒後初始化語音
     window.addEventListener('DOMContentLoaded', () => {
       if (typeof window.initSTT === 'function') {
         window.initSTT();
