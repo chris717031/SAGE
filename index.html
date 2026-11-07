@@ -27,50 +27,34 @@
       background-size: contain;
     }
 
-    /* 活潑可愛小男孩・小威專屬全身骨骼動畫 */
-    @keyframes idleBounce {
+    /* 活潑可愛小男孩・小威專屬動態效果 */
+    @keyframes boyBob {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-7px); }
+      50% { transform: translateY(-6px); }
     }
-    @keyframes blinkEye {
+    @keyframes eyeBlink {
       0%, 90%, 100% { transform: scaleY(1); }
       95% { transform: scaleY(0.1); }
     }
-    @keyframes waveRightArm {
-      0%, 100% { transform: rotate(0deg); }
-      20% { transform: rotate(26deg); }
-      60% { transform: rotate(-14deg); }
+    @keyframes mouthTalk {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
     }
     @keyframes cheerJump {
       0%, 100% { transform: translateY(0) scale(1); }
       40% { transform: translateY(-16px) scale(1.05); }
       70% { transform: translateY(-4px) scale(0.98); }
     }
-    @keyframes shadowBreath {
-      0%, 100% { transform: scale(1); opacity: 0.25; }
-      50% { transform: scale(0.85); opacity: 0.15; }
-    }
 
-    .xiaowei-boy-body {
-      transform-origin: bottom center;
-      animation: idleBounce 2.8s ease-in-out infinite;
+    .boy-character-anim {
+      animation: boyBob 3s ease-in-out infinite;
     }
-    .xiaowei-boy-eye {
+    .boy-eye-blink {
       transform-origin: center;
-      animation: blinkEye 4s infinite;
+      animation: eyeBlink 3.6s infinite;
     }
-    .xiaowei-boy-arm-r {
-      transform-origin: 108px 98px;
-      animation: waveRightArm 1.5s ease-in-out infinite;
-    }
-    .xiaowei-boy-shadow {
-      transform-origin: center;
-      animation: shadowBreath 2.8s ease-in-out infinite;
-    }
-
-    /* 跳躍歡呼狀態 */
-    .xiaowei-cheer {
-      animation: cheerJump 0.8s ease-in-out 3;
+    .boy-cheer {
+      animation: cheerJump 0.75s ease-in-out 3;
     }
   </style>
 </head>
@@ -212,125 +196,116 @@
       </div>
     </section>
 
-    <!-- 2. 使用者介面：活潑可愛小男孩（小威）陪跑交談工作區 -->
+    <!-- 2. 使用者介面：活潑可愛小男孩（小威）工作區 -->
     <section id="userSection" class="hidden absolute inset-0 flex flex-col md:flex-row bg-slate-100 text-slate-800 overflow-hidden">
       
       <!-- ========================================== -->
-      <!-- 左側/頂部：活潑可愛小男孩・小威立體角色互動區 -->
+      <!-- 左側/頂部：活潑小男孩・小威立體角色互動區   -->
       <!-- ========================================== -->
       <aside class="w-full md:w-64 bg-gradient-to-b from-[#10183d] via-slate-900 to-[#10183d] text-white p-3 md:p-4 flex flex-row md:flex-col items-center justify-between shrink-0 shadow-lg border-b md:border-b-0 md:border-r border-indigo-950/60 z-10">
         
-        <!-- 小男孩實體立像 (點擊會彈跳互動) -->
+        <!-- 小男孩實體形象 (點擊互動) -->
         <div class="flex flex-col items-center cursor-pointer group" onclick="triggerXiaoweiCheer()" title="點點小威跟他說話！">
-          <div id="xiaoweiCharacterContainer" class="relative w-28 md:w-44 h-28 md:h-48 flex items-center justify-center">
-            <!-- 小威全身 SVG 實體插畫 -->
-            <svg viewBox="0 0 160 210" class="w-full h-full drop-shadow-xl xiaowei-boy-body" id="xiaoweiBoySvg">
-              <!-- 腳底呼吸陰影 -->
-              <ellipse cx="80" cy="200" rx="34" ry="7" fill="#020617" class="xiaowei-boy-shadow"/>
+          <div id="xiaoweiCharacterContainer" class="relative w-24 md:w-44 h-24 md:h-48 flex items-center justify-center">
+            
+            <!-- 嘗試優先載入上傳的自訂圖片 xiaowei.png，若無則完美呈現客製化向量小男生 -->
+            <img src="xiaowei.png" alt="小威小工程師" 
+                 class="w-full h-full object-contain drop-shadow-xl boy-character-anim" 
+                 id="xiaoweiCustomImg"
+                 onerror="this.style.display='none'; document.getElementById('xiaoweiVectorFallback').style.display='block';">
+
+            <!-- 向量備援：對照上傳之棕髮大眼黃帽T小男生形象 -->
+            <svg viewBox="0 0 160 210" class="w-full h-full drop-shadow-xl boy-character-anim" id="xiaoweiVectorFallback" style="display: none;">
+              <!-- 腳底陰影 -->
+              <ellipse cx="80" cy="202" rx="35" ry="6" fill="#020617" opacity="0.3"/>
               
-              <!-- 雙腿與小球鞋 -->
-              <rect x="62" y="152" width="12" height="34" rx="5" fill="#1e3a8a"/>
-              <rect x="86" y="152" width="12" height="34" rx="5" fill="#1e3a8a"/>
-              <!-- 球鞋 -->
-              <ellipse cx="66" cy="188" rx="10" ry="6" fill="#f8fafc"/>
-              <path d="M56 188 Q66 182 76 188 L75 192 L57 192 Z" fill="#f97316"/>
-              <ellipse cx="94" cy="188" rx="10" ry="6" fill="#f8fafc"/>
-              <path d="M84 188 Q94 182 104 188 L103 192 L85 192 Z" fill="#f97316"/>
-
-              <!-- 身體：小工裝吊帶褲 -->
-              <rect x="52" y="112" width="56" height="48" rx="14" fill="#1e3a8a"/>
-              <!-- 內搭白T恤 -->
-              <path d="M58 98 L102 98 L106 122 L54 122 Z" fill="#f8fafc"/>
-              <!-- 工裝吊帶條 -->
-              <rect x="58" y="100" width="8" height="36" fill="#3b82f6"/>
-              <rect x="94" y="100" width="8" height="36" fill="#3b82f6"/>
-              <!-- 吊帶黃色小鈕扣 -->
-              <circle cx="62" cy="132" r="3" fill="#f59e0b"/>
-              <circle cx="98" cy="132" r="3" fill="#f59e0b"/>
-              <!-- 工裝大口袋與螺絲起子工具 -->
-              <rect x="68" y="126" width="24" height="20" rx="5" fill="#172554"/>
-              <rect x="80" y="118" width="4" height="12" rx="1.5" fill="#ef4444"/>
-              <rect x="80" y="114" width="4" height="4" fill="#94a3b8"/>
-
-              <!-- 左手臂 (插腰/自然擺動) -->
-              <path d="M52 102 Q34 118 42 136" stroke="#fed7aa" stroke-width="10" stroke-linecap="round" fill="none"/>
-              <!-- 左袖子 -->
-              <circle cx="52" cy="103" r="8" fill="#f8fafc"/>
-
-              <!-- 右手臂 (會熱情向使用者揮手) -->
-              <g class="xiaowei-boy-arm-r">
-                <circle cx="108" cy="103" r="8" fill="#f8fafc"/>
-                <path d="M108 103 Q128 112 136 84" stroke="#fed7aa" stroke-width="10" stroke-linecap="round" fill="none"/>
-                <!-- 右手小手掌 -->
-                <circle cx="136" cy="82" r="7" fill="#fed7aa"/>
-                <circle cx="131" cy="80" r="3.5" fill="#fed7aa"/>
-              </g>
+              <!-- 亮黃色連帽外套 (Hoodie) -->
+              <path d="M42 136 L30 196 L130 196 L118 136 Z" fill="#f59e0b"/>
+              <!-- 內搭白T領口 -->
+              <path d="M68 134 L92 134 L80 156 Z" fill="#ffffff"/>
+              <!-- 領口拉鍊與抽繩 -->
+              <path d="M80 156 L80 196" stroke="#b45309" stroke-width="2.5" stroke-linecap="round"/>
+              <rect x="78" y="156" width="4" height="6" rx="1.5" fill="#e2e8f0"/>
+              <!-- 連帽立體陰影與翻領 -->
+              <path d="M42 136 Q80 160 118 136 Q108 122 80 128 Q52 122 42 136 Z" fill="#d97706"/>
 
               <!-- 脖子 -->
-              <rect x="74" y="86" width="12" height="12" rx="4" fill="#fed7aa"/>
+              <rect x="71" y="94" width="18" height="22" rx="6" fill="#fed7aa"/>
 
-              <!-- 圓圓可愛小男孩臉龐 -->
-              <circle cx="80" cy="62" r="32" fill="#fed7aa"/>
-              <!-- 紅通通腮紅 -->
-              <ellipse cx="60" cy="71" rx="5.5" ry="3.5" fill="#fca5a5" opacity="0.7"/>
-              <ellipse cx="100" cy="71" rx="5.5" ry="3.5" fill="#fca5a5" opacity="0.7"/>
+              <!-- 圓圓可愛的臉龐 -->
+              <circle cx="80" cy="74" r="38" fill="#fed7aa"/>
+              <!-- 雙耳 -->
+              <circle cx="39" cy="78" r="9" fill="#fed7aa"/>
+              <circle cx="121" cy="78" r="9" fill="#fed7aa"/>
+              <circle cx="39" cy="78" r="5" fill="#fca5a5" opacity="0.6"/>
+              <circle cx="121" cy="78" r="5" fill="#fca5a5" opacity="0.6"/>
 
-              <!-- 圓圓大眼睛 (支援 blinkEye 自動眨眼動態) -->
-              <g class="xiaowei-boy-eye">
-                <circle cx="68" cy="60" r="4.5" fill="#0f172a"/>
-                <circle cx="70" cy="58" r="1.6" fill="#ffffff"/>
-                <circle cx="92" cy="60" r="4.5" fill="#0f172a"/>
-                <circle cx="94" cy="58" r="1.6" fill="#ffffff"/>
+              <!-- 紅通通可愛腮紅 -->
+              <ellipse cx="57" cy="85" rx="7" ry="4" fill="#fca5a5" opacity="0.8"/>
+              <ellipse cx="103" cy="85" rx="7" ry="4" fill="#fca5a5" opacity="0.8"/>
+
+              <!-- 靈動大棕眼 (支援 eyeBlink 眨眼動畫) -->
+              <g class="boy-eye-blink">
+                <!-- 左眼 -->
+                <ellipse cx="64" cy="70" rx="9" ry="12" fill="#ffffff"/>
+                <ellipse cx="65" cy="70" rx="6.5" ry="9.5" fill="#78350f"/>
+                <circle cx="65" cy="70" r="4.5" fill="#451a03"/>
+                <circle cx="67" cy="67" r="2.2" fill="#ffffff"/>
+                <circle cx="63" cy="74" r="1.2" fill="#ffffff"/>
+                <path d="M54 58 Q64 54 74 61" stroke="#451a03" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+
+                <!-- 右眼 -->
+                <ellipse cx="96" cy="70" rx="9" ry="12" fill="#ffffff"/>
+                <ellipse cx="95" cy="70" rx="6.5" ry="9.5" fill="#78350f"/>
+                <circle cx="95" cy="70" r="4.5" fill="#451a03"/>
+                <circle cx="97" cy="67" r="2.2" fill="#ffffff"/>
+                <circle cx="93" cy="74" r="1.2" fill="#ffffff"/>
+                <path d="M86 61 Q96 54 106 58" stroke="#451a03" stroke-width="2.2" fill="none" stroke-linecap="round"/>
               </g>
 
-              <!-- 可愛開朗微笑嘴巴 -->
-              <path d="M74 74 Q80 81 86 74 Z" fill="#b91c1c"/>
+              <!-- 小鼻子 -->
+              <circle cx="80" cy="76" r="2" fill="#d97706"/>
 
-              <!-- 帥氣小男孩瀏海短髮 -->
-              <path d="M48 52 Q62 46 80 50 Q98 44 112 52 Q108 36 80 34 Q52 36 48 52 Z" fill="#334155"/>
+              <!-- 驚奇張大的可愛小嘴 (如參考圖) -->
+              <path d="M74 84 Q80 82 86 84 Q88 95 80 97 Q72 95 74 84 Z" fill="#451a03"/>
+              <path d="M75 90 Q80 88 85 90 Q84 96 80 96 Q76 96 75 90 Z" fill="#ef4444"/>
 
-              <!-- 威策工程師小黃帽 (帥氣反戴風格) -->
-              <path d="M50 42 C50 20, 110 20, 110 42 C114 42, 116 46, 110 46 L50 46 C44 46, 46 42, 50 42 Z" fill="#f59e0b"/>
-              <path d="M60 28 Q80 18 100 28" stroke="#fef3c7" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.8"/>
-              <!-- 帽前 W 徽章 -->
-              <circle cx="80" cy="36" r="7" fill="#ffffff"/>
-              <text x="80" y="40" font-size="8.5" font-weight="900" fill="#1e3a8a" text-anchor="middle" font-family="sans-serif">W</text>
-
-              <!-- 專業通話耳麥 (隨時連線支援) -->
-              <path d="M48 56 A 34 34 0 0 1 112 56" stroke="#475569" stroke-width="3.5" fill="none"/>
-              <rect x="44" y="54" width="7" height="15" rx="3" fill="#0284c7"/>
-              <rect x="109" y="54" width="7" height="15" rx="3" fill="#0284c7"/>
-              <path d="M47 67 Q54 84 70 82" stroke="#475569" stroke-width="2.5" fill="none"/>
-              <circle cx="71" cy="82" r="3.5" fill="#0284c7"/>
+              <!-- 棕色蓬鬆帥氣短髮與呆毛 -->
+              <path d="M42 66 C32 40, 50 16, 80 16 C110 16, 128 40, 118 66 C112 56, 108 50, 98 48 C96 36, 84 32, 80 34 C76 32, 64 36, 62 48 C52 50, 48 56, 42 66 Z" fill="#854d0e"/>
+              <!-- 頭頂生動小呆毛 -->
+              <path d="M80 18 Q86 6 78 4 Q74 12 79 18 Z" fill="#713f12"/>
+              <!-- 瀏海層次立體陰影 -->
+              <path d="M48 54 Q60 48 72 52 Q80 44 88 52 Q100 48 112 54 Q106 38 80 36 Q54 38 48 54 Z" fill="#a16207"/>
             </svg>
+
           </div>
           <span class="text-[10px] text-amber-300 font-bold mt-1 bg-amber-950/70 border border-amber-500/40 px-2 py-0.5 rounded-full">
             點我互動 👆
           </span>
         </div>
 
-        <!-- 小威即時狀態指示 -->
+        <!-- 小威說話對話泡泡與狀態指示 -->
         <div class="flex-1 md:w-full md:mt-3 px-2 flex flex-col justify-center">
           <div class="bg-indigo-950/80 border border-indigo-400/30 rounded-xl p-2.5 text-center">
             <h3 class="text-xs font-bold text-amber-300 flex items-center justify-center gap-1.5">
-              <span>小工程師 小威</span>
+              <span>IT 智慧夥伴 小威</span>
               <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             </h3>
             <p id="xiaoweiStatusSpeech" class="text-[11px] text-sky-200 mt-1 leading-snug">
-              「我是小威！今天設備有任何狀況，我一步一步陪您測試！」
+              「我是小威！有任何電腦或系統問題，我會一步一步陪您測試解決！」
             </p>
           </div>
 
           <div class="mt-2 text-[10px] text-slate-400 hidden md:flex items-center justify-between px-1">
-            <span>智能狀態：逐步引導</span>
-            <span class="font-mono text-emerald-400">在線中</span>
+            <span>語音模式：清脆小男生</span>
+            <span class="font-mono text-emerald-400">在線待命</span>
           </div>
         </div>
 
       </aside>
 
       <!-- ========================================== -->
-      <!-- 右側：主智慧對話與排查區塊                   -->
+      <!-- 右側：智慧對話排查工作區                     -->
       <!-- ========================================== -->
       <section class="flex-1 flex flex-col h-full overflow-hidden bg-white relative">
         
@@ -341,7 +316,7 @@
               追問: 0/5 輪
             </span>
             <span class="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.2 rounded font-medium">
-              Supabase 雲端資料庫
+              Supabase 雲端知識庫
             </span>
           </span>
           <button onclick="toggleVoiceOutput()" id="voiceToggleBtn" class="text-[10px] bg-indigo-900 text-white px-2 py-0.5 rounded-full shadow-sm">
@@ -375,7 +350,7 @@
             </button>
 
             <button id="micBtn" onclick="toggleListening()" class="p-2.5 text-slate-600 bg-slate-100 active:bg-slate-200 rounded-full shrink-0" title="語音輸入">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 fill-none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
               </svg>
             </button>
@@ -686,10 +661,10 @@
     </div>
   </div>
 
-  <!-- 7. 核心 JavaScript (活潑小男孩動態互動 + 智能對話) -->
+  <!-- 7. 核心 JavaScript (注入棕髮大眼黃外套小男生頭像與清脆小男生童音) -->
   <script>
     // ==========================================
-    // A. 小威語音核心宣告
+    // A. 語音核心宣告 (小男生活潑童音音質設定)
     // ==========================================
     let isVoiceEnabled = true;
     let recognition = null;
@@ -706,7 +681,11 @@
         const cleanText = String(text || '').replace(/<[^>]*>/g, '').replace(/📷|💻|💡|✅|❌|📋|⚠️|👤|🤖|👉|🎫/g, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'zh-TW';
-        utterance.rate = 1.05;
+        
+        // 【核心設定】：清脆可愛小男生聲音 (pitch = 1.35, rate = 1.12)
+        utterance.pitch = 1.35; 
+        utterance.rate = 1.12;
+
         utterance.onend = () => { if (onComplete) onComplete(); };
         utterance.onerror = () => { if (onComplete) onComplete(); };
         window.speechSynthesis.speak(utterance);
@@ -784,33 +763,49 @@
     };
 
     // ==========================================
-    // B. 小威男孩肢體動態互動引擎
+    // B. 小威小男生頭像與動態切換引擎
     // ==========================================
+    window.getXiaoWeiChatAvatarHTML = function() {
+      return `
+        <div class="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-amber-300 shadow-sm bg-amber-100 flex items-center justify-center">
+          <img src="xiaowei.png" alt="小威" class="w-full h-full object-cover" 
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+          <div style="display:none;" class="w-full h-full bg-amber-400 flex items-center justify-center font-bold text-amber-950 text-xs">威</div>
+        </div>
+      `;
+    };
+
     window.updateXiaoweiMood = function(mood, customText = '') {
       const speechEl = document.getElementById('xiaoweiStatusSpeech');
-      const svgEl = document.getElementById('xiaoweiBoySvg');
-      if (!speechEl || !svgEl) return;
+      const imgEl = document.getElementById('xiaoweiCustomImg');
+      const svgEl = document.getElementById('xiaoweiVectorFallback');
+      if (!speechEl) return;
 
-      svgEl.classList.remove('xiaowei-cheer');
+      if (imgEl) imgEl.classList.remove('boy-cheer');
+      if (svgEl) svgEl.classList.remove('boy-cheer');
 
       if (mood === 'thinking') {
-        speechEl.innerText = customText || '「小威正在知識庫搜尋最好的排查方式...」';
+        speechEl.innerText = customText || '「小威正在動動腦，幫您找出最快的測試排查法...」';
       } else if (mood === 'step') {
         speechEl.innerText = customText || '「請試試這個步驟，完成後點下方讓我知道喔！」';
       } else if (mood === 'cheer') {
-        svgEl.classList.add('xiaowei-cheer');
-        speechEl.innerText = customText || '「太棒了！順利解決問題，小威好開心！🎉」';
-        setTimeout(() => { svgEl.classList.remove('xiaowei-cheer'); }, 2400);
+        if (imgEl) imgEl.classList.add('boy-cheer');
+        if (svgEl) svgEl.classList.add('boy-cheer');
+        speechEl.innerText = customText || '「太棒了！順利解決問題，小威太開心啦！🎉」';
+        setTimeout(() => { 
+          if (imgEl) imgEl.classList.remove('boy-cheer');
+          if (svgEl) svgEl.classList.remove('boy-cheer');
+        }, 2200);
       } else if (mood === 'ticket') {
-        speechEl.innerText = customText || '「別擔心，我已經把完整測試紀錄寫好報修單了！」';
+        speechEl.innerText = customText || '「別擔心，我已經把完整測試紀錄整理成報修單了！」';
       } else {
         speechEl.innerText = customText || '「我是小威！今天設備有任何狀況，我一步一步陪您測試！」';
       }
     };
 
     window.triggerXiaoweiCheer = function() {
-      window.updateXiaoweiMood('cheer', '「嘿嘿！有我在，電腦問題儘管交給我！」');
-      window.speak("嘿嘿！有我在，電腦問題儘管交給我！");
+      window.updateXiaoweiMood('cheer', '「嘿嘿！有我在，電腦設備問題儘管交給我！」');
+      window.speak("嘿嘿！有我在，電腦設備問題儘管交給我！");
     };
 
     // ==========================================
@@ -879,7 +874,7 @@
       }
     };
 
-    // 聊天訊息氣泡：標註小威回答
+    // 聊天訊息氣泡：帶有可愛小男孩小威頭像
     window.appendUserChat = function(role, text, showButtons = false, buttonType = 'step_action', options = []) {
       const area = document.getElementById('chatArea');
       if (!area) return;
@@ -925,9 +920,7 @@
         }
 
         box.innerHTML = `
-          <div class="w-7 h-7 rounded-full bg-amber-400 border border-amber-600 flex items-center justify-center text-xs font-bold text-amber-950 shrink-0 mt-0.5 shadow-sm">
-            威
-          </div>
+          ${window.getXiaoWeiChatAvatarHTML()}
           <div class="bg-white/95 border border-slate-200 text-slate-800 text-[13px] rounded-2xl rounded-tl-sm p-3 max-w-[85%] shadow-sm leading-relaxed backdrop-blur-sm">
             ${text}${actionArea}
           </div>
@@ -1074,7 +1067,6 @@
         try { window.fetchTicketsFromSupabase(); } catch(e){}
         try { window.fetchChatLogsFromSupabase(); } catch(e){}
       } else {
-        // 一般使用者登入：啟動小威男孩交談工作區
         const mgmtSec = document.getElementById('managementSection');
         if (mgmtSec) mgmtSec.classList.add('hidden');
         const userSec = document.getElementById('userSection');
@@ -1548,14 +1540,12 @@
 
       extractSlotsFromUserMsg(q);
 
-      // 小威動態切換思考模式
-      window.updateXiaoweiMood('thinking', `「收到！小威正在為您分析『${q}』的最快排除法...」`);
+      window.updateXiaoweiMood('thinking', `「收到！小威正在幫您尋找『${q}』最有效的測試方式...」`);
 
-      // 硬體嚴重狀況直通轉單
       const isSevereHardware = (q.includes('冒煙') || q.includes('焦味') || q.includes('斷掉') || q.includes('摔壞') || q.includes('燒掉') || q.includes('直接派工') || q.includes('報修就好'));
       if (isSevereHardware) {
         inquiryContext.unresolvedReason = `硬體嚴重異常/要求直接派修：${q}`;
-        window.updateXiaoweiMood('ticket', '「偵測到硬體嚴重狀況，小威直接幫您整理好報修表單了！」');
+        window.updateXiaoweiMood('ticket', '「偵測到硬體嚴重狀況，小威直接幫您整理好報修單了！」');
         const urgentMsg = `收到！偵測到可能為硬體嚴重異常或零件損毀。小威已為您自動彙整並產生【報修確認表單】，請點擊下方確認送出建立案件！`;
         window.appendUserChat('ai', urgentMsg);
         window.logChatToSupabase('ai', urgentMsg);
@@ -2431,7 +2421,7 @@ ${stepsText}
           item.innerHTML = `
             <div class="flex justify-between items-center mb-1 text-[10px] text-slate-400">
               <span class="font-bold ${isUser ? 'text-sky-300' : 'text-emerald-400'}">
-                ${isUser ? '👤 使用者' : '🤖 小威 AI'}: ${log.user_name || '訪客'} (${log.company || ''} ${log.jurisdiction || ''})
+                ${isUser ? '👤 使用者' : '👦 小威'}: ${log.user_name || '訪客'} (${log.company || ''} ${log.jurisdiction || ''})
               </span>
               <span class="font-mono">${new Date(log.created_at).toLocaleString()}</span>
             </div>
@@ -2476,7 +2466,7 @@ ${stepsText}
         turnCount++;
         window.updateTurnUI();
 
-        window.updateXiaoweiMood('step', '「小威收到現場照片了，正為您辨識燈號與畫面狀態！」');
+        window.updateXiaoweiMood('step', '「小威收到現場照片囉，正幫您確認畫面與燈號！」');
 
         setTimeout(() => {
           const aiAnalysisText = "小威已接收到您上傳的設備照片！系統初步診斷顯示燈號或螢幕畫面有異常狀況。建議先確認後方連接線路是否牢固；若持續無法使用，請點選下方按鈕直接為您送出報修單！";
