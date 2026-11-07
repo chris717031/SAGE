@@ -121,8 +121,11 @@
     </div>
 
     <div class="flex items-center space-x-1.5">
+      <button onclick="promptConfigureGeminiKey()" class="text-[10px] bg-indigo-900/90 hover:bg-indigo-800 border border-indigo-400/50 text-indigo-200 px-2 py-0.5 rounded-full transition flex items-center gap-1">
+        <span>✨</span> Gemini AI 設定
+      </button>
       <span id="supabaseStatusBadge" class="text-[9px] bg-emerald-950 text-emerald-300 border border-emerald-600/50 px-2 py-0.5 rounded-full">
-        ● Supabase SAGE 連線中
+        ● Supabase + Gemini 連線中
       </span>
       <button id="changePwdBtn" onclick="openChangePasswordModal(false)" class="hidden px-2 py-1 bg-indigo-900/80 hover:bg-indigo-800 border border-indigo-400/40 rounded text-indigo-200 text-xs transition">
         🔑 變更密碼
@@ -251,9 +254,9 @@
           <span id="turnCounterBadge" class="text-[10px] bg-[#10183d] text-white px-1.5 py-0.2 rounded font-mono">
             追問: 0/5 輪
           </span>
-          <span class="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.2 rounded font-medium flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            Supabase + DuckDuckGo
+          <span class="text-[10px] bg-indigo-100 text-indigo-900 border border-indigo-300 px-1.5 py-0.2 rounded font-medium flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span>
+            Supabase + Gemini Flash
           </span>
         </span>
         <button onclick="toggleVoiceOutput()" id="voiceToggleBtn" class="text-[10px] bg-indigo-900 text-white px-2.5 py-0.5 rounded-full shadow-sm">
@@ -299,7 +302,7 @@
                 <path d="M42 120 L32 172 L128 172 L118 120 Z" fill="#f59e0b"/>
                 <!-- 內搭白T領口 -->
                 <path d="M68 118 L92 118 L80 138 Z" fill="#ffffff"/>
-                <!-- 拉鍊與精緻金屬拉鍊頭 -->
+                <!-- 拉鍊與金屬頭 -->
                 <path d="M80 138 L80 172" stroke="#b45309" stroke-width="2.5" stroke-linecap="round"/>
                 <rect x="78" y="136" width="4" height="6" rx="1.5" fill="#e2e8f0"/>
                 <!-- 連帽立體大翻領與陰影 -->
@@ -718,10 +721,92 @@
     </div>
   </div>
 
-  <!-- 7. 核心 JavaScript (支援 JSONP 跨域 DuckDuckGo + 意圖區分) -->
+  <!-- 7. 核心 JavaScript (整合 Google Gemini Flash 免費 API) -->
   <script>
     // ==========================================
-    // A. 語音核心宣告：精準小男生活潑稚嫩童音
+    // A. Google Gemini 1.5/2.5 Flash API 設定與連線模組
+    // ==========================================
+    // 您可以在此預先填入 Google AI Studio 免費申請的 API Key
+    const DEFAULT_GEMINI_API_KEY = '';
+
+    window.getGeminiApiKey = function() {
+      return localStorage.getItem('welltake_gemini_api_key') || DEFAULT_GEMINI_API_KEY;
+    };
+
+    window.promptConfigureGeminiKey = function() {
+      const current = window.getGeminiApiKey();
+      const input = prompt("【設定 Google Gemini Flash 免費 API Key】\n請貼上您的 Google AI Studio API Key：", current || '');
+      if (input !== null) {
+        localStorage.setItem('welltake_gemini_api_key', input.trim());
+        alert("✅ Gemini API Key 已儲存於本機瀏覽器！");
+      }
+    };
+
+    async function callGeminiFlashAI(query, isDef = false) {
+      const apiKey = window.getGeminiApiKey();
+      if (!apiKey) {
+        // 若尚未設定，友善提醒設定
+        const inputKey = prompt("【小威智能大腦連線】\n內部資料庫暫無此項目，小威準備連線 Google Gemini Flash 智能解答。\n請輸入您的 Google Gemini API Key（可於 aistudio.google.com 免費申請）：");
+        if (inputKey && inputKey.trim()) {
+          localStorage.setItem('welltake_gemini_api_key', inputKey.trim());
+          return callGeminiFlashAI(query, isDef);
+        }
+        return null;
+      }
+
+      // 使用最新穩定的 Gemini 1.5 Flash 免費模型端點
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+      const systemPrompt = `你是一位熱心、專業、親切的企業/醫療 IT 維護小幫手「小威」，講話口吻活潑清脆、充滿耐心。
+使用者向你詢問了一個問題，但內部標準知識庫暫無此專屬條目。請針對使用者的問題提供專業解答：
+
+【規範指示】：
+1. 繁體中文回答（台灣習慣用語）。
+2. 若使用者詢問「名詞定義/概念」（例如「什麼是 DNS」、「DHCP 是什麼」）：
+   - 請用 2~3 段通俗生動的話解釋它的原理、核心功能與生活化比喻。
+   - 不要包含多餘的問候或客套話，直接給予清楚有條理的解答。
+3. 若使用者描述的是「故障排除/問題排查」（例如設備異常、代碼報錯、軟體異常）：
+   - 請列出 3 至 4 個安全、具體、容易執行的排查測試步驟。
+   - 每個步驟務必獨立成行，並以「1. 」「2. 」「3. 」標註。
+4. 【嚴格禁止】：絕不要輸出任何外部網頁超連結或叫使用者去點外部網站，請直接在回答中給出排查解答。`;
+
+      const requestBody = {
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: `${systemPrompt}\n\n使用者提問：${query}` }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.35,
+          maxOutputTokens: 800
+        }
+      };
+
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody)
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          console.warn("Gemini Flash 請求失敗:", errData);
+          throw new Error(errData.error?.message || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        return text ? text.trim() : null;
+      } catch (err) {
+        console.error("Gemini Flash 服務異常:", err);
+        return null;
+      }
+    }
+
+    // ==========================================
+    // B. 語音核心宣告：精準小男生活潑稚嫩童音
     // ==========================================
     let isVoiceEnabled = true;
     let recognition = null;
@@ -757,7 +842,7 @@
       }
       try {
         window.speechSynthesis.cancel();
-        const cleanText = String(text || '').replace(/<[^>]*>/g, '').replace(/📷|💻|💡|✅|❌|📋|⚠️|👤|🤖|👉|🎫|🦆|🔍/g, '');
+        const cleanText = String(text || '').replace(/<[^>]*>/g, '').replace(/📷|💻|💡|✅|❌|📋|⚠️|👤|🤖|👉|🎫|✨|🔍/g, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'zh-TW';
         
@@ -845,7 +930,7 @@
     };
 
     // ==========================================
-    // B. 小男孩走動、肢體動作與表情切換引擎
+    // C. 小男孩走動、肢體動作與表情切換引擎
     // ==========================================
     window.setBoyExpression = function(exprName) {
       const exprSurprised = document.getElementById('expr-surprised');
@@ -914,75 +999,6 @@
         walkerEl.classList.remove('paused');
       }
     };
-
-    // ==========================================
-    // C. 【關鍵修復】：DuckDuckGo JSONP 跨域檢索 (100% 避開 CORS 阻擋)
-    // ==========================================
-    function searchDuckDuckGo(query) {
-      return new Promise((resolve) => {
-        if (!query || !query.trim()) {
-          resolve(null);
-          return;
-        }
-
-        // 濾除「什麼是」、「是什麼」等虛字，取得核心名詞 (如 DNS, DHCP)
-        const cleanQ = query.replace(/(什麼是|是什麼|什麼叫|請問|如何|怎麼|為啥|為什麼|有誰知道)/g, '').replace(/[\s\-_，。！？\?]+/g, ' ').trim();
-        if (!cleanQ) {
-          resolve(null);
-          return;
-        }
-
-        const callbackName = 'ddg_cb_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-        const script = document.createElement('script');
-        script.src = `https://api.duckduckgo.com/?q=${encodeURIComponent(cleanQ)}&format=json&no_html=1&skip_disambig=1&callback=${callbackName}`;
-
-        const timeoutTimer = setTimeout(() => {
-          cleanup();
-          resolve(null);
-        }, 3200);
-
-        function cleanup() {
-          clearTimeout(timeoutTimer);
-          if (script.parentNode) script.parentNode.removeChild(script);
-          delete window[callbackName];
-        }
-
-        window[callbackName] = function(data) {
-          cleanup();
-          if (data && data.AbstractText && data.AbstractText.trim().length > 0) {
-            resolve({
-              type: 'abstract',
-              title: data.Heading || cleanQ,
-              text: data.AbstractText,
-              source: data.AbstractSource || 'DuckDuckGo 即時百科',
-              url: data.AbstractURL || `https://duckduckgo.com/?q=${encodeURIComponent(cleanQ)}`
-            });
-          } else if (data && Array.isArray(data.RelatedTopics) && data.RelatedTopics.length > 0) {
-            const topic = data.RelatedTopics.find(t => t.Text && t.FirstURL);
-            if (topic) {
-              resolve({
-                type: 'topic',
-                title: cleanQ,
-                text: topic.Text,
-                source: 'DuckDuckGo 關聯主題',
-                url: topic.FirstURL
-              });
-            } else {
-              resolve(null);
-            }
-          } else {
-            resolve(null);
-          }
-        };
-
-        script.onerror = function() {
-          cleanup();
-          resolve(null);
-        };
-
-        document.head.appendChild(script);
-      });
-    }
 
     // ==========================================
     // D. UI 介面切換與訊息氣泡
@@ -1089,6 +1105,17 @@
               </button>
               <button onclick="openTicketModalPreview()" class="py-1.5 px-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs rounded transition">
                 🎫 直接報修
+              </button>
+            </div>
+          `;
+        } else if (showButtons && buttonType === 'definition_action') {
+          actionArea = `
+            <div class="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap gap-1.5">
+              <button onclick="handleStepResolved(true)" class="flex-1 min-w-[110px] py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs font-bold rounded shadow-sm transition">
+                ✅ 已解答我的問題
+              </button>
+              <button onclick="openTicketModalPreview()" class="py-1.5 px-3 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs rounded transition">
+                🎫 仍有障礙，建立報修
               </button>
             </div>
           `;
@@ -1257,7 +1284,7 @@
 
         window.updateXiaoweiMood('idle', `「你好呀 ${currentUser.name}！我是小威，設備卡住了嗎？讓我陪您看看！」`);
 
-        const hello = `${currentUser.name} 您好！我是小威。我在這裡走動待命，隨時陪您一步一步測試與排查各類設備故障。請問今天遇到什麼狀況呢？`;
+        const hello = `${currentUser.name} 您好！我是小威。我在這裡走動待命，已連線內部知識庫與 Google Gemini AI，隨時陪您一步一步測試與排查各類設備故障。請問今天遇到什麼狀況呢？`;
         window.appendUserChat('ai', hello);
         window.logChatToSupabase('ai', hello);
         if (typeof window.speak === 'function') {
@@ -1534,9 +1561,8 @@
     };
 
     // ==========================================
-    // H. 【精準語意分析】：分流名詞解釋與排查 SOP
+    // H. 精準語意分析：意圖分流與停用詞過濾
     // ==========================================
-    // 提煉核心名詞 (過濾「什麼是」、「是什麼」等虛字)
     function extractCoreIntent(text) {
       if (!text) return '';
       let clean = String(text).toLowerCase();
@@ -1602,7 +1628,7 @@
       return score;
     }
 
-    // 嚴格知識庫檢索：若為「什麼是X」，嚴禁誤匹配無關排查 SOP
+    // 嚴格知識庫檢索：避免誤匹配
     function findBestSopMatches(queryText, sourceList = knowledgeBase) {
       if (!queryText || !sourceList || sourceList.length === 0) return [];
       const isDef = isDefinitionQuery(queryText);
@@ -1622,17 +1648,13 @@
         const sopIdL = String(k.sop_id || '').toLowerCase();
         const coreTitle = extractCoreIntent(titleL);
 
-        // 如果使用者明確是在詢問名詞定義 (如「什麼是DNS」)
         if (isDef) {
-          // 只有標題直接包含該專有名詞才給分
           if (coreQ && (coreTitle === coreQ || coreTitle.includes(coreQ))) {
             score += 45;
           }
-          // 不得因為關鍵字陣列偶然含有該詞彙而誤跳至其他障礙排查
           return { item: k, score: score };
         }
 
-        // 常規故障排查比對邏輯
         if (coreQ && (coreTitle.includes(coreQ) || coreQ.includes(coreTitle))) {
           score += 40;
         }
@@ -1668,7 +1690,6 @@
         return { item: k, score: score };
       });
 
-      // 嚴格門檻：25 分以上才視為有效命中內部 SOP
       return scored.filter(s => s.score >= 25).sort((a, b) => b.score - a.score);
     }
 
@@ -1699,7 +1720,6 @@
 
     async function autoLearnNewKeywordToSupabase(sopId, newQuery) {
       if (!supabaseClient || !sopId || !newQuery) return;
-      // 若為「什麼是X」的名詞詢問，不污染故障關鍵字庫
       if (isDefinitionQuery(newQuery)) return;
 
       const cleanKeyword = String(newQuery).trim();
@@ -1728,8 +1748,28 @@
       }
     }
 
+    // 解析 Gemini Flash 生成的排查步驟為標準陣列
+    function parseGeminiGeneratedSteps(rawText) {
+      if (!rawText) return [];
+      const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+      const parsed = [];
+
+      lines.forEach(l => {
+        if (/^[0-9]+[\.、\s\-]+/.test(l) || /^步驟\s*[0-9]+[:：\s]*/.test(l)) {
+          const clean = l.replace(/^[0-9]+[\.、\s\-]+/, '').replace(/^步驟\s*[0-9]+[:：\s]*/, '').trim();
+          if (clean.length > 4) parsed.push(clean);
+        }
+      });
+
+      if (parsed.length >= 2) return parsed;
+
+      // 若未以 1. 2. 格式呈現，依段落切分
+      const paragraphs = rawText.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 10);
+      return paragraphs.length > 0 ? paragraphs : [rawText];
+    }
+
     // ==========================================
-    // I. 對話發送與逐步測試引導流程
+    // I. 對話發送與逐步測試引導流程 (串接 Gemini Flash)
     // ==========================================
     window.handleUserSend = async function() {
       const input = document.getElementById('userMsgInput');
@@ -1754,6 +1794,7 @@
 
       window.updateXiaoweiMood('thinking', `「收到！小威正在為您動腦筋分析『${q}』...」`);
 
+      // 嚴重硬體故障直接建單
       const isSevereHardware = (q.includes('冒煙') || q.includes('焦味') || q.includes('斷掉') || q.includes('摔壞') || q.includes('燒掉') || q.includes('直接派工') || q.includes('報修就好'));
       if (isSevereHardware) {
         inquiryContext.unresolvedReason = `硬體嚴重異常/要求直接派修：${q}`;
@@ -1824,14 +1865,14 @@
       window.speak("請您再多補充一些細節，我為您重新比對。");
     };
 
-    // 啟動排查：當內部查無 SOP 時，準確連線 DuckDuckGo JSONP API
+    // 啟動排查：內部 SOP 優先；查無資料時直接呼叫 Gemini 1.5 Flash 生成答案
     async function startStepByStepGuidance(sop) {
-      // 1. 內部知識庫有高信心相符 SOP
+      // 1. 內部知識庫有相符 SOP：啟動內部標準測試流程
       if (sop) {
         if (sop.allow_self_resolve === false) {
-          inquiryContext.unresolvedReason = `SOP 規範此項目需由工程師到場或更換備品處置 (${sop.title})`;
-          window.updateXiaoweiMood('ticket', '「此項目需由維護工程師到場，已備妥工單！」');
-          const directMsg = `【${sop.title}】依資訊維護規範需由工程師到場維護或更換備品。<br><br>💡 注意事項：${(sop.safe_steps || '').replace(/\n/g, '<br>')}<br><br>小威已為您填妥報修案件，請檢閱送出！`;
+          inquiryContext.unresolvedReason = `SOP 規範此項目需由工程師到場處置 (${sop.title})`;
+          window.updateXiaoweiMood('ticket', '「此項目需由維護工程師到場檢修，已備妥工單！」');
+          const directMsg = `【${sop.title}】依資訊維護規範需由工程師到場維護或更換備品。<br><br>💡 注意事項：${(sop.safe_steps || '').replace(/\n/g, '<br>')}<br><br>小威已為您填妥報修案件，請檢閱確認！`;
           window.appendUserChat('ai', directMsg, false);
           window.logChatToSupabase('ai', directMsg);
           window.speak("此問題需由工程師現場檢修，已為您準備好報修表單。");
@@ -1853,57 +1894,85 @@
         return;
       }
 
-      // 2. 內部查無資料：小威連線 DuckDuckGo 官方免費 API (JSONP 協議，避開 CORS)
-      window.updateXiaoweiMood('thinking', '「內部知識庫無此項目，小威正連線 DuckDuckGo 尋找解答...」');
-      const ddgResult = await searchDuckDuckGo(inquiryContext.originalProblem);
+      // 2. 內部查無資料：小威連線 Google Gemini Flash API 直接輸出解答
+      const isDef = isDefinitionQuery(inquiryContext.originalProblem);
+      window.updateXiaoweiMood('thinking', '「內部知識庫無此專屬條目，小威正連線 Gemini Flash AI 智能分析...」');
 
-      if (ddgResult) {
-        window.updateXiaoweiMood('step', '「小威在外部知識庫找到相關說明囉！」');
-        
-        const replyHtml = `
-          小威在內部知識庫暫無專屬 SOP，但我透過 <b>DuckDuckGo</b> 為您找到相關說明：<br><br>
-          <div class="bg-amber-50 p-2.5 rounded-lg border border-amber-300 text-slate-800 text-xs my-1 leading-relaxed">
-            <span class="font-bold text-indigo-950">📖 【${ddgResult.title}】</span><br>
-            ${ddgResult.text}
-          </div>
-          <a href="${ddgResult.url}" target="_blank" class="text-blue-600 underline text-[11px] block mt-1">
-            🔗 檢視出處來源 (${ddgResult.source})
-          </a><br>
-          請問上述說明是否已解答您的疑問？
-        `;
+      const geminiAnswer = await callGeminiFlashAI(inquiryContext.originalProblem, isDef);
 
-        inquiryContext.suggestedSteps.push(`[DuckDuckGo] ${ddgResult.title}: ${ddgResult.text.substring(0, 30)}...`);
-        window.appendUserChat('ai', replyHtml, true, 'step_action');
-        window.logChatToSupabase('ai', `DuckDuckGo 外部解法: ${ddgResult.text}`);
-        window.speak("內部資料庫暫無此項目，已為您找到相關參考說明，請問是否已解決？");
+      if (geminiAnswer) {
+        if (isDef) {
+          // A. 名詞定義：直接在氣泡中生動說明，附帶確認按鈕
+          window.updateXiaoweiMood('step', '「小威找到完整名詞解讀囉！」');
+
+          const defHtml = `
+            針對您的提問，小威透過 <b>Google Gemini AI</b> 為您整理出核心說明：<br><br>
+            <div class="bg-indigo-50/80 p-3 rounded-xl border border-indigo-200 text-slate-800 text-xs leading-relaxed my-1">
+              <span class="font-bold text-indigo-950 flex items-center gap-1 mb-1">
+                <span>✨</span> AI 智能知識解答
+              </span>
+              ${geminiAnswer.replace(/\n/g, '<br>')}
+            </div><br>
+            請問上述說明是否已解答您的疑問？
+          `;
+
+          inquiryContext.suggestedSteps.push(`[Gemini AI 名詞解答]: ${geminiAnswer.substring(0, 35)}...`);
+          window.appendUserChat('ai', defHtml, true, 'definition_action');
+          window.logChatToSupabase('ai', `Gemini AI 解答: ${geminiAnswer}`);
+          window.speak("已為您產生解答說明，請問是否已解決您的疑問？");
+        } else {
+          // B. 故障排除：將 Gemini 生成的 1. 2. 3. 步驟無縫納入小威逐條測試引擎
+          window.updateXiaoweiMood('step', '「小威已為您規劃專屬排查步驟，我們一步一步測試！」');
+
+          const dynamicSteps = parseGeminiGeneratedSteps(geminiAnswer);
+          inquiryContext.matchedSop = {
+            sop_id: 'AI-DYNAMIC',
+            title: `AI 智能排查：${inquiryContext.originalProblem}`,
+            urgency: 'P2',
+            allow_self_resolve: true
+          };
+
+          activeGuidance = {
+            sop: inquiryContext.matchedSop,
+            steps: dynamicSteps,
+            currentStepIndex: 0
+          };
+
+          const introMsg = `內部資料庫暫無專屬 SOP，小威透過 <b>Gemini Flash</b> 為您規劃了 <b>${dynamicSteps.length} 項測試步驟</b>，我們一步一步排查看看：`;
+          window.appendUserChat('ai', introMsg);
+
+          setTimeout(() => {
+            presentCurrentStep();
+          }, 350);
+        }
       } else {
-        // 3. DuckDuckGo 無直接百科條目：提供智慧搜尋卡片與報修確認單
-        window.updateXiaoweiMood('ticket', '「已為您準備好外部搜尋與報修確認單！」');
+        // C. 若無 API Key 或網路異常，啟動通用急救測試步驟
+        window.updateXiaoweiMood('step', '「小威為您啟動標準通用急救排查！」');
 
-        const searchKeyword = encodeURIComponent(`${inquiryContext.originalProblem} 解決方法 教學 IT排查`);
-        const ddgSearchUrl = `https://duckduckgo.com/?q=${searchKeyword}`;
-        const googleSearchUrl = `https://www.google.com/search?q=${searchKeyword}`;
+        const defaultSteps = [
+          "將設備完全關機並拔除電源線（筆電請拔充電線），靜置 20 秒放電後重新接回開機測試。",
+          "檢查設備後方訊號線路（網路線 / 螢幕連接線 / 讀卡機 USB 線）兩端是否重新插緊。",
+          "若是應用程式或特定網頁異常，請嘗試重新啟動該軟體或重新開機。"
+        ];
 
-        const fallbackHtml = `
-          小威在內部知識庫查無此項目，已為您整理外部即時搜尋捷徑：<br><br>
-          <div class="flex gap-2 my-1">
-            <a href="${ddgSearchUrl}" target="_blank" class="flex-1 text-center py-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 font-bold text-xs transition">
-              🦆 DuckDuckGo 搜尋
-            </a>
-            <a href="${googleSearchUrl}" target="_blank" class="flex-1 text-center py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-blue-700 font-bold text-xs transition">
-              🔍 Google 搜尋
-            </a>
-          </div>
-          <p class="text-[11px] text-slate-500 mt-2 mb-2">若為設備故障需工程師到場檢修，可直接建立報修單：</p>
-          <button onclick="openTicketModalPreview()" class="w-full py-2 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-white rounded-lg font-bold text-xs shadow transition">
-            🎫 建立報修確認單
-          </button>
-        `;
+        inquiryContext.matchedSop = {
+          sop_id: 'EMERGENCY-GEN',
+          title: '通用硬體與系統急救排查',
+          urgency: 'P2',
+          allow_self_resolve: true
+        };
 
-        inquiryContext.unresolvedReason = "內部資料庫與外部即時檢索皆無相符自動引導指引";
-        window.appendUserChat('ai', fallbackHtml, false);
-        window.logChatToSupabase('ai', '提供外部搜尋卡片與報修單捷徑');
-        window.speak("內部資料庫無相符項目，已為您準備好外部搜尋捷徑與報修表單。");
+        activeGuidance = {
+          sop: inquiryContext.matchedSop,
+          steps: defaultSteps,
+          currentStepIndex: 0
+        };
+
+        const emergencyNotice = `小威為您直接引導進行<b>【通用急救測試】</b>：`;
+        window.appendUserChat('ai', emergencyNotice);
+        setTimeout(() => {
+          presentCurrentStep();
+        }, 400);
       }
     }
 
@@ -1916,7 +1985,7 @@
 
       window.updateXiaoweiMood('step', `「請測試第 ${currentStepIndex + 1}/${total} 步：${stepContent.substring(0, 18)}...」`);
 
-      const stepPrompt = `針對【${sop.title}】，小威引導您逐步測試：<br><br>👉 <b>測試步驟 (${currentStepIndex + 1}/${total})</b>：<br><span class="text-indigo-950 font-bold bg-amber-50 p-1.5 rounded border border-amber-200 block my-1">${stepContent}</span><br>請問您照著完成此步驟後，問題是否已解決？`;
+      const stepPrompt = `針對【${sop.title}】，小威引導您逐步測試：<br><br>👉 <b>測試步驟 (${currentStepIndex + 1}/${total})</b>：<br><span class="text-indigo-950 font-bold bg-amber-50 p-2 rounded-lg border border-amber-300 block my-1 leading-relaxed">${stepContent}</span><br>請問您照著完成此步驟後，問題是否已解決？`;
 
       window.appendUserChat('ai', stepPrompt, true, 'step_action');
       window.logChatToSupabase('ai', `測試步驟 (${currentStepIndex + 1}/${total})：${stepContent}`);
@@ -1926,13 +1995,13 @@
     window.handleStepResolved = function(isResolved) {
       if (isResolved) {
         const stepNum = activeGuidance.currentStepIndex + 1;
-        window.updateXiaoweiMood('cheer', `「太棒了！第 ${stepNum} 步順利排除障礙，小威太開心啦！🎉」`);
-        const msg = `太棒了！很高興在步驟 (${stepNum}) 順利為您排除障礙 🎉 本次諮詢對話歷程已歸檔，祝您工作順心！`;
+        window.updateXiaoweiMood('cheer', `「太棒了！順利排除障礙，小威太開心啦！🎉」`);
+        const msg = `太棒了！很高興順利為您排除障礙 🎉 本次諮詢對話歷程已完整歸檔，祝您工作順心！`;
         window.appendUserChat('ai', msg);
         window.logChatToSupabase('ai', msg);
         window.speak(msg);
 
-        if (activeGuidance.sop) {
+        if (activeGuidance.sop && activeGuidance.sop.sop_id !== 'AI-DYNAMIC' && activeGuidance.sop.sop_id !== 'EMERGENCY-GEN') {
           autoLearnNewKeywordToSupabase(activeGuidance.sop.sop_id, inquiryContext.originalProblem);
         }
         activeGuidance = { sop: null, steps: [], currentStepIndex: 0 };
@@ -1949,7 +2018,7 @@
         } else {
           inquiryContext.unresolvedReason = `已依序執行全部 ${activeGuidance.steps.length} 項排查步驟均未能排除故障`;
           window.updateXiaoweiMood('ticket', '「所有步驟均已試畢，小威已為您填妥報修單！」');
-          const allExhaustedMsg = `針對此問題的所有標準排查步驟均已嘗試完畢，仍無法恢復正常。小威已自動將所有測試歷程完整彙整至【報修確認表單】，請點擊下方預覽確認送出！`;
+          const allExhaustedMsg = `針對此問題的所有排查步驟均已嘗試完畢，仍無法恢復正常。小威已自動將所有測試歷程完整彙整至【報修確認表單】，請點擊下方預覽確認送出！`;
           window.appendUserChat('ai', allExhaustedMsg, false);
           window.logChatToSupabase('ai', allExhaustedMsg);
           window.speak("所有測試步驟均已嘗試完畢，正為您產出報修案件。");
@@ -2267,7 +2336,7 @@ ${stepsText}
         if (kbBadge) kbBadge.innerText = knowledgeBase.length;
         const statusBadge = document.getElementById('supabaseStatusBadge');
         if (statusBadge) {
-          statusBadge.innerText = `● Supabase SAGE (知識庫: ${knowledgeBase.length} 筆)`;
+          statusBadge.innerText = `● Supabase + Gemini (SOP: ${knowledgeBase.length} 筆)`;
         }
         renderKbList();
       } catch (err) {
