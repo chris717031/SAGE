@@ -53,7 +53,7 @@
 </head>
 <body class="bg-slate-900 text-slate-100 h-screen w-screen flex flex-col overflow-hidden relative">
 
-  <!-- 頂部導覽列 -->
+  <!-- 頂部通用導覽列 -->
   <header class="bg-[#10183d] border-b border-indigo-950 px-3.5 py-2.5 flex items-center justify-between shrink-0 shadow-md">
     <div class="flex items-center space-x-2.5">
       <div class="bg-white px-2 py-1 rounded shadow-inner flex items-center justify-center">
@@ -72,7 +72,7 @@
       <span id="supabaseStatusBadge" class="text-[9px] bg-emerald-950 text-emerald-300 border border-emerald-600/50 px-2 py-0.5 rounded-full">
         ● Supabase SAGE 連線中
       </span>
-      <button id="changePwdBtn" onclick="openChangePasswordModal()" class="hidden px-2 py-1 bg-indigo-900/80 hover:bg-indigo-800 border border-indigo-400/40 rounded text-indigo-200 text-xs transition">
+      <button id="changePwdBtn" onclick="openChangePasswordModal(false)" class="hidden px-2 py-1 bg-indigo-900/80 hover:bg-indigo-800 border border-indigo-400/40 rounded text-indigo-200 text-xs transition">
         🔑 變更密碼
       </button>
       <button id="logoutBtn" onclick="handleLogout()" class="hidden px-2.5 py-1 bg-rose-600/80 hover:bg-rose-600 rounded text-white text-xs font-medium transition">
@@ -89,7 +89,7 @@
       <div class="bg-white text-slate-800 w-full max-w-md rounded-2xl p-5 shadow-2xl border border-slate-200 my-auto">
         <div class="text-center mb-3">
           <h2 class="text-base font-bold text-[#10183d]">威策電腦 智慧維護平台</h2>
-          <p class="text-[11px] text-slate-500 mt-0.5">預設密碼：123456</p>
+          <p class="text-[11px] text-slate-500 mt-0.5">預設初始密碼：123456</p>
         </div>
 
         <div class="flex border-b border-slate-200 mb-3 text-xs font-bold">
@@ -119,7 +119,7 @@
           </button>
         </div>
 
-        <!-- 註冊表單 (依據參考圖片全面調整) -->
+        <!-- 註冊表單 -->
         <form id="registerForm" onsubmit="handleRegisterSubmit(event)" class="space-y-2.5 text-xs" style="display: none;">
           <div>
             <label class="block font-medium text-slate-700 mb-1">客戶公司名稱 <span class="text-rose-500">*</span></label>
@@ -175,7 +175,7 @@
           </div>
 
           <div class="p-2 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-500">
-            ℹ️ 註冊完成後預設密碼為 <b>123456</b>，待管理員審核通過後即可登入。
+            ℹ️ 註冊完成後預設密碼為 <b>123456</b>，審核通過後第一次登入將引導變更密碼。
           </div>
           <button type="submit" id="regSubmitBtn" class="w-full py-2.5 bg-sky-700 hover:bg-sky-600 text-white font-bold rounded-xl shadow transition text-sm mt-1">
             送出註冊 (等待審核)
@@ -206,10 +206,8 @@
         </button>
       </div>
 
-      <!-- 對話訊息串流區 -->
       <div id="chatArea" class="flex-1 p-3.5 space-y-3.5 overflow-y-auto chat-bg no-scrollbar"></div>
 
-      <!-- 輸入工具列 -->
       <div class="bg-white border-t border-slate-200 px-3 pt-2 safe-bottom shrink-0 shadow-lg">
         <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleImageSelected(event)">
 
@@ -252,7 +250,7 @@
       </div>
     </section>
 
-    <!-- 3. 管理者 / 工程師 後台儀表板 (案件表單與對話LOG正式拆開) -->
+    <!-- 3. 管理者 / 工程師 後台儀表板 -->
     <section id="managementSection" class="hidden absolute inset-0 bg-slate-900 flex flex-col overflow-hidden">
       <nav class="bg-slate-800 border-b border-slate-700 px-4 flex space-x-4 text-xs font-medium shrink-0">
         <button id="navUsersBtn" onclick="switchMgmtTab('users')" class="py-2.5 border-b-2 border-indigo-400 text-indigo-400 font-bold">
@@ -270,8 +268,6 @@
       </nav>
 
       <div class="flex-1 p-4 overflow-y-auto text-xs text-slate-200">
-        
-        <!-- 分頁 A: 帳號審核 -->
         <div id="tabUsers" class="space-y-3">
           <div class="flex justify-between items-center">
             <h3 class="text-sm font-bold text-white">使用者帳號審核與權限設定 (Supabase `profiles`)</h3>
@@ -298,7 +294,6 @@
           </div>
         </div>
 
-        <!-- 分頁 B: SOP 知識庫維護 -->
         <div id="tabKb" class="hidden space-y-3">
           <div class="flex flex-wrap justify-between items-center gap-2">
             <h3 class="text-sm font-bold text-white">SOP 知識庫 (Supabase `kb_solutions` 表)</h3>
@@ -315,7 +310,6 @@
           <div id="kbListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         </div>
 
-        <!-- 分頁 C: 報修案件表單 (tickets) -->
         <div id="tabTickets" class="hidden space-y-3">
           <div class="flex justify-between items-center">
             <h3 class="text-sm font-bold text-white">報修案件表單 (Supabase `tickets` 表)</h3>
@@ -326,7 +320,6 @@
           <div id="ticketsLogContainer" class="space-y-2.5"></div>
         </div>
 
-        <!-- 分頁 D: 對話歷程 LOG (chat_logs) -->
         <div id="tabChatLogs" class="hidden space-y-3">
           <div class="flex justify-between items-center">
             <h3 class="text-sm font-bold text-white">智慧小威對話歷程 LOG (Supabase `chat_logs` 表)</h3>
@@ -336,19 +329,24 @@
           </div>
           <div id="chatLogsContainer" class="space-y-2.5"></div>
         </div>
-
       </div>
     </section>
 
   </main>
 
-  <!-- 4. 變更密碼 Modal -->
-  <div id="changePwdModal" class="hidden absolute inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+  <!-- 4. 變更密碼 Modal (支援首次登入強制修改模式) -->
+  <div id="changePwdModal" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white text-slate-800 w-full max-w-sm rounded-2xl p-5 shadow-2xl border border-slate-200">
       <div class="flex justify-between items-center mb-3 border-b border-slate-200 pb-2">
-        <h3 class="font-bold text-sm text-[#10183d]">🔑 變更登入密碼</h3>
-        <button onclick="closeChangePasswordModal()" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+        <h3 id="changePwdModalTitle" class="font-bold text-sm text-[#10183d]">🔑 變更登入密碼</h3>
+        <button id="changePwdCloseX" onclick="closeChangePasswordModal()" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
       </div>
+
+      <div id="firstLoginAlertBanner" class="hidden mb-3 p-2.5 bg-amber-50 border border-amber-300 text-amber-900 rounded-lg text-xs leading-relaxed">
+        <b>🔒 首次登入安全提醒：</b><br>
+        您目前使用的是系統預設密碼 (123456)，為保障資安防護，請立即設定新密碼後開始使用！
+      </div>
+
       <form onsubmit="handleChangePasswordSubmit(event)" class="space-y-3 text-xs">
         <div>
           <label class="block font-medium text-slate-700 mb-1">請輸入新密碼 <span class="text-rose-500">*</span></label>
@@ -361,11 +359,11 @@
                  class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-600">
         </div>
         <div class="flex space-x-2 pt-2">
-          <button type="button" onclick="closeChangePasswordModal()" class="flex-1 py-2 border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-100 font-medium">
+          <button type="button" id="changePwdCancelBtn" onclick="closeChangePasswordModal()" class="flex-1 py-2 border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-100 font-medium">
             取消
           </button>
           <button type="submit" id="btnSubmitNewPwd" class="flex-1 py-2 bg-[#10183d] hover:bg-indigo-900 text-white rounded-xl font-bold shadow">
-            確認儲存
+            確認儲存新密碼
           </button>
         </div>
       </form>
@@ -492,7 +490,7 @@
             </tr>
             <tr>
               <th>工程師</th>
-              <td>Jady.Lin (指派調度中)</td>
+              <td>Jady.Lin (調度指派中)</td>
               <th>重要性</th>
               <td id="m_urgency_display"><span class="px-2 py-0.5 bg-amber-100 text-amber-900 font-bold rounded">P2 一般</span></td>
             </tr>
@@ -586,10 +584,105 @@
     </div>
   </div>
 
-  <!-- 7. 核心 JavaScript (結構化、分流 LOG 與案件) -->
+  <!-- 7. 核心 JavaScript (前置全域宣告 + 首次登入強制改密碼 + 語音安全呼叫) -->
   <script>
     // ==========================================
-    // A. 頂置全域 UI 與對話介面函式
+    // A. 語音核心宣告 (優先初始化，杜絕 window.speak is not a function)
+    // ==========================================
+    let isVoiceEnabled = true;
+    let recognition = null;
+    let isListening = false;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    window.speak = function(text, onComplete = null) {
+      if (!isVoiceEnabled || !('speechSynthesis' in window)) {
+        if (onComplete) onComplete();
+        return;
+      }
+      try {
+        window.speechSynthesis.cancel();
+        const cleanText = text.replace(/<[^>]*>/g, '').replace(/📷|💻|💡|✅|❌|📋|⚠️|👤|🤖|👉/g, '');
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'zh-TW';
+        utterance.rate = 1.05;
+        utterance.onend = () => { if (onComplete) onComplete(); };
+        utterance.onerror = () => { if (onComplete) onComplete(); };
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.warn("語音合成播放例外:", err);
+        if (onComplete) onComplete();
+      }
+    };
+
+    window.initSTT = function() {
+      if (!SpeechRecognition) return;
+      try {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'zh-TW';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+          isListening = true;
+          const banner = document.getElementById('voiceStatusBanner');
+          if (banner) banner.classList.remove('hidden');
+          const micBtn = document.getElementById('micBtn');
+          if (micBtn) micBtn.classList.add('mic-listening');
+        };
+        recognition.onresult = (event) => {
+          const text = event.results[0][0].transcript;
+          if (text) {
+            const input = document.getElementById('userMsgInput');
+            if (input) {
+              input.value = text;
+              window.handleUserSend();
+            }
+          }
+        };
+        recognition.onerror = () => window.stopListening();
+        recognition.onend = () => window.stopListening();
+      } catch (e) {
+        console.warn("STT 初始化異常:", e);
+      }
+    };
+
+    window.startListening = function() {
+      if (!recognition) return;
+      try { recognition.start(); } catch (e) {}
+    };
+
+    window.stopListening = function() {
+      isListening = false;
+      const banner = document.getElementById('voiceStatusBanner');
+      if (banner) banner.classList.add('hidden');
+      const micBtn = document.getElementById('micBtn');
+      if (micBtn) micBtn.classList.remove('mic-listening');
+      if (recognition) {
+        try { recognition.stop(); } catch(e){}
+      }
+    };
+
+    window.toggleListening = function() {
+      if (isListening) window.stopListening();
+      else {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        window.startListening();
+      }
+    };
+
+    window.toggleVoiceOutput = function() {
+      isVoiceEnabled = !isVoiceEnabled;
+      const btn = document.getElementById('voiceToggleBtn');
+      if (isVoiceEnabled) {
+        if (btn) btn.innerText = "🔊 語音開";
+      } else {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        if (btn) btn.innerText = "🔇 語音關";
+      }
+    };
+
+    // ==========================================
+    // B. UI 與對話介面函式
     // ==========================================
     window.updateTurnUI = function() {
       const badge = document.getElementById('turnCounterBadge');
@@ -641,6 +734,7 @@
     window.handleOrgTypeChange = function(orgType) {
       const labelInput = document.getElementById('regUnitLabel');
       const jurisInput = document.getElementById('regJurisdiction');
+      if (!labelInput || !jurisInput) return;
       if (orgType === '醫療體系 (院區/科室)') {
         labelInput.value = '院區';
         jurisInput.placeholder = '例：仁愛院區、陽明院區、中興院區';
@@ -702,7 +796,7 @@
     };
 
     // ==========================================
-    // B. Supabase 初始化與狀態變數
+    // C. Supabase 初始化與狀態變數
     // ==========================================
     const SUPABASE_URL = 'https://tgvuxmlkbhnnjsyajjow.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_EE0J2uwbUorM9ywIXsbjdw_usVeipmc';
@@ -721,8 +815,8 @@
     let turnCount = 0;
     const MAX_TURNS = 5;
     let knowledgeBase = [];
-    let isVoiceEnabled = true;
     let uploadedImageBase64 = null;
+    let isForcedPasswordChange = false;
 
     let inquiryContext = {
       originalProblem: '',
@@ -757,21 +851,18 @@
         location: '',
         errorCode: '',
         unresolvedReason: '',
-        startTime: `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`,
+        startTime: `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0 flight')}:${String(now.getMinutes()).padStart(2,'0')}`,
         pendingProbeKey: null
       };
       window.updateTurnUI();
     };
 
-    // ==========================================
-    // C. 對話 LOG 寫入函式 (chat_logs)
-    // ==========================================
     window.logChatToSupabase = async function(role, content, hasImg = false) {
       if (!supabaseClient || !currentUser) return;
       try {
         await supabaseClient.from('chat_logs').insert([{
           session_id: currentSessionId,
-          user_id: currentUser.id || null,
+          user_id: (currentUser.id && currentUser.id !== 'admin-master') ? currentUser.id : null,
           user_name: currentUser.name || '',
           user_email: currentUser.email || '',
           company: currentUser.company || '',
@@ -787,17 +878,19 @@
     };
 
     // ==========================================
-    // D. 登入成功處理函式
+    // D. 登入成功處理 (含首次登入強制改密碼檢測)
     // ==========================================
     window.loginUserSuccess = function(user) {
       currentUser = user;
 
+      // 1. 隱藏登入區塊
       const authSec = document.getElementById('authSection');
       if (authSec) {
         authSec.style.display = 'none';
         authSec.classList.add('hidden');
       }
 
+      // 2. 更新頂部狀態列
       const logoutBtn = document.getElementById('logoutBtn');
       if (logoutBtn) logoutBtn.classList.remove('hidden');
       const changePwdBtn = document.getElementById('changePwdBtn');
@@ -814,6 +907,7 @@
                         : 'text-[9px] bg-sky-900 border border-sky-400 text-sky-200 px-2 py-0.5 rounded-full');
       }
 
+      // 3. 依角色切換工作區
       if (user.role === 'admin' || user.role === 'engineer') {
         const userSec = document.getElementById('userSection');
         if (userSec) userSec.classList.add('hidden');
@@ -834,6 +928,7 @@
         try { window.fetchTicketsFromSupabase(); } catch(e){}
         try { window.fetchChatLogsFromSupabase(); } catch(e){}
       } else {
+        // 一般使用者登入
         const mgmtSec = document.getElementById('managementSection');
         if (mgmtSec) mgmtSec.classList.add('hidden');
         const userSec = document.getElementById('userSection');
@@ -848,12 +943,22 @@
         const hello = `${currentUser.name} 您好！我是威策 IT 智慧助手小威。我已連線 Supabase 雲端知識庫，隨時為您排查電腦、印表機、醫療系統或網路問題。請問今天您的設備遇到什麼狀況呢？`;
         window.appendUserChat('ai', hello);
         window.logChatToSupabase('ai', hello);
-        window.speak(hello, () => window.startListening());
+        if (typeof window.speak === 'function') {
+          window.speak(hello, () => window.startListening());
+        }
+
+        // 【需求 2】：若使用預設密碼 123456，強制彈出變更密碼視窗
+        if (user.password === '123456') {
+          setTimeout(() => {
+            window.openChangePasswordModal(true);
+          }, 350);
+        }
       }
     };
 
     window.handleLogout = function() {
       currentUser = null;
+      isForcedPasswordChange = false;
       const authSec = document.getElementById('authSection');
       if (authSec) {
         authSec.style.display = 'flex';
@@ -896,8 +1001,17 @@
         submitBtn.disabled = true;
       }
 
+      const timeoutTimer = setTimeout(() => {
+        if (submitBtn && submitBtn.disabled) {
+          submitBtn.innerText = "登入系統";
+          submitBtn.disabled = false;
+          alert("連線逾時，請檢查網路連線或 Supabase 服務狀態！");
+        }
+      }, 5000);
+
       try {
         if (email === 'admin@welltake.com.tw' && inputPwd === '123456') {
+          clearTimeout(timeoutTimer);
           window.loginUserSuccess({
             id: 'admin-master',
             company: '威策電腦',
@@ -907,12 +1021,14 @@
             phone: '02-2311-0000',
             role: 'admin',
             status: 'approved',
-            jurisdiction: 'ALL'
+            jurisdiction: 'ALL',
+            password: '123456'
           });
           return;
         }
 
         if (!supabaseClient) {
+          clearTimeout(timeoutTimer);
           alert("❌ 錯誤：Supabase 客戶端尚未初始化成功！");
           return;
         }
@@ -922,6 +1038,8 @@
           .select('*')
           .ilike('email', email)
           .maybeSingle();
+
+        clearTimeout(timeoutTimer);
 
         if (error) {
           alert(`資料庫查詢錯誤：${error.message}`);
@@ -951,6 +1069,7 @@
 
         window.loginUserSuccess(data);
       } catch (err) {
+        clearTimeout(timeoutTimer);
         console.error("登入例外錯誤:", err);
         alert("登入過程發生異常：" + err.message);
       } finally {
@@ -962,71 +1081,102 @@
     };
 
     // ==========================================
-    // E. 智慧對話、同義詞比對與 LOG 紀錄
+    // E. 首次登入強制變更密碼控制
     // ==========================================
-    const SYNONYM_GROUPS = [
-      { key: '健保卡', synonyms: ['健保卡', 'ic卡', '晶片卡', '醫事卡', '醫事人員卡', '卡片', '插卡'] },
-      { key: '讀卡機', synonyms: ['讀卡機', '卡機', '讀卡器', '插卡槽', '讀不到卡', '刷卡機'] },
-      { key: '印表機', synonyms: ['印表機', '打印機', '出紙機', '雷射印表機', '標籤機', '條碼機', '斑馬機', '印不出來', '無法列印', '不能印'] },
-      { key: '當機', synonyms: ['當機', '死當', '卡死', '卡住', '轉圈圈', '畫面凍結', '沒反應', '未回應', '無回應', '藍屏', '藍底白字', 'bsod', '黑屏'] },
-      { key: '網路', synonyms: ['網路', '斷網', '連不上', '無法上網', '沒網', 'wifi', 'wi-fi', '網路線', '網點', 'vpn', '連線異常'] },
-      { key: 'HIS', synonyms: ['his', '醫療資訊系統', '門診系統', '看診系統', '醫令', '批價系統', '掛號系統', '病歷系統'] },
-      { key: '開機', synonyms: ['開不了機', '無法開機', '按電源沒反應', '沒過電', '不開機', '不能開機', '電源燈沒亮'] },
-      { key: '密碼', synonyms: ['忘記密碼', '密碼過期', '帳號鎖定', '改密碼', '重設密碼', '無法登入', '登入失敗'] }
-    ];
+    window.openChangePasswordModal = function(isForced = false) {
+      isForcedPasswordChange = isForced;
+      const modal = document.getElementById('changePwdModal');
+      const banner = document.getElementById('firstLoginAlertBanner');
+      const closeX = document.getElementById('changePwdCloseX');
+      const cancelBtn = document.getElementById('changePwdCancelBtn');
+      const modalTitle = document.getElementById('changePwdModalTitle');
 
-    function expandSynonyms(text) {
-      if (!text) return '';
-      let expanded = text.toLowerCase();
-      SYNONYM_GROUPS.forEach(group => {
-        const hasSynonym = group.synonyms.some(s => expanded.includes(s.toLowerCase()));
-        if (hasSynonym) {
-          expanded += ' ' + group.key.toLowerCase() + ' ' + group.synonyms.join(' ');
+      document.getElementById('newPasswordInput').value = '';
+      document.getElementById('confirmPasswordInput').value = '';
+
+      if (isForced) {
+        if (banner) banner.classList.remove('hidden');
+        if (closeX) closeX.classList.add('hidden');
+        if (cancelBtn) cancelBtn.classList.add('hidden');
+        if (modalTitle) modalTitle.innerText = "🔒 首次登入強制設定密碼";
+      } else {
+        if (banner) banner.classList.add('hidden');
+        if (closeX) closeX.classList.remove('hidden');
+        if (cancelBtn) cancelBtn.classList.remove('hidden');
+        if (modalTitle) modalTitle.innerText = "🔑 變更登入密碼";
+      }
+
+      if (modal) modal.classList.remove('hidden');
+    };
+
+    window.closeChangePasswordModal = function() {
+      if (isForcedPasswordChange) {
+        alert("⚠️ 為了您的帳號安全，首次登入必須完成設定新密碼！");
+        return;
+      }
+      const modal = document.getElementById('changePwdModal');
+      if (modal) modal.classList.add('hidden');
+    };
+
+    window.handleChangePasswordSubmit = async function(e) {
+      e.preventDefault();
+      const p1 = document.getElementById('newPasswordInput').value.trim();
+      const p2 = document.getElementById('confirmPasswordInput').value.trim();
+
+      if (p1 !== p2) {
+        alert("兩次輸入的新密碼不一致！");
+        return;
+      }
+      if (p1.length < 6) {
+        alert("新密碼長度至少需要 6 位數！");
+        return;
+      }
+      if (p1 === '123456') {
+        alert("新密碼不能與預設密碼 (123456) 相同，請設定更安全的密碼！");
+        return;
+      }
+
+      const btn = document.getElementById('btnSubmitNewPwd');
+      if (btn) {
+        btn.innerText = "更新中...";
+        btn.disabled = true;
+      }
+
+      try {
+        if (currentUser.id === 'admin-master') {
+          currentUser.password = p1;
+          alert("🎉 密碼已暫存更新！");
+          isForcedPasswordChange = false;
+          const modal = document.getElementById('changePwdModal');
+          if (modal) modal.classList.add('hidden');
+          return;
         }
-      });
-      return expanded;
-    }
 
-    function findBestSopMatches(queryText, sourceList = knowledgeBase) {
-      if (!queryText || !sourceList || sourceList.length === 0) return [];
-      const expandedQ = expandSynonyms(queryText);
-      const rawQ = queryText.toLowerCase();
+        const { error } = await supabaseClient
+          .from('profiles')
+          .update({ password: p1 })
+          .eq('id', currentUser.id);
 
-      const validList = sourceList.filter(k => {
-        if (!k.title || k.title.trim() === '' || k.title === '未命名問題') return false;
-        return true;
-      });
+        if (error) throw error;
 
-      const scored = validList.map(k => {
-        let score = 0;
-        const titleL = (k.title || '').toLowerCase();
-        const sopIdL = (k.sop_id || '').toLowerCase();
+        currentUser.password = p1;
+        isForcedPasswordChange = false;
+        alert("🎉 密碼變更成功！請妥善保管您的新密碼。");
+        const modal = document.getElementById('changePwdModal');
+        if (modal) modal.classList.add('hidden');
+      } catch (err) {
+        alert("變更密碼失敗：" + err.message);
+      } finally {
+        if (btn) {
+          btn.innerText = "確認儲存新密碼";
+          btn.disabled = false;
+        }
+      }
+    };
 
-        if (rawQ.includes(titleL) || titleL.includes(rawQ)) score += 30;
-        if (rawQ.includes(sopIdL)) score += 50;
-
-        const kwList = Array.isArray(k.keywords) ? k.keywords : [k.keywords];
-        kwList.forEach(w => {
-          if (!w || !w.trim()) return;
-          const wL = w.trim().toLowerCase();
-          if (wL === rawQ) {
-            score += 40;
-          } else if (rawQ.includes(wL)) {
-            score += (wL.length >= 4 ? 20 : 10);
-          } else if (expandedQ.includes(wL)) {
-            score += 8;
-          }
-        });
-
-        const symptomL = (k.symptom || '').toLowerCase();
-        if (symptomL && rawQ.includes(symptomL)) score += 15;
-
-        return { item: k, score: score };
-      });
-
-      return scored.filter(s => s.score >= 10).sort((a, b) => b.score - a.score);
-    }
-
+    // ==========================================
+    // F. 對話排查、SOP 與工單建置
+    // ==========================================
     const CATEGORY_PROBES = {
       HIS_SYSTEM: [
         { key: 'function_screen', label: '發生功能畫面', prompt: '請問您是執行哪一個畫面或功能時發生異常（例如：門診看診開醫令、掛號批價、電子病歷）？' },
@@ -1240,9 +1390,6 @@
       }
     };
 
-    // ==========================================
-    // F. 報修工單產出 (寫入 tickets 獨立資料庫)
-    // ==========================================
     function openTicketModalPreview() {
       const now = new Date();
       const sId = now.getFullYear().toString() + 
@@ -1316,7 +1463,7 @@
 
       const ticketPayload = {
         service_id: document.getElementById('m_service_id').innerText,
-        user_id: currentUser.id || null,
+        user_id: (currentUser.id && currentUser.id !== 'admin-master') ? currentUser.id : null,
         client_name: currentUser.name,
         phone: document.getElementById('m_phone').value,
         company_plant: `${currentUser.company || ''} ${currentUser.jurisdiction || ''}`.trim(),
@@ -1361,7 +1508,7 @@
     };
 
     // ==========================================
-    // G. 註冊、變更密碼與後台資料讀取
+    // G. 註冊、後台管理與匯入
     // ==========================================
     window.handleRegisterSubmit = async function(e) {
       e.preventDefault();
@@ -1371,8 +1518,10 @@
       }
 
       const submitBtn = document.getElementById('regSubmitBtn');
-      submitBtn.innerText = "寫入 Supabase 中...";
-      submitBtn.disabled = true;
+      if (submitBtn) {
+        submitBtn.innerText = "寫入 Supabase 中...";
+        submitBtn.disabled = true;
+      }
 
       const cleanEmail = document.getElementById('regEmail').value.trim().toLowerCase();
 
@@ -1404,61 +1553,10 @@
         console.error("註冊失敗:", err);
         alert("註冊失敗：" + (err.message || "信箱可能重複或資料表未開通權限"));
       } finally {
-        submitBtn.innerText = "送出註冊 (等待審核)";
-        submitBtn.disabled = false;
-      }
-    };
-
-    window.openChangePasswordModal = function() {
-      document.getElementById('newPasswordInput').value = '';
-      document.getElementById('confirmPasswordInput').value = '';
-      document.getElementById('changePwdModal').classList.remove('hidden');
-    };
-
-    window.closeChangePasswordModal = function() {
-      document.getElementById('changePwdModal').classList.add('hidden');
-    };
-
-    window.handleChangePasswordSubmit = async function(e) {
-      e.preventDefault();
-      const p1 = document.getElementById('newPasswordInput').value.trim();
-      const p2 = document.getElementById('confirmPasswordInput').value.trim();
-
-      if (p1 !== p2) {
-        alert("兩次輸入的新密碼不一致！");
-        return;
-      }
-      if (p1.length < 6) {
-        alert("新密碼長度至少需要 6 位數！");
-        return;
-      }
-
-      const btn = document.getElementById('btnSubmitNewPwd');
-      btn.innerText = "更新中...";
-      btn.disabled = true;
-
-      try {
-        if (currentUser.id === 'admin-master') {
-          alert("預設總管理員帳號不支援從網頁修改，請在 Supabase SQL 調整。");
-          window.closeChangePasswordModal();
-          return;
+        if (submitBtn) {
+          submitBtn.innerText = "送出註冊 (等待審核)";
+          submitBtn.disabled = false;
         }
-
-        const { error } = await supabaseClient
-          .from('profiles')
-          .update({ password: p1 })
-          .eq('id', currentUser.id);
-
-        if (error) throw error;
-
-        currentUser.password = p1;
-        alert("🎉 密碼變更成功！下次登入請使用新密碼。");
-        window.closeChangePasswordModal();
-      } catch (err) {
-        alert("變更密碼失敗：" + err.message);
-      } finally {
-        btn.innerText = "確認儲存";
-        btn.disabled = false;
       }
     };
 
@@ -1870,7 +1968,6 @@
       }
     };
 
-    // 讀取獨立的 tickets 報修案件表單
     window.fetchTicketsFromSupabase = async function() {
       if (!supabaseClient) return;
       const c = document.getElementById('ticketsLogContainer');
@@ -1915,7 +2012,6 @@
       }
     };
 
-    // 讀取獨立的 chat_logs 對話歷程
     window.fetchChatLogsFromSupabase = async function() {
       if (!supabaseClient) return;
       const c = document.getElementById('chatLogsContainer');
@@ -1959,7 +2055,41 @@
       }
     };
 
-    // DOM 就緒後初始化語音
+    window.triggerCameraUpload = function() {
+      const input = document.getElementById('cameraInput');
+      if (input) input.click();
+    };
+
+    window.handleImageSelected = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        uploadedImageBase64 = e.target.result;
+        const imgMessage = `
+          <div>
+            <p class="mb-1 text-xs font-medium">📷 已傳送現場照片：</p>
+            <img src="${uploadedImageBase64}" class="rounded-lg max-h-48 border border-white/20 shadow-md">
+          </div>
+        `;
+        window.appendUserChat('user', imgMessage);
+        window.logChatToSupabase('user', '[上傳了現場障礙照片]', true);
+        turnCount++;
+        window.updateTurnUI();
+
+        setTimeout(() => {
+          const aiAnalysisText = "小威已接收到您上傳的設備照片！系統初步診斷顯示燈號或螢幕畫面有異常狀況。建議先確認後方連接線路是否牢固；若持續無法使用，請點選下方按鈕直接為您送出叫修單！";
+          window.appendUserChat('ai', aiAnalysisText, true);
+          window.logChatToSupabase('ai', aiAnalysisText);
+          if (typeof window.speak === 'function') {
+            window.speak("已收到您的故障照片。請問是否需要工程師到場處理？");
+          }
+        }, 800);
+      };
+      reader.readAsDataURL(file);
+    };
+
     window.addEventListener('DOMContentLoaded', () => {
       if (typeof window.initSTT === 'function') {
         window.initSTT();
