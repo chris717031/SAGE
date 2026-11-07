@@ -261,11 +261,11 @@
         </button>
       </div>
 
-      <!-- 對話串流主區域 (內部嵌有自由走動的小威) -->
+      <!-- 對話串流主區域 -->
       <div class="flex-1 relative overflow-hidden flex flex-col">
         <div id="chatArea" class="flex-1 p-3.5 space-y-3.5 overflow-y-auto chat-bg no-scrollbar z-0 pb-36"></div>
 
-        <!-- 小威動態互動台：在交談視窗內走動、肢體動作與豐富表情變化 -->
+        <!-- 小威動態互動台：在交談視窗內走動、肢體動作與表情變化 -->
         <div id="xiaoweiWalkerStage" class="absolute bottom-1 right-2 sm:right-6 pointer-events-auto z-10 select-none flex flex-col items-center">
           
           <!-- 小威頭頂情緒微對話氣泡 -->
@@ -273,7 +273,7 @@
             「我是小威！點我跟我互動喔！」
           </div>
 
-          <!-- 小男孩實體走動容器 (原圖形象：棕髮大眼黃帽T小男生) -->
+          <!-- 小男孩實體走動容器 -->
           <div class="boy-walker-stage cursor-pointer" id="boyWalkerEl" onclick="triggerXiaoweiCheer()" title="點點小威！">
             <div id="boyBreatheEl" class="boy-breathe-body relative w-24 h-32 sm:w-28 sm:h-36">
               
@@ -295,7 +295,7 @@
                   <path d="M85 188 Q94 182 103 188 L102 192 L86 192 Z" fill="#f97316"/>
                 </g>
 
-                <!-- 原圖亮黃色連帽拉鍊外套 (Yellow Hoodie) -->
+                <!-- 亮黃色連帽拉鍊外套 -->
                 <path d="M42 120 L32 172 L128 172 L118 120 Z" fill="#f59e0b"/>
                 <!-- 內搭白T領口 -->
                 <path d="M68 118 L92 118 L80 138 Z" fill="#ffffff"/>
@@ -305,13 +305,13 @@
                 <!-- 連帽立體大翻領與陰影 -->
                 <path d="M42 120 Q80 144 118 120 Q108 106 80 112 Q52 106 42 120 Z" fill="#d97706"/>
 
-                <!-- 左手臂 (自然擺動) -->
+                <!-- 左手臂 -->
                 <g id="boyArmLeft">
                   <path d="M42 122 Q28 140 36 154" stroke="#f59e0b" stroke-width="12" stroke-linecap="round" fill="none"/>
                   <circle cx="36" cy="154" r="5.5" fill="#fed7aa"/>
                 </g>
 
-                <!-- 右手臂 (支援熱情揮手動態) -->
+                <!-- 右手臂 (熱情揮手動態) -->
                 <g class="boy-wave-r" id="boyArmRight">
                   <path d="M118 122 Q134 130 140 104" stroke="#f59e0b" stroke-width="12" stroke-linecap="round" fill="none"/>
                   <circle cx="140" cy="102" r="6" fill="#fed7aa"/>
@@ -320,23 +320,20 @@
                 <!-- 脖子 -->
                 <rect x="72" y="92" width="16" height="18" rx="5" fill="#fed7aa"/>
 
-                <!-- 小男孩頭部群組 (支援思考偏頭動態) -->
+                <!-- 小男孩頭部群組 -->
                 <g class="boy-head-tilt">
-                  <!-- 圓圓可愛白皙小男孩臉龐 -->
                   <circle cx="80" cy="70" r="37" fill="#fed7aa"/>
-                  <!-- 雙耳 -->
                   <circle cx="41" cy="74" r="8.5" fill="#fed7aa"/>
                   <circle cx="119" cy="74" r="8.5" fill="#fed7aa"/>
                   <circle cx="41" cy="74" r="4.5" fill="#fca5a5" opacity="0.6"/>
                   <circle cx="119" cy="74" r="4.5" fill="#fca5a5" opacity="0.6"/>
 
-                  <!-- 原圖大面積紅潤粉嫩腮紅 -->
+                  <!-- 紅潤粉嫩腮紅 -->
                   <ellipse cx="58" cy="80" rx="7.5" ry="4.2" fill="#fca5a5" opacity="0.85"/>
                   <ellipse cx="102" cy="80" rx="7.5" ry="4.2" fill="#fca5a5" opacity="0.85"/>
 
                   <!-- 表情 1：原圖驚奇大棕眼+張嘴 (surprised) -->
                   <g id="expr-surprised" class="boy-eye-blink">
-                    <!-- 左大眼 -->
                     <ellipse cx="64" cy="66" rx="9" ry="12" fill="#ffffff"/>
                     <ellipse cx="65" cy="66" rx="6.5" ry="9.5" fill="#78350f"/>
                     <circle cx="65" cy="66" r="4.5" fill="#451a03"/>
@@ -344,7 +341,6 @@
                     <circle cx="63" cy="70" r="1.2" fill="#ffffff"/>
                     <path d="M54 54 Q64 50 74 57" stroke="#451a03" stroke-width="2.2" fill="none" stroke-linecap="round"/>
 
-                    <!-- 右大眼 -->
                     <ellipse cx="96" cy="66" rx="9" ry="12" fill="#ffffff"/>
                     <ellipse cx="95" cy="66" rx="6.5" ry="9.5" fill="#78350f"/>
                     <circle cx="95" cy="66" r="4.5" fill="#451a03"/>
@@ -352,7 +348,6 @@
                     <circle cx="93" cy="70" r="1.2" fill="#ffffff"/>
                     <path d="M86 57 Q96 50 106 54" stroke="#451a03" stroke-width="2.2" fill="none" stroke-linecap="round"/>
 
-                    <!-- 驚奇圓圓張大的小嘴 -->
                     <path d="M74 80 Q80 78 86 80 Q88 91 80 93 Q72 91 74 80 Z" fill="#451a03"/>
                     <path d="M75 86 Q80 84 85 86 Q84 92 80 92 Q76 92 75 86 Z" fill="#ef4444"/>
                   </g>
@@ -375,10 +370,7 @@
                     <path d="M76 84 Q80 82 85 85" stroke="#451a03" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                   </g>
 
-                  <!-- 精緻小鼻頭 -->
                   <circle cx="80" cy="72" r="2" fill="#d97706"/>
-
-                  <!-- 棕色蓬鬆帥氣短髮與頭頂呆毛 -->
                   <path d="M43 64 C33 38, 51 14, 80 14 C109 14, 127 38, 117 64 C111 54, 107 48, 97 46 C95 35, 84 31, 80 33 C76 31, 64 35, 62 46 C52 48, 48 54, 43 64 Z" fill="#854d0e"/>
                   <path d="M80 16 Q88 4 79 3 Q74 10 79 16 Z" fill="#713f12"/>
                   <path d="M49 52 Q61 46 73 50 Q80 42 87 50 Q99 46 111 52 Q105 38 80 36 Q55 38 49 52 Z" fill="#a16207"/>
@@ -421,7 +413,7 @@
           </button>
 
           <div class="flex-1">
-            <input id="userMsgInput" type="text" placeholder="告訴小威問題 (例：不能開機、印表機卡紙、HIS當機)..."
+            <input id="userMsgInput" type="text" placeholder="告訴小威問題 (例：不能開機、印表機卡紙、HIS當機、什麼是DHCP)..."
                    class="w-full bg-slate-100 text-slate-800 text-sm rounded-full px-3.5 py-2 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-600"
                    onfocus="handleInputFocused(true)" onblur="handleInputFocused(false)"
                    onkeypress="if(event.key==='Enter') handleUserSend()">
@@ -726,10 +718,10 @@
     </div>
   </div>
 
-  <!-- 7. 核心 JavaScript (小男孩稚嫩童音 + DuckDuckGo 免費整合 + 肢體動作) -->
+  <!-- 7. 核心 JavaScript (嚴謹停用詞過濾 + 專有名詞直通 DuckDuckGo) -->
   <script>
     // ==========================================
-    // A. 語音核心宣告：精準小男孩「稚嫩童音」調校
+    // A. 語音核心宣告：精準小男生活潑稚嫩童音
     // ==========================================
     let isVoiceEnabled = true;
     let recognition = null;
@@ -737,7 +729,6 @@
     let availableVoices = [];
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    // 預加載瀏覽器聲音清單
     function loadVoices() {
       if ('speechSynthesis' in window) {
         availableVoices = window.speechSynthesis.getVoices();
@@ -748,18 +739,13 @@
       window.speechSynthesis.onvoiceschanged = loadVoices;
     }
 
-    // 智能挑選最合適的小男孩稚嫩童音
     function pickBoyVoice() {
       if (!availableVoices || availableVoices.length === 0) loadVoices();
-      
-      // 優先尋找偏輕快清脆的台灣/中文聲音
       const preferred = availableVoices.find(v => 
         (v.lang === 'zh-TW' || v.lang === 'zh-HK' || v.lang.startsWith('zh')) &&
         (v.name.includes('HsiaoChen') || v.name.includes('Yating') || v.name.includes('Mei-Jia') || v.name.includes('Natural') || v.name.includes('Google'))
       );
       if (preferred) return preferred;
-
-      // 備選任何中文語音
       const anyZh = availableVoices.find(v => v.lang.includes('zh'));
       return anyZh || null;
     }
@@ -775,16 +761,12 @@
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'zh-TW';
         
-        // 【核心設定】：小男孩稚嫩童音調校
-        // pitch: 1.48 (偏高音頻，呈現純真稚氣的小男孩聲音)
-        // rate: 1.15 (輕快、活潑的說話速度)
+        // 稚嫩清脆小男生童音調校
         utterance.pitch = 1.48; 
         utterance.rate = 1.15;
 
         const boyVoice = pickBoyVoice();
-        if (boyVoice) {
-          utterance.voice = boyVoice;
-        }
+        if (boyVoice) utterance.voice = boyVoice;
 
         utterance.onend = () => { if (onComplete) onComplete(); };
         utterance.onerror = () => { if (onComplete) onComplete(); };
@@ -938,7 +920,8 @@
     // ==========================================
     async function searchDuckDuckGo(query) {
       if (!query || !query.trim()) return null;
-      const cleanQ = query.trim();
+      // 提取核心名詞，去除「什麼是」、「是什麼」等中文贅詞
+      const cleanQ = query.replace(/(什麼是|是什麼|什麼叫|請問|如何|怎麼)/g, '').trim();
       const endpoint = `https://api.duckduckgo.com/?q=${encodeURIComponent(cleanQ)}&format=json&no_html=1&skip_disambig=1`;
 
       try {
@@ -946,6 +929,7 @@
         if (!res.ok) return null;
         const data = await res.json();
 
+        // 1. 直接百科摘要 (AbstractText)
         if (data.AbstractText && data.AbstractText.trim().length > 0) {
           return {
             type: 'abstract',
@@ -956,6 +940,7 @@
           };
         }
 
+        // 2. 關聯條目 (RelatedTopics)
         if (Array.isArray(data.RelatedTopics) && data.RelatedTopics.length > 0) {
           const firstTopic = data.RelatedTopics.find(t => t.Text && t.FirstURL);
           if (firstTopic) {
@@ -1526,8 +1511,18 @@
     };
 
     // ==========================================
-    // H. 人性化語意正規化、同義互通與自主學習
+    // H. 【核心修復】：停用詞過濾與精準語意抽取
     // ==========================================
+    // 1. 提煉真正的核心主詞 (去除「什麼是」、「是什麼」、「如何」等口語贅字)
+    function extractCoreIntent(text) {
+      if (!text) return '';
+      let clean = String(text).toLowerCase();
+      // 去除問句前綴與後綴
+      clean = clean.replace(/(什麼是|是什麼|什麼叫|請問|請教一下|想問|如何|怎麼|為啥|為什麼|有誰知道)/g, '');
+      clean = clean.replace(/[\s\-_，。！？\?]+/g, '').trim();
+      return clean;
+    }
+
     function normalizeQuery(text) {
       if (!text) return '';
       let norm = String(text).toLowerCase();
@@ -1564,21 +1559,26 @@
       return expanded;
     }
 
+    // 計算雙字元模糊交集 (過濾掉常見贅字)
     function calculateFuzzyScore(rawQuery, targetText) {
       if (!rawQuery || !targetText) return 0;
       let score = 0;
-      const q = rawQuery.replace(/[\s\-_，。！？]/g, '');
-      const t = targetText.replace(/[\s\-_，。！？]/g, '');
+      // 去除停用詞後再進行交集評分
+      const cleanQ = extractCoreIntent(rawQuery);
+      const cleanT = extractCoreIntent(targetText);
+      if (cleanQ.length < 2 || cleanT.length < 2) return 0;
 
-      for (let i = 0; i < q.length - 1; i++) {
-        const bigram = q.substring(i, i + 2);
-        if (t.includes(bigram)) score += 6;
+      for (let i = 0; i < cleanQ.length - 1; i++) {
+        const bigram = cleanQ.substring(i, i + 2);
+        if (cleanT.includes(bigram)) score += 8;
       }
       return score;
     }
 
+    // 嚴謹匹配：防止如「什麼是DHCP」因「什麼是」而誤判命中「公司密碼設定規則是什麼」
     function findBestSopMatches(queryText, sourceList = knowledgeBase) {
       if (!queryText || !sourceList || sourceList.length === 0) return [];
+      const coreQ = extractCoreIntent(queryText);
       const normQ = normalizeQuery(queryText);
       const expandedQ = expandSynonyms(queryText);
       const rawQ = String(queryText).toLowerCase().trim();
@@ -1592,12 +1592,20 @@
         let score = 0;
         const titleL = String(k.title || '').toLowerCase();
         const sopIdL = String(k.sop_id || '').toLowerCase();
+        const coreTitle = extractCoreIntent(titleL);
 
-        if (rawQ.includes(titleL) || titleL.includes(rawQ) || normQ.includes(titleL) || titleL.includes(normQ)) score += 35;
+        // 1. 核心主詞完全比對
+        if (coreQ && (coreTitle.includes(coreQ) || coreQ.includes(coreTitle))) {
+          score += 40;
+        }
+
+        // 2. SOP 編號命中
         if (rawQ.includes(sopIdL)) score += 50;
 
-        score += calculateFuzzyScore(normQ, titleL);
+        // 3. 雙字元交集加分 (已排除贅字)
+        score += calculateFuzzyScore(coreQ, coreTitle);
 
+        // 4. 關鍵字陣列精確比對
         let kwList = [];
         if (Array.isArray(k.keywords)) {
           kwList = k.keywords;
@@ -1610,26 +1618,23 @@
         kwList.forEach(w => {
           if (!w) return;
           const wL = String(w).trim().toLowerCase();
+          const coreW = extractCoreIntent(wL);
           if (!wL) return;
 
-          if (wL === rawQ || wL === normQ) {
-            score += 45;
-          } else if (rawQ.includes(wL) || normQ.includes(wL)) {
-            score += (wL.length >= 4 ? 22 : 12);
+          if (wL === rawQ || (coreQ && coreW === coreQ)) {
+            score += 50;
+          } else if (coreQ && (wL.includes(coreQ) || coreW.includes(coreQ))) {
+            score += (coreQ.length >= 3 ? 28 : 16);
           } else if (expandedQ.includes(wL)) {
-            score += 10;
-          } else {
-            score += calculateFuzzyScore(normQ, wL);
+            score += 12;
           }
         });
-
-        const symptomL = String(k.symptom || '').toLowerCase();
-        if (symptomL && (rawQ.includes(symptomL) || normQ.includes(symptomL))) score += 15;
 
         return { item: k, score: score };
       });
 
-      return scored.filter(s => s.score >= 12).sort((a, b) => b.score - a.score);
+      // 【門檻調高】：提高至 25 分，確保不會因為一兩個虛字就誤命中無關 SOP
+      return scored.filter(s => s.score >= 25).sort((a, b) => b.score - a.score);
     }
 
     function parseStepsToArray(safeStepsText) {
@@ -1709,6 +1714,7 @@
 
       extractSlotsFromUserMsg(q);
 
+      // 小威動態切換思考表情與狀態
       window.updateXiaoweiMood('thinking', `「收到！小威正在幫您尋找『${q}』最有效的測試方式...」`);
 
       const isSevereHardware = (q.includes('冒煙') || q.includes('焦味') || q.includes('斷掉') || q.includes('摔壞') || q.includes('燒掉') || q.includes('直接派工') || q.includes('報修就好'));
@@ -1745,7 +1751,7 @@
       const matches = findBestSopMatches(q, activeSops);
 
       setTimeout(() => {
-        if (matches.length >= 2 && matches[0].score >= 20 && (matches[0].score - matches[1].score <= 5)) {
+        if (matches.length >= 2 && matches[0].score >= 25 && (matches[0].score - matches[1].score <= 6)) {
           const topOptions = [matches[0].item, matches[1].item];
           if (matches[2] && matches[0].score - matches[2].score <= 8) topOptions.push(matches[2].item);
           const clarifyMsg = '小威在知識庫中找到幾筆相似的排除指引，請問是哪一種情境？';
@@ -1781,8 +1787,9 @@
       window.speak("請您再多補充一些細節，我為您重新比對。");
     };
 
-    // 啟動逐條測試排查，結合 DuckDuckGo 免費即時搜尋
+    // 啟動排查：當內部查無 SOP 時，準確連線 DuckDuckGo API
     async function startStepByStepGuidance(sop) {
+      // 1. 內部知識庫有高信心相符 SOP
       if (sop) {
         if (sop.allow_self_resolve === false) {
           inquiryContext.unresolvedReason = `SOP 規範此項目需由工程師到場或更換備品處置 (${sop.title})`;
@@ -1809,14 +1816,15 @@
         return;
       }
 
-      window.updateXiaoweiMood('thinking', '「內部知識庫暫無紀錄，小威正連線 DuckDuckGo 尋找解答...」');
+      // 2. 內部查無資料：小威連線 DuckDuckGo 官方免費 API
+      window.updateXiaoweiMood('thinking', '「內部知識庫暫無此紀錄，小威正連線 DuckDuckGo 尋找解答...」');
       const ddgResult = await searchDuckDuckGo(inquiryContext.originalProblem);
 
       if (ddgResult) {
-        window.updateXiaoweiMood('step', '「小威在外部知識庫找到相關解法囉！」');
+        window.updateXiaoweiMood('step', '「小威在外部知識庫找到相關說明囉！」');
         
         const replyHtml = `
-          小威在內部知識庫暫無專屬 SOP，但我透過 <b>DuckDuckGo</b> 找到相關參考說明：<br><br>
+          小威在內部知識庫暫無專屬 SOP，但我透過 <b>DuckDuckGo</b> 為您找到相關說明：<br><br>
           <div class="bg-amber-50 p-2.5 rounded-lg border border-amber-300 text-slate-800 text-xs my-1 leading-relaxed">
             <span class="font-bold text-indigo-950">📖 【${ddgResult.title}】</span><br>
             ${ddgResult.text}
@@ -1824,14 +1832,15 @@
           <a href="${ddgResult.url}" target="_blank" class="text-blue-600 underline text-[11px] block mt-1">
             🔗 檢視出處來源 (${ddgResult.source})
           </a><br>
-          請問參考上述排除說明後，問題是否已解決？
+          請問上述說明是否已解答您的疑問？
         `;
 
-        inquiryContext.suggestedSteps.push(`[DuckDuckGo 外部解法] ${ddgResult.title}: ${ddgResult.text.substring(0, 30)}...`);
+        inquiryContext.suggestedSteps.push(`[DuckDuckGo] ${ddgResult.title}: ${ddgResult.text.substring(0, 30)}...`);
         window.appendUserChat('ai', replyHtml, true, 'step_action');
         window.logChatToSupabase('ai', `DuckDuckGo 外部解法: ${ddgResult.text}`);
-        window.speak("內部資料庫暫無此項目，已為您找到相關參考說明，請問問題是否解決？");
+        window.speak("內部資料庫暫無此項目，已為您找到相關參考說明，請問是否已解決？");
       } else {
+        // 3. DuckDuckGo 無直接百科條目：提供智慧搜尋卡片與報修確認單
         window.updateXiaoweiMood('ticket', '「已為您準備好外部搜尋與報修確認單！」');
 
         const searchKeyword = encodeURIComponent(`${inquiryContext.originalProblem} 解決方法 教學 IT排查`);
@@ -1839,7 +1848,7 @@
         const googleSearchUrl = `https://www.google.com/search?q=${searchKeyword}`;
 
         const fallbackHtml = `
-          小威評估此問題較特殊，已為您整理好外部搜尋捷徑：<br><br>
+          小威在內部知識庫查無此項目，已為您整理外部即時搜尋捷徑：<br><br>
           <div class="flex gap-2 my-1">
             <a href="${ddgSearchUrl}" target="_blank" class="flex-1 text-center py-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 font-bold text-xs transition">
               🦆 DuckDuckGo 搜尋
@@ -1848,7 +1857,7 @@
               🔍 Google 搜尋
             </a>
           </div>
-          <p class="text-[11px] text-slate-500 mt-2 mb-2">若需工程師到場檢修，可直接點擊下方預覽報修單：</p>
+          <p class="text-[11px] text-slate-500 mt-2 mb-2">若為設備故障需工程師到場檢修，可直接建立報修單：</p>
           <button onclick="openTicketModalPreview()" class="w-full py-2 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-white rounded-lg font-bold text-xs shadow transition">
             🎫 建立報修確認單
           </button>
@@ -1857,7 +1866,7 @@
         inquiryContext.unresolvedReason = "內部資料庫與外部即時檢索皆無相符自動引導指引";
         window.appendUserChat('ai', fallbackHtml, false);
         window.logChatToSupabase('ai', '提供外部搜尋卡片與報修單捷徑');
-        window.speak("此問題較特殊，已為您整理好外部搜尋捷徑與報修表單。");
+        window.speak("內部資料庫無相符項目，已為您準備好外部搜尋捷徑與報修表單。");
       }
     }
 
@@ -2699,6 +2708,3 @@ ${stepsText}
   </script>
 </body>
 </html>
-```eof
-
----
