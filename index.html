@@ -175,7 +175,7 @@
           </div>
 
           <div class="p-2 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-500">
-            ℹ️ 註冊完成後預設密碼為 <b>123456</b>，審核通過後第一次登入將引導變更密碼。
+            ℹ️ 註冊完成後預設密碼為 <b>123456</b>，審核通過後第一次登入將強制要求變更符合資安規範之密碼。
           </div>
           <button type="submit" id="regSubmitBtn" class="w-full py-2.5 bg-sky-700 hover:bg-sky-600 text-white font-bold rounded-xl shadow transition text-sm mt-1">
             送出註冊 (等待審核)
@@ -340,35 +340,56 @@
 
   </main>
 
-  <!-- 4. 變更密碼 Modal -->
-  <div id="changePwdModal" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white text-slate-800 w-full max-w-sm rounded-2xl p-5 shadow-2xl border border-slate-200">
-      <div class="flex justify-between items-center mb-3 border-b border-slate-200 pb-2">
+  <!-- 4. 變更密碼 Modal (強化複雜性規範校驗) -->
+  <div id="changePwdModal" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white text-slate-800 w-full max-w-sm rounded-2xl p-5 shadow-2xl border border-slate-200 my-auto">
+      <div class="flex justify-between items-center mb-2.5 border-b border-slate-200 pb-2">
         <h3 id="changePwdModalTitle" class="font-bold text-sm text-[#10183d]">🔑 變更登入密碼</h3>
         <button id="changePwdCloseX" onclick="closeChangePasswordModal()" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
       </div>
 
-      <div id="firstLoginAlertBanner" class="hidden mb-3 p-2.5 bg-amber-50 border border-amber-300 text-amber-900 rounded-lg text-xs leading-relaxed">
+      <div id="firstLoginAlertBanner" class="hidden mb-2.5 p-2 bg-amber-50 border border-amber-300 text-amber-900 rounded-lg text-xs leading-relaxed">
         <b>🔒 首次登入安全提醒：</b><br>
-        您目前使用的是系統預設密碼 (123456)，為保障資安防護，請立即設定新密碼後開始使用！
+        為保障帳號資安，首次登入必須設定符合企業資安規範之新密碼！
       </div>
 
-      <form onsubmit="handleChangePasswordSubmit(event)" class="space-y-3 text-xs">
+      <!-- 密碼複雜度指示清單 -->
+      <div class="mb-3 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] space-y-1">
+        <p class="font-bold text-slate-700 mb-1">密碼複雜度要求（四項皆需符合）：</p>
+        <div id="rule-len" class="text-slate-500 flex items-center gap-1.5 transition">
+          <span class="font-mono">○</span> 長度至少為 8 個字元
+        </div>
+        <div id="rule-upper" class="text-slate-500 flex items-center gap-1.5 transition">
+          <span class="font-mono">○</span> 包含英文大寫字元 (A 到 Z)
+        </div>
+        <div id="rule-lower" class="text-slate-500 flex items-center gap-1.5 transition">
+          <span class="font-mono">○</span> 包含英文小寫字元 (a 到 z)
+        </div>
+        <div id="rule-digit" class="text-slate-500 flex items-center gap-1.5 transition">
+          <span class="font-mono">○</span> 包含 10 進位數字 (0 到 9)
+        </div>
+        <div id="rule-special" class="text-slate-500 flex items-center gap-1.5 transition">
+          <span class="font-mono">○</span> 包含非英文字母字元 (例如: !、$、#、%)
+        </div>
+      </div>
+
+      <form onsubmit="handleChangePasswordSubmit(event)" class="space-y-2.5 text-xs">
         <div>
           <label class="block font-medium text-slate-700 mb-1">請輸入新密碼 <span class="text-rose-500">*</span></label>
-          <input type="password" id="newPasswordInput" required minlength="6" placeholder="至少 6 位字元"
+          <input type="password" id="newPasswordInput" required placeholder="請輸入符合規範之新密碼"
+                 oninput="checkPasswordComplexityRealtime(this.value)"
                  class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-600">
         </div>
         <div>
           <label class="block font-medium text-slate-700 mb-1">再次確認新密碼 <span class="text-rose-500">*</span></label>
-          <input type="password" id="confirmPasswordInput" required minlength="6" placeholder="請再次輸入新密碼"
+          <input type="password" id="confirmPasswordInput" required placeholder="請再次輸入新密碼"
                  class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-600">
         </div>
         <div class="flex space-x-2 pt-2">
           <button type="button" id="changePwdCancelBtn" onclick="closeChangePasswordModal()" class="flex-1 py-2 border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-100 font-medium">
             取消
           </button>
-          <button type="submit" id="btnSubmitNewPwd" class="flex-1 py-2 bg-[#10183d] hover:bg-indigo-900 text-white rounded-xl font-bold shadow">
+          <button type="submit" id="btnSubmitNewPwd" class="flex-1 py-2 bg-[#10183d] hover:bg-indigo-900 text-white rounded-xl font-bold shadow transition">
             確認儲存新密碼
           </button>
         </div>
@@ -590,7 +611,7 @@
     </div>
   </div>
 
-  <!-- 7. 核心 JavaScript (整合語意歸一化 + 自主學習關鍵字沉澱) -->
+  <!-- 7. 核心 JavaScript (嚴格複雜性密碼檢驗 + 人性化語意 + 逐步排查) -->
   <script>
     // ==========================================
     // A. 頂置全域語音宣告
@@ -831,7 +852,6 @@
     let uploadedImageBase64 = null;
     let isForcedPasswordChange = false;
 
-    // 逐步引導狀態
     let activeGuidance = {
       sop: null,
       steps: [],
@@ -964,6 +984,7 @@
           window.speak(hello, () => window.startListening());
         }
 
+        // 【安全規範】：新用戶預設密碼 123456 強制攔截變更密碼
         if (user.password === '123456') {
           setTimeout(() => {
             window.openChangePasswordModal(true);
@@ -1097,8 +1118,41 @@
     };
 
     // ==========================================
-    // E. 首次登入強制變更密碼控制
+    // E. 密碼複雜度驗證邏輯與視覺提示
     // ==========================================
+    // 密碼複雜性檢測器：驗證長度與四大類型
+    function evaluatePasswordComplexity(pwd) {
+      return {
+        length: pwd.length >= 8,
+        hasUpper: /[A-Z]/.test(pwd),
+        hasLower: /[a-z]/.test(pwd),
+        hasDigit: /[0-9]/.test(pwd),
+        hasSpecial: /[^A-Za-z0-9]/.test(pwd)
+      };
+    }
+
+    window.checkPasswordComplexityRealtime = function(pwd) {
+      const res = evaluatePasswordComplexity(pwd);
+
+      const updateRuleUI = (elementId, passed) => {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        if (passed) {
+          el.className = "text-emerald-600 font-medium flex items-center gap-1.5 transition";
+          el.innerHTML = `<span class="font-bold">✓</span> ${el.innerText.replace(/^[○✓✗]\s*/, '')}`;
+        } else {
+          el.className = "text-slate-500 flex items-center gap-1.5 transition";
+          el.innerHTML = `<span class="font-mono">○</span> ${el.innerText.replace(/^[○✓✗]\s*/, '')}`;
+        }
+      };
+
+      updateRuleUI('rule-len', res.length);
+      updateRuleUI('rule-upper', res.hasUpper);
+      updateRuleUI('rule-lower', res.hasLower);
+      updateRuleUI('rule-digit', res.hasDigit);
+      updateRuleUI('rule-special', res.hasSpecial);
+    };
+
     window.openChangePasswordModal = function(isForced = false) {
       isForcedPasswordChange = isForced;
       const modal = document.getElementById('changePwdModal');
@@ -1109,12 +1163,13 @@
 
       document.getElementById('newPasswordInput').value = '';
       document.getElementById('confirmPasswordInput').value = '';
+      window.checkPasswordComplexityRealtime('');
 
       if (isForced) {
         if (banner) banner.classList.remove('hidden');
         if (closeX) closeX.classList.add('hidden');
         if (cancelBtn) cancelBtn.classList.add('hidden');
-        if (modalTitle) modalTitle.innerText = "🔒 首次登入強制設定密碼";
+        if (modalTitle) modalTitle.innerText = "🔒 首次登入強制設定安全密碼";
       } else {
         if (banner) banner.classList.add('hidden');
         if (closeX) closeX.classList.remove('hidden');
@@ -1127,7 +1182,7 @@
 
     window.closeChangePasswordModal = function() {
       if (isForcedPasswordChange) {
-        alert("⚠️ 為了您的帳號安全，首次登入必須完成設定新密碼！");
+        alert("⚠️ 為了維護資訊安全，首次登入必須完成設定新密碼！");
         return;
       }
       const modal = document.getElementById('changePwdModal');
@@ -1140,28 +1195,39 @@
       const p2 = document.getElementById('confirmPasswordInput').value.trim();
 
       if (p1 !== p2) {
-        alert("兩次輸入的新密碼不一致！");
+        alert("❌ 兩次輸入的新密碼不一致！");
         return;
       }
-      if (p1.length < 6) {
-        alert("新密碼長度至少需要 6 位數！");
+
+      // 【核心校驗】：符合長度8碼與四項規範
+      const c = evaluatePasswordComplexity(p1);
+      const errors = [];
+      if (!c.length) errors.push("・長度至少需為 8 個字元");
+      if (!c.hasUpper) errors.push("・需包含英文大寫字元 (A 到 Z)");
+      if (!c.hasLower) errors.push("・需包含英文小寫字元 (a 到 z)");
+      if (!c.hasDigit) errors.push("・需包含 10 進位數字 (0 到 9)");
+      if (!c.hasSpecial) errors.push("・需包含非英文字母字元 (例如: !、$、#、%)");
+
+      if (errors.length > 0) {
+        alert(`❌ 密碼未符合複雜性規範，請修正以下項目：\n\n${errors.join('\n')}`);
         return;
       }
+
       if (p1 === '123456') {
-        alert("新密碼不能與預設密碼 (123456) 相同，請設定更安全的密碼！");
+        alert("❌ 新密碼不能與系統預設密碼 (123456) 相同！");
         return;
       }
 
       const btn = document.getElementById('btnSubmitNewPwd');
       if (btn) {
-        btn.innerText = "更新中...";
+        btn.innerText = "安全加密更新中...";
         btn.disabled = true;
       }
 
       try {
         if (currentUser.id === 'admin-master') {
           currentUser.password = p1;
-          alert("🎉 密碼已暫存更新！");
+          alert("🎉 密碼已更新！");
           isForcedPasswordChange = false;
           const modal = document.getElementById('changePwdModal');
           if (modal) modal.classList.add('hidden');
@@ -1177,7 +1243,7 @@
 
         currentUser.password = p1;
         isForcedPasswordChange = false;
-        alert("🎉 密碼變更成功！請妥善保管您的新密碼。");
+        alert("🎉 密碼變更成功！新密碼已符合企業資安複雜度要求，下次登入請使用新密碼。");
         const modal = document.getElementById('changePwdModal');
         if (modal) modal.classList.add('hidden');
       } catch (err) {
@@ -1191,22 +1257,16 @@
     };
 
     // ==========================================
-    // F. 【核心升級 1】：人性化語意正規化與同義互通
+    // F. 人性化語意正規化與同義互通
     // ==========================================
-    // 語意標準化字典 (將口語否定/動作統一成核心語意)
     function normalizeQuery(text) {
       if (!text) return '';
       let norm = String(text).toLowerCase();
 
-      // 口語否定詞正規化：不能、沒辦法、不行、開不了 -> 無法
       norm = norm.replace(/(不能|沒辦法|不行|開不了|開不起|不給|打不開|進不去)/g, '無法');
-      // 慢速與卡頓口語正規化
       norm = norm.replace(/(好慢|很卡|卡死|轉圈圈|遲鈍|不動)/g, '當機');
-      // 列印口語正規化
       norm = norm.replace(/(印不出來|不能印|沒辦法印|不給印)/g, '無法列印');
-      // 網路口語正規化
       norm = norm.replace(/(連不上網|沒網路|上不了網|斷網了)/g, '無法上網');
-      // 讀卡機口語正規化
       norm = norm.replace(/(讀不到卡|讀不到健保卡|沒讀到|不讀卡)/g, '無法讀卡');
 
       return norm;
@@ -1235,14 +1295,12 @@
       return expanded;
     }
 
-    // 模糊字元匹配分數計算
     function calculateFuzzyScore(rawQuery, targetText) {
       if (!rawQuery || !targetText) return 0;
       let score = 0;
       const q = rawQuery.replace(/[\s\-_，。！？]/g, '');
       const t = targetText.replace(/[\s\-_，。！？]/g, '');
 
-      // 檢查雙字組合 (Bigram)
       for (let i = 0; i < q.length - 1; i++) {
         const bigram = q.substring(i, i + 2);
         if (t.includes(bigram)) score += 6;
@@ -1250,7 +1308,6 @@
       return score;
     }
 
-    // 強化版多維度 SOP 比對器
     function findBestSopMatches(queryText, sourceList = knowledgeBase) {
       if (!queryText || !sourceList || sourceList.length === 0) return [];
       const normQ = normalizeQuery(queryText);
@@ -1267,14 +1324,11 @@
         const titleL = String(k.title || '').toLowerCase();
         const sopIdL = String(k.sop_id || '').toLowerCase();
 
-        // 1. 完全或正規化包含標題/編號
         if (rawQ.includes(titleL) || titleL.includes(rawQ) || normQ.includes(titleL) || titleL.includes(normQ)) score += 35;
         if (rawQ.includes(sopIdL)) score += 50;
 
-        // 2. 標題模糊字元加分
         score += calculateFuzzyScore(normQ, titleL);
 
-        // 3. 關鍵字陣列精準比對與延伸比對
         let kwList = [];
         if (Array.isArray(k.keywords)) {
           kwList = k.keywords;
@@ -1290,7 +1344,7 @@
           if (!wL) return;
 
           if (wL === rawQ || wL === normQ) {
-            score += 45; // 完全命中
+            score += 45;
           } else if (rawQ.includes(wL) || normQ.includes(wL)) {
             score += (wL.length >= 4 ? 22 : 12);
           } else if (expandedQ.includes(wL)) {
@@ -1300,18 +1354,15 @@
           }
         });
 
-        // 4. 症狀比對
         const symptomL = String(k.symptom || '').toLowerCase();
         if (symptomL && (rawQ.includes(symptomL) || normQ.includes(symptomL))) score += 15;
 
         return { item: k, score: score };
       });
 
-      // 只要超過 12 分皆視為有效關聯，按分數排序
       return scored.filter(s => s.score >= 12).sort((a, b) => b.score - a.score);
     }
 
-    // 步驟字串拆解解析器
     function parseStepsToArray(safeStepsText) {
       if (!safeStepsText) return [];
       let text = String(safeStepsText);
@@ -1337,9 +1388,6 @@
       return parsed.length > 0 ? parsed : [text.trim()];
     }
 
-    // ==========================================
-    // G. 【核心升級 2】：自主學習機制 (將新問法自動反哺回知識庫)
-    // ==========================================
     async function autoLearnNewKeywordToSupabase(sopId, newQuery) {
       if (!supabaseClient || !sopId || !newQuery) return;
       const cleanKeyword = String(newQuery).trim();
@@ -1352,7 +1400,6 @@
         let currentKws = Array.isArray(targetSop.keywords) ? [...targetSop.keywords] : [targetSop.title];
         const lowerKws = currentKws.map(k => String(k).toLowerCase());
 
-        // 若該關鍵字尚未存在於資料庫中，自動加入學習
         if (!lowerKws.includes(cleanKeyword.toLowerCase())) {
           currentKws.push(cleanKeyword);
           targetSop.keywords = currentKws;
@@ -1362,7 +1409,7 @@
             .update({ keywords: currentKws })
             .eq('sop_id', sopId);
 
-          console.log(`🤖 [自主學習成功] 已將新問法「${cleanKeyword}」自動沉澱進 [${sopId}] 的關鍵字庫中！`);
+          console.log(`🤖 [自主學習成功] 已將新問法「${cleanKeyword}」沉澱進 [${sopId}] 的關鍵字庫中！`);
         }
       } catch (err) {
         console.warn("自主學習寫入異常:", err);
@@ -1370,7 +1417,7 @@
     }
 
     // ==========================================
-    // H. 對話發送與逐步引導處理
+    // G. 對話發送與逐步測試流程
     // ==========================================
     window.handleUserSend = async function() {
       const input = document.getElementById('userMsgInput');
@@ -1393,11 +1440,10 @@
 
       extractSlotsFromUserMsg(q);
 
-      // 硬體嚴重狀況直通轉單
       const isSevereHardware = (q.includes('冒煙') || q.includes('焦味') || q.includes('斷掉') || q.includes('摔壞') || q.includes('燒掉') || q.includes('直接派工') || q.includes('報修就好'));
       if (isSevereHardware) {
         inquiryContext.unresolvedReason = `硬體嚴重異常/要求直接派修：${q}`;
-        const urgentMsg = `收到！偵測到可能為硬體嚴重異常或零件損毀。小威跳過自主排查，已為您自動彙整並產生【報修案件表單】，請點擊下方預覽確認建立！`;
+        const urgentMsg = `收到！偵測到可能為硬體嚴重異常或零件損毀。小威已為您自動彙整並產生【報修案件表單】，請點擊下方預覽確認建立！`;
         window.appendUserChat('ai', urgentMsg);
         window.logChatToSupabase('ai', urgentMsg);
         window.speak("偵測到硬體嚴重狀況，已為您直接整理報修案件表單。");
@@ -1405,7 +1451,6 @@
         return;
       }
 
-      // 同步最新 Supabase 知識庫
       let activeSops = knowledgeBase;
       try {
         if (supabaseClient) {
@@ -1428,7 +1473,6 @@
       const matches = findBestSopMatches(q, activeSops);
 
       setTimeout(() => {
-        // 多筆候選情境釐清
         if (matches.length >= 2 && matches[0].score >= 20 && (matches[0].score - matches[1].score <= 5)) {
           const topOptions = [matches[0].item, matches[1].item];
           if (matches[2] && matches[0].score - matches[2].score <= 8) topOptions.push(matches[2].item);
@@ -1450,7 +1494,6 @@
         const text = `使用者確認情境：[${chosen.sop_id}] ${chosen.title}`;
         inquiryContext.supplementaryInfo.push(text);
         window.logChatToSupabase('user', text);
-        // 【自主學習觸發】：將使用者的原始提問補充進該 SOP 關鍵字
         autoLearnNewKeywordToSupabase(chosen.sop_id, inquiryContext.originalProblem);
         startStepByStepGuidance(chosen);
       }
@@ -1466,7 +1509,6 @@
       window.speak("請您再多補充一些細節，我為您重新比對。");
     };
 
-    // 啟動循序逐條排查流程
     function startStepByStepGuidance(sop) {
       if (turnCount >= MAX_TURNS || !sop) {
         const reason = turnCount >= MAX_TURNS ? "已排查達 5 輪上限" : "知識庫無直接相符條目";
@@ -1489,7 +1531,6 @@
         return;
       }
 
-      // 【自主學習觸發】：命中 SOP，自動將使用者的真實問法沉澱回資料庫關鍵字庫
       autoLearnNewKeywordToSupabase(sop.sop_id, inquiryContext.originalProblem);
 
       inquiryContext.matchedSop = sop;
@@ -1504,7 +1545,6 @@
       presentCurrentStep();
     }
 
-    // 呈顯當前測試步驟
     function presentCurrentStep() {
       const { sop, steps, currentStepIndex } = activeGuidance;
       const total = steps.length;
@@ -1512,7 +1552,6 @@
 
       inquiryContext.suggestedSteps.push(`[${sop.title}] 步驟 ${currentStepIndex + 1}: ${stepContent}`);
 
-      // 人性化同理與循序引導
       const stepPrompt = `針對【${sop.title}】，小威引導您逐步測試：<br><br>👉 <b>測試步驟 (${currentStepIndex + 1}/${total})</b>：<br><span class="text-indigo-950 font-bold bg-amber-50 p-1.5 rounded border border-amber-200 block my-1">${stepContent}</span><br>請問您照著完成此步驟後，問題是否已解決？`;
 
       window.appendUserChat('ai', stepPrompt, true, 'step_action');
@@ -1520,7 +1559,6 @@
       window.speak(`測試步驟第${currentStepIndex + 1}步：${stepContent}。請問完成後問題是否解決？`);
     }
 
-    // 步驟回饋處理
     window.handleStepResolved = function(isResolved) {
       if (isResolved) {
         const stepNum = activeGuidance.currentStepIndex + 1;
@@ -1529,7 +1567,6 @@
         window.logChatToSupabase('ai', msg);
         window.speak(msg);
 
-        // 自主學習確認有效
         if (activeGuidance.sop) {
           autoLearnNewKeywordToSupabase(activeGuidance.sop.sop_id, inquiryContext.originalProblem);
         }
@@ -1591,7 +1628,7 @@
     }
 
     // ==========================================
-    // I. 報修工單建立與確認
+    // H. 報修工單建立與確認
     // ==========================================
     function openTicketModalPreview() {
       const now = new Date();
@@ -1711,7 +1748,7 @@ ${stepsText}
     };
 
     // ==========================================
-    // J. 註冊、後台管理與自主學習增補
+    // I. 後台管理與自主學習增補
     // ==========================================
     window.handleRegisterSubmit = async function(e) {
       e.preventDefault();
@@ -2215,7 +2252,6 @@ ${stepsText}
       }
     };
 
-    // 後台管理員對話 LOG 列表 (提供一鍵加入關鍵字/沉澱新SOP按鈕)
     window.fetchChatLogsFromSupabase = async function() {
       if (!supabaseClient) return;
       const c = document.getElementById('chatLogsContainer');
@@ -2277,7 +2313,6 @@ ${stepsText}
       }
     };
 
-    // 管理員手動將使用者提問綁定至現有 SOP
     window.promptBindKeywordToExistingSop = async function(userQuery) {
       const sopId = prompt(`請輸入要將問法「${userQuery}」收錄至哪一個 SOP 編號 (例如：PC-001 或 M-048)：`);
       if (!sopId) return;
