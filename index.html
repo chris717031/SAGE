@@ -28,91 +28,100 @@
     }
 
     /* ========================================================= */
-    /* 小威小男孩：在交談視窗中走動、肢體動作與豐富表情動畫庫      */
+    /* 棕髮大眼黃帽T小男孩・小威專屬多姿態骨骼動畫庫             */
     /* ========================================================= */
-    /* 1. 漫遊巡邏走動動態 (橫向踱步 + 轉向) */
-    @keyframes boyPatrolWalk {
+    /* 1. 待機自然呼吸微浮動 */
+    @keyframes boyIdleBreathe {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    /* 2. 走路巡邏踱步 + 轉向 */
+    @keyframes boyWalkPatrol {
       0% { transform: translateX(0) scaleX(1); }
-      40% { transform: translateX(-90px) scaleX(1); }
-      45% { transform: translateX(-90px) scaleX(-1); }
-      85% { transform: translateX(10px) scaleX(-1); }
-      90% { transform: translateX(10px) scaleX(1); }
+      42% { transform: translateX(-80px) scaleX(1); }
+      48% { transform: translateX(-80px) scaleX(-1); }
+      92% { transform: translateX(10px) scaleX(-1); }
+      98% { transform: translateX(10px) scaleX(1); }
       100% { transform: translateX(0) scaleX(1); }
     }
 
-    /* 2. 走路小碎步腳步擺動 */
-    @keyframes legStrideLeft {
+    /* 3. 走路步態左右腳擺動 */
+    @keyframes legWalkLeft {
       0%, 100% { transform: rotate(0deg); }
-      50% { transform: rotate(-22deg) translateY(-2px); }
+      50% { transform: rotate(-24deg) translateY(-2px); }
     }
-    @keyframes legStrideRight {
+    @keyframes legWalkRight {
       0%, 100% { transform: rotate(0deg); }
-      50% { transform: rotate(22deg) translateY(-2px); }
+      50% { transform: rotate(24deg) translateY(-2px); }
     }
 
-    /* 3. 待機呼吸上下起伏 */
-    @keyframes boyIdleBreathe {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-4px); }
+    /* 4. 水汪汪大眼眨眼動態 */
+    @keyframes eyeBlinkNatural {
+      0%, 90%, 100% { transform: scaleY(1); }
+      95% { transform: scaleY(0.08); }
     }
 
-    /* 4. 眼睛生動眨眼 */
-    @keyframes naturalBlink {
-      0%, 88%, 100% { transform: scaleY(1); }
-      94% { transform: scaleY(0.08); }
-    }
-
-    /* 5. 歡呼跳躍蹦跳 */
-    @keyframes cheerHighJump {
-      0%, 100% { transform: translateY(0) scale(1); }
-      35% { transform: translateY(-24px) scale(1.08); }
-      65% { transform: translateY(-6px) scale(0.96); }
-    }
-
-    /* 6. 手臂熱情揮手 */
+    /* 5. 熱情揮手致意 */
     @keyframes armWaveMotion {
       0%, 100% { transform: rotate(0deg); }
-      25% { transform: rotate(32deg); }
-      75% { transform: rotate(-18deg); }
+      25% { transform: rotate(28deg); }
+      75% { transform: rotate(-16deg); }
     }
 
-    /* 應用於各骨骼部件之 class */
-    .boy-walker {
-      animation: boyPatrolWalk 16s ease-in-out infinite;
+    /* 6. 開心蹦跳歡呼 */
+    @keyframes boyCheerJump {
+      0%, 100% { transform: translateY(0) scale(1); }
+      35% { transform: translateY(-24px) scale(1.06); }
+      65% { transform: translateY(-6px) scale(0.98); }
+    }
+
+    /* 7. 思考左右偏頭晃動 */
+    @keyframes headTiltThinking {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(6deg); }
+    }
+
+    .boy-walker-stage {
+      animation: boyWalkPatrol 16s ease-in-out infinite;
       transform-origin: bottom center;
     }
-    .boy-walker.paused {
+    .boy-walker-stage.paused {
       animation-play-state: paused;
     }
-    .boy-breathe {
-      animation: boyIdleBreathe 2.6s ease-in-out infinite;
+    .boy-breathe-body {
+      animation: boyIdleBreathe 2.8s ease-in-out infinite;
       transform-origin: bottom center;
     }
+    .boy-eye-blink {
+      transform-origin: center;
+      animation: eyeBlinkNatural 4s infinite;
+    }
+    .boy-wave-r {
+      transform-origin: 122px 130px;
+      animation: armWaveMotion 1.5s ease-in-out infinite;
+    }
     .boy-leg-l {
-      animation: legStrideLeft 0.8s ease-in-out infinite;
-      transform-origin: 66px 148px;
+      animation: legWalkLeft 0.8s ease-in-out infinite;
+      transform-origin: 64px 170px;
     }
     .boy-leg-r {
-      animation: legStrideRight 0.8s ease-in-out infinite;
-      transform-origin: 94px 148px;
+      animation: legWalkRight 0.8s ease-in-out infinite;
+      transform-origin: 96px 170px;
     }
-    .boy-eye {
-      transform-origin: center;
-      animation: naturalBlink 3.8s infinite;
+    .boy-cheer-jump {
+      animation: boyCheerJump 0.75s ease-in-out 3 !important;
     }
-    .boy-wave-arm {
-      transform-origin: 114px 116px;
-      animation: armWaveMotion 1.4s ease-in-out infinite;
-    }
-    .boy-jump-action {
-      animation: cheerHighJump 0.7s ease-in-out 3 !important;
+    .boy-head-tilt {
+      animation: headTiltThinking 2s ease-in-out infinite;
+      transform-origin: 80px 105px;
     }
   </style>
 </head>
 <body class="bg-slate-900 text-slate-100 h-screen w-screen flex flex-col overflow-hidden relative">
 
   <!-- 頂部通用導覽列 -->
-  <header class="bg-[#10183d] border-b border-indigo-950 px-3.5 py-2 flex items-center justify-between shrink-0 shadow-md">
+  <header class="bg-[#10183d] border-b border-indigo-950 px-3.5 py-2 flex items-center justify-between shrink-0 shadow-md z-30">
     <div class="flex items-center space-x-2.5">
       <div class="bg-white px-2 py-1 rounded shadow-inner flex items-center justify-center">
         <img src="Welltake_Logo_light.png" alt="Welltake Logo" class="h-5 w-auto object-contain">
@@ -259,7 +268,7 @@
           </span>
           <span class="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.2 rounded font-medium flex items-center gap-1">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            AI 智慧學習中
+            Supabase + DuckDuckGo
           </span>
         </span>
         <button onclick="toggleVoiceOutput()" id="voiceToggleBtn" class="text-[10px] bg-indigo-900 text-white px-2.5 py-0.5 rounded-full shadow-sm">
@@ -272,126 +281,134 @@
         <div id="chatArea" class="flex-1 p-3.5 space-y-3.5 overflow-y-auto chat-bg no-scrollbar z-0 pb-36"></div>
 
         <!-- ======================================================== -->
-        <!-- 小威動態互動台：在交談視窗右下方漫遊、做肢體動作與表情變化 -->
+        <!-- 小威動態互動台：在交談視窗內走動、肢體動作與豐富表情變化 -->
         <!-- ======================================================== -->
         <div id="xiaoweiWalkerStage" class="absolute bottom-1 right-2 sm:right-6 pointer-events-auto z-10 select-none flex flex-col items-center">
           
           <!-- 小威頭頂情緒微對話氣泡 -->
-          <div id="xiaoweiSpeechBubble" onclick="triggerXiaoweiCheer()" class="mb-1 bg-white/95 text-slate-800 border border-amber-300/80 px-2.5 py-1 rounded-xl shadow-md text-[11px] font-medium max-w-[200px] text-center cursor-pointer hover:scale-105 transition">
+          <div id="xiaoweiSpeechBubble" onclick="triggerXiaoweiCheer()" class="mb-1 bg-white/95 text-slate-800 border border-amber-300/80 px-2.5 py-1 rounded-xl shadow-md text-[11px] font-medium max-w-[210px] text-center cursor-pointer hover:scale-105 transition">
             「我是小威！點我跟我互動喔！」
           </div>
 
-          <!-- 小男孩實體走動容器 (點擊跳躍彩蛋) -->
-          <div class="boy-walker cursor-pointer" id="boyWalkerEl" onclick="triggerXiaoweiCheer()" title="點點小威！">
-            <div id="boyBreatheEl" class="boy-breathe relative w-24 h-32 sm:w-28 sm:h-36">
+          <!-- 小男孩實體走動容器 (原圖形象：棕髮大眼黃帽T小男生) -->
+          <div class="boy-walker-stage cursor-pointer" id="boyWalkerEl" onclick="triggerXiaoweiCheer()" title="點點小威！">
+            <div id="boyBreatheEl" class="boy-breathe-body relative w-24 h-32 sm:w-28 sm:h-36">
               
-              <!-- 完整全身多關節骨骼 SVG 小男孩 (可切換表情與肢體) -->
-              <svg viewBox="0 0 160 210" class="w-full h-full drop-shadow-xl" id="boyInteractiveSvg">
+              <!-- 完整全身骨骼 SVG 小男孩 (完全依據原圖角色細節設計) -->
+              <svg viewBox="0 0 160 215" class="w-full h-full drop-shadow-xl" id="boyInteractiveSvg">
                 <!-- 腳底陰影 -->
-                <ellipse cx="80" cy="202" rx="34" ry="6" fill="#0f172a" opacity="0.25"/>
+                <ellipse cx="80" cy="204" rx="34" ry="6" fill="#0f172a" opacity="0.25"/>
 
-                <!-- 左腿與球鞋 (走動步態動畫) -->
+                <!-- 左腿與球鞋 (走路步態動畫) -->
                 <g class="boy-leg-l">
-                  <rect x="61" y="148" width="10" height="34" rx="4" fill="#3b82f6"/>
-                  <ellipse cx="65" cy="184" rx="9" ry="5.5" fill="#f8fafc"/>
-                  <path d="M56 184 Q65 178 74 184 L73 188 L57 188 Z" fill="#f97316"/>
+                  <rect x="62" y="152" width="10" height="34" rx="4" fill="#334155"/>
+                  <ellipse cx="66" cy="188" rx="9" ry="5.5" fill="#f8fafc"/>
+                  <path d="M57 188 Q66 182 75 188 L74 192 L58 192 Z" fill="#f97316"/>
                 </g>
 
-                <!-- 右腿與球鞋 (走動步態動畫) -->
+                <!-- 右腿與球鞋 (走路步態動畫) -->
                 <g class="boy-leg-r">
-                  <rect x="89" y="148" width="10" height="34" rx="4" fill="#3b82f6"/>
-                  <ellipse cx="95" cy="184" rx="9" ry="5.5" fill="#f8fafc"/>
-                  <path d="M86 184 Q95 178 104 184 L103 188 L87 188 Z" fill="#f97316"/>
+                  <rect x="88" y="152" width="10" height="34" rx="4" fill="#334155"/>
+                  <ellipse cx="94" cy="188" rx="9" ry="5.5" fill="#f8fafc"/>
+                  <path d="M85 188 Q94 182 103 188 L102 192 L86 192 Z" fill="#f97316"/>
                 </g>
 
-                <!-- 亮黃色連帽拉鍊外套 (如圖所示) -->
-                <path d="M44 116 L34 168 L126 168 L116 116 Z" fill="#f59e0b"/>
+                <!-- 原圖亮黃色連帽拉鍊外套 (Yellow Hoodie) -->
+                <path d="M42 120 L32 172 L128 172 L118 120 Z" fill="#f59e0b"/>
                 <!-- 內搭白T領口 -->
-                <path d="M68 114 L92 114 L80 134 Z" fill="#ffffff"/>
-                <!-- 拉鍊與金屬頭 -->
-                <path d="M80 134 L80 168" stroke="#b45309" stroke-width="2.5" stroke-linecap="round"/>
-                <rect x="78" y="134" width="4" height="6" rx="1.5" fill="#e2e8f0"/>
-                <!-- 連帽大翻領 -->
-                <path d="M44 116 Q80 140 116 116 Q106 102 80 108 Q54 102 44 116 Z" fill="#d97706"/>
+                <path d="M68 118 L92 118 L80 138 Z" fill="#ffffff"/>
+                <!-- 拉鍊與精緻金屬拉鍊頭 -->
+                <path d="M80 138 L80 172" stroke="#b45309" stroke-width="2.5" stroke-linecap="round"/>
+                <rect x="78" y="136" width="4" height="6" rx="1.5" fill="#e2e8f0"/>
+                <!-- 連帽立體大翻領與陰影 -->
+                <path d="M42 120 Q80 144 118 120 Q108 106 80 112 Q52 106 42 120 Z" fill="#d97706"/>
 
                 <!-- 左手臂 (自然擺動) -->
                 <g id="boyArmLeft">
-                  <path d="M44 118 Q30 136 38 150" stroke="#f59e0b" stroke-width="12" stroke-linecap="round" fill="none"/>
-                  <circle cx="38" cy="150" r="5.5" fill="#fed7aa"/>
+                  <path d="M42 122 Q28 140 36 154" stroke="#f59e0b" stroke-width="12" stroke-linecap="round" fill="none"/>
+                  <circle cx="36" cy="154" r="5.5" fill="#fed7aa"/>
                 </g>
 
-                <!-- 右手臂 (熱情揮手動態) -->
-                <g class="boy-wave-arm" id="boyArmRight">
-                  <path d="M116 118 Q132 126 138 100" stroke="#f59e0b" stroke-width="12" stroke-linecap="round" fill="none"/>
-                  <!-- 手掌 -->
-                  <circle cx="138" cy="98" r="6" fill="#fed7aa"/>
+                <!-- 右手臂 (支援熱情揮手動態) -->
+                <g class="boy-wave-r" id="boyArmRight">
+                  <path d="M118 122 Q134 130 140 104" stroke="#f59e0b" stroke-width="12" stroke-linecap="round" fill="none"/>
+                  <circle cx="140" cy="102" r="6" fill="#fed7aa"/>
                 </g>
 
                 <!-- 脖子 -->
-                <rect x="72" y="88" width="16" height="18" rx="5" fill="#fed7aa"/>
+                <rect x="72" y="92" width="16" height="18" rx="5" fill="#fed7aa"/>
 
-                <!-- 可愛小男孩臉龐 -->
-                <circle cx="80" cy="68" r="36" fill="#fed7aa"/>
-                <!-- 雙耳 -->
-                <circle cx="41" cy="72" r="8.5" fill="#fed7aa"/>
-                <circle cx="119" cy="72" r="8.5" fill="#fed7aa"/>
-                <circle cx="41" cy="72" r="4.5" fill="#fca5a5" opacity="0.6"/>
-                <circle cx="119" cy="72" r="4.5" fill="#fca5a5" opacity="0.6"/>
+                <!-- 小男孩頭部群組 (支援思考偏頭動態) -->
+                <g class="boy-head-tilt">
+                  <!-- 圓圓可愛白皙小男孩臉龐 -->
+                  <circle cx="80" cy="70" r="37" fill="#fed7aa"/>
+                  <!-- 雙耳 -->
+                  <circle cx="41" cy="74" r="8.5" fill="#fed7aa"/>
+                  <circle cx="119" cy="74" r="8.5" fill="#fed7aa"/>
+                  <circle cx="41" cy="74" r="4.5" fill="#fca5a5" opacity="0.6"/>
+                  <circle cx="119" cy="74" r="4.5" fill="#fca5a5" opacity="0.6"/>
 
-                <!-- 腮紅 -->
-                <ellipse cx="58" cy="78" rx="6.5" ry="3.8" fill="#fca5a5" opacity="0.8"/>
-                <ellipse cx="102" cy="78" rx="6.5" ry="3.8" fill="#fca5a5" opacity="0.8"/>
+                  <!-- 原圖大面積紅潤粉嫩腮紅 -->
+                  <ellipse cx="58" cy="80" rx="7.5" ry="4.2" fill="#fca5a5" opacity="0.85"/>
+                  <ellipse cx="102" cy="80" rx="7.5" ry="4.2" fill="#fca5a5" opacity="0.85"/>
 
-                <!-- ============================================== -->
-                <!-- 表情群組 1：大眼驚奇小嘴 (surprised，如使用者所附圖片) -->
-                <!-- ============================================== -->
-                <g id="expr-surprised" class="boy-eye">
-                  <!-- 左大眼 -->
-                  <ellipse cx="64" cy="65" rx="8.5" ry="11" fill="#ffffff"/>
-                  <ellipse cx="65" cy="65" rx="6" ry="8.5" fill="#78350f"/>
-                  <circle cx="65" cy="65" r="4" fill="#451a03"/>
-                  <circle cx="67" cy="62" r="2" fill="#ffffff"/>
-                  <!-- 右大眼 -->
-                  <ellipse cx="96" cy="65" rx="8.5" ry="11" fill="#ffffff"/>
-                  <ellipse cx="95" cy="65" rx="6" ry="8.5" fill="#78350f"/>
-                  <circle cx="95" cy="65" r="4" fill="#451a03"/>
-                  <circle cx="97" cy="62" r="2" fill="#ffffff"/>
-                  <!-- 驚訝圓圓嘴巴 (如圖所示) -->
-                  <path d="M74 78 Q80 76 86 78 Q88 88 80 90 Q72 88 74 78 Z" fill="#451a03"/>
-                  <path d="M75 83 Q80 81 85 83 Q84 89 80 89 Q76 89 75 83 Z" fill="#ef4444"/>
+                  <!-- ============================================== -->
+                  <!-- 表情 1：原圖驚奇大棕眼+張嘴 (surprised)        -->
+                  <!-- ============================================== -->
+                  <g id="expr-surprised" class="boy-eye-blink">
+                    <!-- 左大眼 -->
+                    <ellipse cx="64" cy="66" rx="9" ry="12" fill="#ffffff"/>
+                    <ellipse cx="65" cy="66" rx="6.5" ry="9.5" fill="#78350f"/>
+                    <circle cx="65" cy="66" r="4.5" fill="#451a03"/>
+                    <circle cx="67" cy="63" r="2.2" fill="#ffffff"/>
+                    <circle cx="63" cy="70" r="1.2" fill="#ffffff"/>
+                    <path d="M54 54 Q64 50 74 57" stroke="#451a03" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+
+                    <!-- 右大眼 -->
+                    <ellipse cx="96" cy="66" rx="9" ry="12" fill="#ffffff"/>
+                    <ellipse cx="95" cy="66" rx="6.5" ry="9.5" fill="#78350f"/>
+                    <circle cx="95" cy="66" r="4.5" fill="#451a03"/>
+                    <circle cx="97" cy="63" r="2.2" fill="#ffffff"/>
+                    <circle cx="93" cy="70" r="1.2" fill="#ffffff"/>
+                    <path d="M86 57 Q96 50 106 54" stroke="#451a03" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+
+                    <!-- 原圖特徵：驚奇圓圓張大的小嘴 -->
+                    <path d="M74 80 Q80 78 86 80 Q88 91 80 93 Q72 91 74 80 Z" fill="#451a03"/>
+                    <path d="M75 86 Q80 84 85 86 Q84 92 80 92 Q76 92 75 86 Z" fill="#ef4444"/>
+                  </g>
+
+                  <!-- ============================================== -->
+                  <!-- 表情 2：開朗瞇瞇笑眼 (happy，解決成功時呈現)   -->
+                  <!-- ============================================== -->
+                  <g id="expr-happy" style="display: none;">
+                    <path d="M55 66 Q65 57 75 66" stroke="#451a03" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                    <path d="M85 66 Q95 57 105 66" stroke="#451a03" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                    <path d="M72 80 Q80 90 88 80 Z" fill="#dc2626"/>
+                  </g>
+
+                  <!-- ============================================== -->
+                  <!-- 表情 3：認真托腮思考 (thinking，查詢知識庫時)  -->
+                  <!-- ============================================== -->
+                  <g id="expr-thinking" style="display: none;">
+                    <circle cx="65" cy="64" r="5.5" fill="#451a03"/>
+                    <circle cx="66" cy="62" r="2" fill="#ffffff"/>
+                    <circle cx="95" cy="64" r="5.5" fill="#451a03"/>
+                    <circle cx="96" cy="62" r="2" fill="#ffffff"/>
+                    <path d="M55 58 L72 60" stroke="#451a03" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M88 60 L105 58" stroke="#451a03" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M76 84 Q80 82 85 85" stroke="#451a03" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                  </g>
+
+                  <!-- 精緻小鼻頭 -->
+                  <circle cx="80" cy="72" r="2" fill="#d97706"/>
+
+                  <!-- 原圖棕色蓬鬆帥氣短髮與頭頂呆毛 (如參考圖片) -->
+                  <path d="M43 64 C33 38, 51 14, 80 14 C109 14, 127 38, 117 64 C111 54, 107 48, 97 46 C95 35, 84 31, 80 33 C76 31, 64 35, 62 46 C52 48, 48 54, 43 64 Z" fill="#854d0e"/>
+                  <!-- 頭頂生動小呆毛 -->
+                  <path d="M80 16 Q88 4 79 3 Q74 10 79 16 Z" fill="#713f12"/>
+                  <!-- 瀏海層次與立體反光 -->
+                  <path d="M49 52 Q61 46 73 50 Q80 42 87 50 Q99 46 111 52 Q105 38 80 36 Q55 38 49 52 Z" fill="#a16207"/>
                 </g>
-
-                <!-- ============================================== -->
-                <!-- 表情群組 2：開心瞇瞇笑眼 (happy，排除成功時切換)    -->
-                <!-- ============================================== -->
-                <g id="expr-happy" style="display: none;">
-                  <path d="M56 65 Q65 57 74 65" stroke="#451a03" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                  <path d="M86 65 Q95 57 104 65" stroke="#451a03" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                  <path d="M73 78 Q80 88 87 78 Z" fill="#dc2626"/>
-                </g>
-
-                <!-- ============================================== -->
-                <!-- 表情群組 3：認真思考 (thinking，查詢知識庫時切換)    -->
-                <!-- ============================================== -->
-                <g id="expr-thinking" style="display: none;">
-                  <circle cx="65" cy="63" r="5" fill="#451a03"/>
-                  <circle cx="66" cy="61" r="1.8" fill="#ffffff"/>
-                  <circle cx="95" cy="63" r="5" fill="#451a03"/>
-                  <circle cx="96" cy="61" r="1.8" fill="#ffffff"/>
-                  <path d="M56 56 L72 58" stroke="#451a03" stroke-width="2.5" stroke-linecap="round"/>
-                  <path d="M88 58 L104 56" stroke="#451a03" stroke-width="2.5" stroke-linecap="round"/>
-                  <path d="M76 82 Q80 80 85 83" stroke="#451a03" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                </g>
-
-                <!-- 鼻子 -->
-                <circle cx="80" cy="71" r="2" fill="#d97706"/>
-
-                <!-- 棕色蓬鬆短髮與頂部小呆毛 -->
-                <path d="M44 62 C34 38, 52 14, 80 14 C108 14, 126 38, 116 62 C110 52, 106 46, 96 44 C94 34, 84 30, 80 32 C76 30, 64 34, 62 44 C52 46, 48 52, 44 62 Z" fill="#854d0e"/>
-                <!-- 頭頂呆毛 -->
-                <path d="M80 16 Q87 4 78 3 Q74 10 79 16 Z" fill="#713f12"/>
-                <!-- 瀏海立體層次 -->
-                <path d="M50 50 Q62 44 74 48 Q80 40 88 48 Q100 44 110 50 Q104 36 80 34 Q56 36 50 50 Z" fill="#a16207"/>
               </svg>
 
             </div>
@@ -589,7 +606,7 @@
     </div>
   </div>
 
-  <!-- 5. 全新簡潔報修表單確認 Modal -->
+  <!-- 5. 全新簡潔報修表單確認 Modal (直接對接公司報修系統) -->
   <div id="ticketModal" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-white text-slate-900 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto border border-slate-200">
       
@@ -735,10 +752,10 @@
     </div>
   </div>
 
-  <!-- 7. 核心 JavaScript (小男孩走動控制 + 表情切換 + 清脆童音) -->
+  <!-- 7. 核心 JavaScript (整合 DuckDuckGo 免費即時搜尋 + 小男孩動態表情) -->
   <script>
     // ==========================================
-    // A. 語音核心宣告 (小男生活潑童音音質)
+    // A. 語音核心宣告 (小男生活潑清脆童音)
     // ==========================================
     let isVoiceEnabled = true;
     let recognition = null;
@@ -752,11 +769,11 @@
       }
       try {
         window.speechSynthesis.cancel();
-        const cleanText = String(text || '').replace(/<[^>]*>/g, '').replace(/📷|💻|💡|✅|❌|📋|⚠️|👤|🤖|👉|🎫/g, '');
+        const cleanText = String(text || '').replace(/<[^>]*>/g, '').replace(/📷|💻|💡|✅|❌|📋|⚠️|👤|🤖|👉|🎫|🦆|🔍/g, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'zh-TW';
         
-        // 清脆小男生設定
+        // 清脆活潑小男生童音音質
         utterance.pitch = 1.35; 
         utterance.rate = 1.12;
 
@@ -837,7 +854,7 @@
     };
 
     // ==========================================
-    // B. 小男孩走動、表情切換與互動引擎
+    // B. 小男孩走動、肢體動作與表情切換引擎
     // ==========================================
     window.setBoyExpression = function(exprName) {
       const exprSurprised = document.getElementById('expr-surprised');
@@ -854,7 +871,7 @@
       } else if (exprName === 'thinking') {
         exprThinking.style.display = 'block';
       } else {
-        exprSurprised.style.display = 'block';
+        exprSurprised.style.display = 'block'; // 預設原圖大眼微張小嘴
       }
     };
 
@@ -874,10 +891,10 @@
         bubbleEl.innerText = customText || '「請試試這個步驟，完成後點下方按鈕跟我說喔！」';
       } else if (mood === 'cheer') {
         window.setBoyExpression('happy');
-        if (breatheEl) breatheEl.classList.add('boy-jump-action');
+        if (breatheEl) breatheEl.classList.add('boy-cheer-jump');
         bubbleEl.innerText = customText || '「太棒了！順利解決問題，小威太開心啦！🎉」';
         setTimeout(() => { 
-          if (breatheEl) breatheEl.classList.remove('boy-jump-action');
+          if (breatheEl) breatheEl.classList.remove('boy-cheer-jump');
           window.setBoyExpression('surprised');
         }, 2200);
       } else if (mood === 'ticket') {
@@ -900,15 +917,61 @@
       const walkerEl = document.getElementById('boyWalkerEl');
       if (!walkerEl) return;
       if (isFocused) {
-        walkerEl.classList.add('paused'); // 打字時小威停下腳步專心聆聽
+        walkerEl.classList.add('paused'); // 輸入文字時小威停下腳步專心聆聽
         window.setBoyExpression('surprised');
       } else {
-        walkerEl.classList.remove('paused'); // 離開輸入框後繼續走動
+        walkerEl.classList.remove('paused');
       }
     };
 
     // ==========================================
-    // C. UI 介面切換與訊息氣泡
+    // C. 【核心功能 1】：DuckDuckGo 免費即時搜尋整合
+    // ==========================================
+    // 官方端點：https://api.duckduckgo.com/?q={關鍵字}&format=json&no_html=1
+    async function searchDuckDuckGo(query) {
+      if (!query || !query.trim()) return null;
+      const cleanQ = query.trim();
+      const endpoint = `https://api.duckduckgo.com/?q=${encodeURIComponent(cleanQ)}&format=json&no_html=1&skip_disambig=1`;
+
+      try {
+        const res = await fetch(endpoint);
+        if (!res.ok) return null;
+        const data = await res.json();
+
+        // 1. 抓取直接摘要 AbstractText
+        if (data.AbstractText && data.AbstractText.trim().length > 0) {
+          return {
+            type: 'abstract',
+            title: data.Heading || cleanQ,
+            text: data.AbstractText,
+            source: data.AbstractSource || 'DuckDuckGo 即時百科',
+            url: data.AbstractURL || `https://duckduckgo.com/?q=${encodeURIComponent(cleanQ)}`
+          };
+        }
+
+        // 2. 抓取關聯主題 RelatedTopics 中的具體條目
+        if (Array.isArray(data.RelatedTopics) && data.RelatedTopics.length > 0) {
+          const firstTopic = data.RelatedTopics.find(t => t.Text && t.FirstURL);
+          if (firstTopic) {
+            return {
+              type: 'topic',
+              title: cleanQ,
+              text: firstTopic.Text,
+              source: 'DuckDuckGo 關聯條目',
+              url: firstTopic.FirstURL
+            };
+          }
+        }
+
+        return null;
+      } catch (err) {
+        console.warn("DuckDuckGo 查詢例外:", err);
+        return null;
+      }
+    }
+
+    // ==========================================
+    // D. UI 介面切換與訊息氣泡
     // ==========================================
     window.updateTurnUI = function() {
       const badge = document.getElementById('turnCounterBadge');
@@ -973,7 +1036,6 @@
       }
     };
 
-    // 聊天訊息氣泡
     window.appendUserChat = function(role, text, showButtons = false, buttonType = 'step_action', options = []) {
       const area = document.getElementById('chatArea');
       if (!area) return;
@@ -1032,7 +1094,7 @@
     };
 
     // ==========================================
-    // D. Supabase 初始化與狀態變數
+    // E. Supabase 初始化與狀態變數
     // ==========================================
     const SUPABASE_URL = 'https://tgvuxmlkbhnnjsyajjow.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_EE0J2uwbUorM9ywIXsbjdw_usVeipmc';
@@ -1121,7 +1183,7 @@
     };
 
     // ==========================================
-    // E. 登入成功處理
+    // F. 登入成功處理
     // ==========================================
     window.loginUserSuccess = function(user) {
       currentUser = user;
@@ -1168,7 +1230,6 @@
         try { window.fetchTicketsFromSupabase(); } catch(e){}
         try { window.fetchChatLogsFromSupabase(); } catch(e){}
       } else {
-        // 一般使用者登入
         const mgmtSec = document.getElementById('managementSection');
         if (mgmtSec) mgmtSec.classList.add('hidden');
         const userSec = document.getElementById('userSection');
@@ -1322,7 +1383,7 @@
     };
 
     // ==========================================
-    // F. 密碼複雜度檢驗與修改
+    // G. 密碼複雜度檢驗與修改
     // ==========================================
     function evaluatePasswordComplexity(pwd) {
       return {
@@ -1459,7 +1520,7 @@
     };
 
     // ==========================================
-    // G. 人性化語意正規化、同義互通與自主學習
+    // H. 人性化語意正規化、同義互通與自主學習
     // ==========================================
     function normalizeQuery(text) {
       if (!text) return '';
@@ -1619,7 +1680,7 @@
     }
 
     // ==========================================
-    // H. 對話發送與逐步測試引導流程
+    // I. 對話發送與逐步測試引導流程
     // ==========================================
     window.handleUserSend = async function() {
       const input = document.getElementById('userMsgInput');
@@ -1642,8 +1703,7 @@
 
       extractSlotsFromUserMsg(q);
 
-      // 小威動態切換思考表情與狀態
-      window.updateXiaoweiMood('thinking', `「收到！小威正在動腦筋，幫您找出『${q}』最有效的測試方式...」`);
+      window.updateXiaoweiMood('thinking', `「收到！小威正在幫您尋找『${q}』最有效的測試方式...」`);
 
       const isSevereHardware = (q.includes('冒煙') || q.includes('焦味') || q.includes('斷掉') || q.includes('摔壞') || q.includes('燒掉') || q.includes('直接派工') || q.includes('報修就好'));
       if (isSevereHardware) {
@@ -1709,48 +1769,93 @@
       const text = "使用者表示皆非預設的候選問題";
       inquiryContext.supplementaryInfo.push(text);
       window.logChatToSupabase('user', text);
-      const reply = '請您再多補充一些細節（例如設備型號、錯誤代碼或受影響範圍），小威為您重新連線 Supabase 檢索！';
+      const reply = '請您再多補充一些細節（例如設備型號、錯誤代碼或受影響範圍），小威為您重新連線檢索！';
       window.appendUserChat('ai', reply);
       window.logChatToSupabase('ai', reply);
       window.speak("請您再多補充一些細節，我為您重新比對。");
     };
 
-    function startStepByStepGuidance(sop) {
-      if (turnCount >= MAX_TURNS || !sop) {
-        const reason = turnCount >= MAX_TURNS ? "已排查達 5 輪上限" : "知識庫無直接相符條目";
-        inquiryContext.unresolvedReason = reason;
-        window.updateXiaoweiMood('ticket', '「小威已為您整理好報修單，請檢閱確認！」');
-        const msg = `小威評估此問題需要工程師現場/遠端協助處理 (${reason})。我已為您整理好【報修確認表單】，請檢閱送出建立案件：`;
-        window.appendUserChat('ai', msg, false);
-        window.logChatToSupabase('ai', msg);
-        window.speak(msg);
-        openTicketModalPreview();
+    // 啟動逐條測試排查，結合 DuckDuckGo 免費即時搜尋
+    async function startStepByStepGuidance(sop) {
+      // 1. 內部知識庫有相符 SOP，直接進行逐條測試排查
+      if (sop) {
+        if (sop.allow_self_resolve === false) {
+          inquiryContext.unresolvedReason = `SOP 規範此項目需由工程師到場或更換備品處置 (${sop.title})`;
+          window.updateXiaoweiMood('ticket', '「此項目需由維護工程師到場，已備妥工單！」');
+          const directMsg = `【${sop.title}】依資訊維護規範需由工程師到場維護或更換備品。<br><br>💡 注意事項：${(sop.safe_steps || '').replace(/\n/g, '<br>')}<br><br>小威已為您填妥報修案件，請檢閱送出！`;
+          window.appendUserChat('ai', directMsg, false);
+          window.logChatToSupabase('ai', directMsg);
+          window.speak("此問題需由工程師現場檢修，已為您準備好報修表單。");
+          openTicketModalPreview();
+          return;
+        }
+
+        autoLearnNewKeywordToSupabase(sop.sop_id, inquiryContext.originalProblem);
+        inquiryContext.matchedSop = sop;
+        const stepList = parseStepsToArray(sop.safe_steps || sop.steps);
+
+        activeGuidance = {
+          sop: sop,
+          steps: stepList,
+          currentStepIndex: 0
+        };
+
+        presentCurrentStep();
         return;
       }
 
-      if (sop.allow_self_resolve === false) {
-        inquiryContext.unresolvedReason = `SOP 規範此項目需由工程師到場或更換備品處置 (${sop.title})`;
-        window.updateXiaoweiMood('ticket', '「此項目需由維護工程師到場，已備妥工單！」');
-        const directMsg = `【${sop.title}】依資訊維護規範需由工程師到場維護或更換備品。<br><br>💡 注意事項：${(sop.safe_steps || '').replace(/\n/g, '<br>')}<br><br>小威已為您填妥報修案件，請檢閱送出！`;
-        window.appendUserChat('ai', directMsg, false);
-        window.logChatToSupabase('ai', directMsg);
-        window.speak("此問題需由工程師現場檢修，已為您準備好報修表單。");
-        openTicketModalPreview();
-        return;
+      // 2. 內部查無資料：小威連線 DuckDuckGo 官方免費 API
+      window.updateXiaoweiMood('thinking', '「內部知識庫暫無紀錄，小威正連線 DuckDuckGo 尋找解答...」');
+      const ddgResult = await searchDuckDuckGo(inquiryContext.originalProblem);
+
+      if (ddgResult) {
+        window.updateXiaoweiMood('step', '「小威在外部知識庫找到相關解法囉！」');
+        
+        const replyHtml = `
+          小威在內部知識庫暫無專屬 SOP，但我透過 <b>DuckDuckGo</b> 找到相關參考說明：<br><br>
+          <div class="bg-amber-50 p-2.5 rounded-lg border border-amber-300 text-slate-800 text-xs my-1 leading-relaxed">
+            <span class="font-bold text-indigo-950">📖 【${ddgResult.title}】</span><br>
+            ${ddgResult.text}
+          </div>
+          <a href="${ddgResult.url}" target="_blank" class="text-blue-600 underline text-[11px] block mt-1">
+            🔗 檢視出處來源 (${ddgResult.source})
+          </a><br>
+          請問參考上述排除說明後，問題是否已解決？
+        `;
+
+        inquiryContext.suggestedSteps.push(`[DuckDuckGo 外部解法] ${ddgResult.title}: ${ddgResult.text.substring(0, 30)}...`);
+        window.appendUserChat('ai', replyHtml, true, 'step_action');
+        window.logChatToSupabase('ai', `DuckDuckGo 外部解法: ${ddgResult.text}`);
+        window.speak("內部資料庫暫無此項目，已為您找到相關參考說明，請問問題是否解決？");
+      } else {
+        // 3. DuckDuckGo 無直接百科條目：提供「智慧搜尋捷徑卡片」+ 直接報修表單
+        window.updateXiaoweiMood('ticket', '「已為您準備好外部搜尋與報修確認單！」');
+
+        const searchKeyword = encodeURIComponent(`${inquiryContext.originalProblem} 解決方法 教學 IT排查`);
+        const ddgSearchUrl = `https://duckduckgo.com/?q=${searchKeyword}`;
+        const googleSearchUrl = `https://www.google.com/search?q=${searchKeyword}`;
+
+        const fallbackHtml = `
+          小威評估此問題較特殊，已為您整理好外部搜尋捷徑：<br><br>
+          <div class="flex gap-2 my-1">
+            <a href="${ddgSearchUrl}" target="_blank" class="flex-1 text-center py-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-800 font-bold text-xs transition">
+              🦆 DuckDuckGo 搜尋
+            </a>
+            <a href="${googleSearchUrl}" target="_blank" class="flex-1 text-center py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-blue-700 font-bold text-xs transition">
+              🔍 Google 搜尋
+            </a>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-2 mb-2">若需工程師到場檢修，可直接點擊下方預覽報修單：</p>
+          <button onclick="openTicketModalPreview()" class="w-full py-2 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-white rounded-lg font-bold text-xs shadow transition">
+            🎫 建立報修確認單
+          </button>
+        `;
+
+        inquiryContext.unresolvedReason = "內部資料庫與外部即時檢索皆無相符自動引導指引";
+        window.appendUserChat('ai', fallbackHtml, false);
+        window.logChatToSupabase('ai', '提供外部搜尋卡片與報修單捷徑');
+        window.speak("此問題較特殊，已為您整理好外部搜尋捷徑與報修表單。");
       }
-
-      autoLearnNewKeywordToSupabase(sop.sop_id, inquiryContext.originalProblem);
-
-      inquiryContext.matchedSop = sop;
-      const stepList = parseStepsToArray(sop.safe_steps || sop.steps);
-
-      activeGuidance = {
-        sop: sop,
-        steps: stepList,
-        currentStepIndex: 0
-      };
-
-      presentCurrentStep();
     }
 
     function presentCurrentStep() {
@@ -1840,7 +1945,7 @@
     }
 
     // ==========================================
-    // I. 報修確認表單控制
+    // J. 報修確認表單控制
     // ==========================================
     function openTicketModalPreview() {
       const now = new Date();
@@ -1965,7 +2070,7 @@ ${stepsText}
     };
 
     // ==========================================
-    // J. 註冊、後台管理與資料表讀取
+    // K. 註冊、後台管理與資料表讀取
     // ==========================================
     window.handleRegisterSubmit = async function(e) {
       e.preventDefault();
@@ -2591,3 +2696,20 @@ ${stepsText}
   </script>
 </body>
 </html>
+```eof
+
+---
+
+### 測試驗證步驟
+
+1. **更新部署**：
+   將最新產生的 `index.html` 覆蓋至儲存庫並 push 部署。
+2. **清除瀏覽器快取**：
+   使用瀏覽器**無痕視窗**開啟 `[https://cheng7239day-pixel.github.io/it-help-assistant/](https://cheng7239day-pixel.github.io/it-help-assistant/)`。
+3. **驗證小男孩動態與表情**：
+   * 登入後，對話視窗右下方會出現**棕髮、水汪汪大棕眼、穿著亮黃色帽 T 的小男孩「小威」在視窗內來回走動與擺動雙腿**！
+   * 當使用者在輸入框打字或小威在思考時，小威會停下腳步、轉頭傾聽或切換思考神情。
+   * 點擊小威身體，他會觸發歡呼跳躍（`cheerJump`）並切換成開心笑眼。
+4. **驗證 DuckDuckGo 即時搜尋整合**：
+   * 輸入通用 IT 或網路專有名詞（如「什麼是 DHCP」、「DNS 是什麼」、「404 not found」），小威會自動連線 `api.duckduckgo.com`，提取出官方即時百科摘要並直接附上出處連結！
+   * 若搜尋日常長句（如「電腦有異音」），小威則會自動生成 **🦆 DuckDuckGo** 與 **🔍 Google** 智慧搜尋捷徑卡片，並同步提供快速報修確認按鈕。
