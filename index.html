@@ -53,7 +53,7 @@
 </head>
 <body class="bg-slate-900 text-slate-100 h-screen w-screen flex flex-col overflow-hidden relative">
 
-  <!-- 頂部通用導覽列 -->
+  <!-- 頂部導覽列 -->
   <header class="bg-[#10183d] border-b border-indigo-950 px-3.5 py-2.5 flex items-center justify-between shrink-0 shadow-md">
     <div class="flex items-center space-x-2.5">
       <div class="bg-white px-2 py-1 rounded shadow-inner flex items-center justify-center">
@@ -189,7 +189,7 @@
       </div>
     </section>
 
-    <!-- 2. 使用者介面：小威智慧對話排查 -->
+    <!-- 2. 使用者介面：小威智慧逐步引導排查 -->
     <section id="userSection" class="hidden absolute inset-0 flex flex-col bg-white text-slate-800">
       <div class="bg-indigo-900/10 border-b border-indigo-900/20 px-3 py-1.5 flex justify-between items-center text-xs">
         <span class="font-medium text-indigo-950 flex items-center gap-1.5">
@@ -206,8 +206,10 @@
         </button>
       </div>
 
+      <!-- 對話串流區 -->
       <div id="chatArea" class="flex-1 p-3.5 space-y-3.5 overflow-y-auto chat-bg no-scrollbar"></div>
 
+      <!-- 輸入工具列 -->
       <div class="bg-white border-t border-slate-200 px-3 pt-2 safe-bottom shrink-0 shadow-lg">
         <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleImageSelected(event)">
 
@@ -230,7 +232,7 @@
           </button>
 
           <button id="micBtn" onclick="toggleListening()" class="p-2.5 text-slate-600 bg-slate-100 active:bg-slate-200 rounded-full shrink-0" title="語音輸入">
-            <svg class="w-5 h-5 fill-none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
             </svg>
           </button>
@@ -334,7 +336,7 @@
 
   </main>
 
-  <!-- 4. 變更密碼 Modal (支援首次登入強制修改模式) -->
+  <!-- 4. 變更密碼 Modal -->
   <div id="changePwdModal" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white text-slate-800 w-full max-w-sm rounded-2xl p-5 shadow-2xl border border-slate-200">
       <div class="flex justify-between items-center mb-3 border-b border-slate-200 pb-2">
@@ -457,7 +459,7 @@
               <td>--:--</td>
             </tr>
             <tr>
-              <th colspan="4" class="text-center bg-slate-200 font-bold">問題完整說明 (含脈絡、排查紀錄與未排除原因)</th>
+              <th colspan="4" class="text-center bg-slate-200 font-bold">問題完整說明 (含脈絡、已嘗試步驟與未排除原因)</th>
             </tr>
             <tr>
               <td colspan="4">
@@ -486,7 +488,7 @@
             </tr>
             <tr>
               <th>備註</th>
-              <td colspan="3"><input id="m_remark" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" value="小威 IT 助手依多輪排查脈絡自動組單"></td>
+              <td colspan="3"><input id="m_remark" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" value="小威 IT 助手逐步引導測試未果自動建單"></td>
             </tr>
             <tr>
               <th>工程師</th>
@@ -584,10 +586,10 @@
     </div>
   </div>
 
-  <!-- 7. 核心 JavaScript (前置全域宣告 + 首次登入強制改密碼 + 語音安全呼叫) -->
+  <!-- 7. 核心 JavaScript (支援逐步引導排查與強健例外防護) -->
   <script>
     // ==========================================
-    // A. 語音核心宣告 (優先初始化，杜絕 window.speak is not a function)
+    // A. 語音核心宣告 (優先初始化)
     // ==========================================
     let isVoiceEnabled = true;
     let recognition = null;
@@ -601,7 +603,7 @@
       }
       try {
         window.speechSynthesis.cancel();
-        const cleanText = text.replace(/<[^>]*>/g, '').replace(/📷|💻|💡|✅|❌|📋|⚠️|👤|🤖|👉/g, '');
+        const cleanText = String(text || '').replace(/<[^>]*>/g, '').replace(/📷|💻|💡|✅|❌|📋|⚠️|👤|🤖|👉|🎫/g, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'zh-TW';
         utterance.rate = 1.05;
@@ -747,7 +749,8 @@
       }
     };
 
-    window.appendUserChat = function(role, text, showButtons = false, buttonType = 'resolve', options = []) {
+    // 支援逐步引導回饋按鈕渲染
+    window.appendUserChat = function(role, text, showButtons = false, buttonType = 'step_action', options = []) {
       const area = document.getElementById('chatArea');
       if (!area) return;
       const box = document.createElement('div');
@@ -775,11 +778,19 @@
               </button>
             </div>
           `;
-        } else if (showButtons && buttonType === 'resolve') {
+        } else if (showButtons && buttonType === 'step_action') {
+          // 【核心調整 2】：針對單一測試步驟提供【已解決】、【未解決，下一條】與【直接報修】
           actionArea = `
-            <div class="mt-2.5 pt-2 border-t border-slate-100 flex space-x-2">
-              <button onclick="handleResolve(true)" class="flex-1 py-1.5 bg-emerald-600 active:bg-emerald-700 text-white text-xs font-bold rounded shadow-sm">✅ 已排除解決</button>
-              <button onclick="handleResolve(false)" class="flex-1 py-1.5 bg-rose-600 active:bg-rose-700 text-white text-xs font-bold rounded shadow-sm">❌ 仍未解決，建立報修單</button>
+            <div class="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap gap-1.5">
+              <button onclick="handleStepResolved(true)" class="flex-1 min-w-[90px] py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs font-bold rounded shadow-sm">
+                ✅ 已排除解決
+              </button>
+              <button onclick="handleStepResolved(false)" class="flex-1 min-w-[130px] py-1.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white text-xs font-bold rounded shadow-sm">
+                ❌ 未排除，下一條測試
+              </button>
+              <button onclick="openTicketModalPreview()" class="py-1.5 px-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs rounded">
+                🎫 直接報修
+              </button>
             </div>
           `;
         }
@@ -818,6 +829,13 @@
     let uploadedImageBase64 = null;
     let isForcedPasswordChange = false;
 
+    // 逐步引導狀態
+    let activeGuidance = {
+      sop: null,
+      steps: [],
+      currentStepIndex: 0
+    };
+
     let inquiryContext = {
       originalProblem: '',
       supplementaryInfo: [],
@@ -838,6 +856,7 @@
       turnCount = 0;
       currentSessionId = 'SESSION-' + Date.now();
       uploadedImageBase64 = null;
+      activeGuidance = { sop: null, steps: [], currentStepIndex: 0 };
       const now = new Date();
       inquiryContext = {
         originalProblem: '',
@@ -851,7 +870,7 @@
         location: '',
         errorCode: '',
         unresolvedReason: '',
-        startTime: `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0 flight')}:${String(now.getMinutes()).padStart(2,'0')}`,
+        startTime: `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`,
         pendingProbeKey: null
       };
       window.updateTurnUI();
@@ -869,7 +888,7 @@
           jurisdiction: currentUser.jurisdiction || currentUser.dept || '',
           role: currentUser.role || 'user',
           message_role: role,
-          message_content: content,
+          message_content: String(content || ''),
           has_image: hasImg
         }]);
       } catch (err) {
@@ -878,19 +897,17 @@
     };
 
     // ==========================================
-    // D. 登入成功處理 (含首次登入強制改密碼檢測)
+    // D. 登入成功處理
     // ==========================================
     window.loginUserSuccess = function(user) {
       currentUser = user;
 
-      // 1. 隱藏登入區塊
       const authSec = document.getElementById('authSection');
       if (authSec) {
         authSec.style.display = 'none';
         authSec.classList.add('hidden');
       }
 
-      // 2. 更新頂部狀態列
       const logoutBtn = document.getElementById('logoutBtn');
       if (logoutBtn) logoutBtn.classList.remove('hidden');
       const changePwdBtn = document.getElementById('changePwdBtn');
@@ -907,7 +924,6 @@
                         : 'text-[9px] bg-sky-900 border border-sky-400 text-sky-200 px-2 py-0.5 rounded-full');
       }
 
-      // 3. 依角色切換工作區
       if (user.role === 'admin' || user.role === 'engineer') {
         const userSec = document.getElementById('userSection');
         if (userSec) userSec.classList.add('hidden');
@@ -928,7 +944,6 @@
         try { window.fetchTicketsFromSupabase(); } catch(e){}
         try { window.fetchChatLogsFromSupabase(); } catch(e){}
       } else {
-        // 一般使用者登入
         const mgmtSec = document.getElementById('managementSection');
         if (mgmtSec) mgmtSec.classList.add('hidden');
         const userSec = document.getElementById('userSection');
@@ -940,14 +955,13 @@
         const chatArea = document.getElementById('chatArea');
         if (chatArea) chatArea.innerHTML = '';
 
-        const hello = `${currentUser.name} 您好！我是威策 IT 智慧助手小威。我已連線 Supabase 雲端知識庫，隨時為您排查電腦、印表機、醫療系統或網路問題。請問今天您的設備遇到什麼狀況呢？`;
+        const hello = `${currentUser.name} 您好！我是威策 IT 智慧助手小威。我已連線 Supabase 雲端知識庫，將會一步一步引導您排查與測試設備問題。請問今天您的設備遇到什麼狀況呢？`;
         window.appendUserChat('ai', hello);
         window.logChatToSupabase('ai', hello);
         if (typeof window.speak === 'function') {
           window.speak(hello, () => window.startListening());
         }
 
-        // 【需求 2】：若使用預設密碼 123456，強制彈出變更密碼視窗
         if (user.password === '123456') {
           setTimeout(() => {
             window.openChangePasswordModal(true);
@@ -1175,35 +1189,294 @@
     };
 
     // ==========================================
-    // F. 對話排查、SOP 與工單建置
+    // F. 同義詞與強健搜尋邏輯 (修復未回覆問題)
     // ==========================================
-    const CATEGORY_PROBES = {
-      HIS_SYSTEM: [
-        { key: 'function_screen', label: '發生功能畫面', prompt: '請問您是執行哪一個畫面或功能時發生異常（例如：門診看診開醫令、掛號批價、電子病歷）？' },
-        { key: 'errorCode', label: '錯誤提示代碼', prompt: '請問畫面上是否有顯示錯誤代碼或彈出警示訊息？' },
-        { key: 'impactScope', label: '影響範圍', prompt: '請問是只有您這台電腦異常，還是周遭其他同仁/單位也有相同狀況？' }
-      ],
-      PRINTER: [
-        { key: 'deviceOrSystem', label: '印表機型號', prompt: '請問該印表機的型號或種類（例如：HP 雷射、Zebra 標籤機、熱感印機）是什麼？' },
-        { key: 'errorCode', label: '燈號與狀態', prompt: '請問印表機面板是否有亮紅燈、閃爍或提示缺紙、卡紙？' },
-        { key: 'impactScope', label: '影響範圍', prompt: '請問只有您的電腦無法列印，還是科室/廠區內其他同仁也都無法印？' }
-      ],
-      CARD_READER: [
-        { key: 'card_type', label: '卡片類型', prompt: '請問是讀取「健保卡」、「醫事人員卡」還是「自然人憑證」時讀不到？' },
-        { key: 'errorCode', label: '燈號與嗶聲', prompt: '請問插卡時讀卡機是否有發出嗶聲，指示燈是否有亮起？' }
-      ],
-      NETWORK: [
-        { key: 'net_type', label: '連線方式', prompt: '請問目前是用「有線網路線」、「Wi-Fi 無線」還是「外部 VPN」？' },
-        { key: 'impactScope', label: '影響範圍', prompt: '請問同單位其他同仁的電腦此時能正常上網嗎？' }
-      ],
-      GENERAL: [
-        { key: 'deviceOrSystem', label: '設備類型', prompt: '請問發生問題的設備是「桌上型主機」、「筆記型電腦」還是「工作車」？' },
-        { key: 'impactScope', label: '影響範圍', prompt: '請問只有您遇到此狀況，還是多人受影響？' }
-      ]
+    const SYNONYM_GROUPS = [
+      { key: '健保卡', synonyms: ['健保卡', 'ic卡', '晶片卡', '醫事卡', '醫事人員卡', '卡片', '插卡'] },
+      { key: '讀卡機', synonyms: ['讀卡機', '卡機', '讀卡器', '插卡槽', '讀不到卡', '刷卡機'] },
+      { key: '印表機', synonyms: ['印表機', '打印機', '出紙機', '雷射印表機', '標籤機', '條碼機', '斑馬機', '印不出來', '無法列印', '不能印'] },
+      { key: '當機', synonyms: ['當機', '死當', '卡死', '卡住', '轉圈圈', '畫面凍結', '沒反應', '未回應', '無回應', '藍屏', '藍底白字', 'bsod', '黑屏'] },
+      { key: '網路', synonyms: ['網路', '斷網', '連不上', '無法上網', '沒網', 'wifi', 'wi-fi', '網路線', '網點', 'vpn', '連線異常'] },
+      { key: 'HIS', synonyms: ['his', '醫療資訊系統', '門診系統', '看診系統', '醫令', '批價系統', '掛號系統', '病歷系統'] },
+      { key: '開機', synonyms: ['開不了機', '無法開機', '按電源沒反應', '沒過電', '不開機', '不能開機', '電源燈沒亮'] },
+      { key: '密碼', synonyms: ['忘記密碼', '密碼過期', '帳號鎖定', '改密碼', '重設密碼', '無法登入', '登入失敗'] }
+    ];
+
+    function expandSynonyms(text) {
+      if (!text) return '';
+      let expanded = String(text).toLowerCase();
+      SYNONYM_GROUPS.forEach(group => {
+        const hasSynonym = group.synonyms.some(s => expanded.includes(s.toLowerCase()));
+        if (hasSynonym) {
+          expanded += ' ' + group.key.toLowerCase() + ' ' + group.synonyms.join(' ');
+        }
+      });
+      return expanded;
+    }
+
+    // 防呆關鍵字比對：確保非字串型態安全轉型
+    function findBestSopMatches(queryText, sourceList = knowledgeBase) {
+      if (!queryText || !sourceList || sourceList.length === 0) return [];
+      const expandedQ = expandSynonyms(queryText);
+      const rawQ = String(queryText).toLowerCase();
+
+      const validList = sourceList.filter(k => {
+        if (!k || !k.title || String(k.title).trim() === '' || k.title === '未命名問題') return false;
+        return true;
+      });
+
+      const scored = validList.map(k => {
+        let score = 0;
+        const titleL = String(k.title || '').toLowerCase();
+        const sopIdL = String(k.sop_id || '').toLowerCase();
+
+        if (rawQ.includes(titleL) || titleL.includes(rawQ)) score += 30;
+        if (rawQ.includes(sopIdL)) score += 50;
+
+        let kwList = [];
+        if (Array.isArray(k.keywords)) {
+          kwList = k.keywords;
+        } else if (typeof k.keywords === 'string') {
+          kwList = k.keywords.split(/[,，、/ \t\n]+/);
+        } else if (k.keywords) {
+          kwList = [String(k.keywords)];
+        }
+
+        kwList.forEach(w => {
+          if (!w) return;
+          const wL = String(w).trim().toLowerCase();
+          if (!wL) return;
+
+          if (wL === rawQ) {
+            score += 40;
+          } else if (rawQ.includes(wL)) {
+            score += (wL.length >= 4 ? 20 : 10);
+          } else if (expandedQ.includes(wL)) {
+            score += 8;
+          }
+        });
+
+        const symptomL = String(k.symptom || '').toLowerCase();
+        if (symptomL && rawQ.includes(symptomL)) score += 15;
+
+        return { item: k, score: score };
+      });
+
+      return scored.filter(s => s.score >= 10).sort((a, b) => b.score - a.score);
+    }
+
+    // 步驟字串拆解解析器：自動將 1. 2. 3. 拆分為循序測試陣列
+    function parseStepsToArray(safeStepsText) {
+      if (!safeStepsText) return [];
+      let text = String(safeStepsText);
+
+      // 截取排除步驟主體
+      if (text.includes('🛠️【排除步驟】：')) {
+        const parts = text.split('🛠️【排除步驟】：');
+        text = parts[1];
+        if (text.includes('⚠️【升級派工條件】：')) {
+          text = text.split('⚠️【升級派工條件】：')[0];
+        }
+      }
+
+      const rawLines = text.split('\n').map(l => l.trim()).filter(Boolean);
+      const parsed = [];
+
+      rawLines.forEach(l => {
+        const cleaned = l.replace(/^[0-9]+[\.、\s\-]+/, '').trim();
+        if (cleaned && !cleaned.startsWith('💡') && !cleaned.startsWith('⚠️')) {
+          parsed.push(cleaned);
+        }
+      });
+
+      return parsed.length > 0 ? parsed : [text.trim()];
+    }
+
+    // ==========================================
+    // G. 核心處理：逐條測試引導引擎 (Step Guidance)
+    // ==========================================
+    window.handleUserSend = async function() {
+      const input = document.getElementById('userMsgInput');
+      if (!input) return;
+      const q = input.value.trim();
+      if (!q) return;
+      input.value = '';
+
+      window.appendUserChat('user', q);
+      window.logChatToSupabase('user', q);
+      turnCount++;
+      window.updateTurnUI();
+
+      if (!inquiryContext.originalProblem) {
+        inquiryContext.originalProblem = q;
+      } else {
+        inquiryContext.supplementaryInfo.push(q);
+      }
+      inquiryContext.userAttempts.push(q);
+
+      extractSlotsFromUserMsg(q);
+
+      // 硬體嚴重狀況直通轉單
+      const isSevereHardware = (q.includes('冒煙') || q.includes('焦味') || q.includes('斷掉') || q.includes('摔壞') || q.includes('燒掉') || q.includes('直接派工') || q.includes('報修就好'));
+      if (isSevereHardware) {
+        inquiryContext.unresolvedReason = `硬體嚴重異常/要求直接派修：${q}`;
+        const urgentMsg = `收到！偵測到可能為硬體嚴重異常或零件損毀。小威跳過自主排查，已為您自動彙整並產生【報修案件表單】，請點擊下方預覽確認建立！`;
+        window.appendUserChat('ai', urgentMsg);
+        window.logChatToSupabase('ai', urgentMsg);
+        window.speak("偵測到硬體嚴重狀況，已為您直接整理報修案件表單。");
+        setTimeout(() => openTicketModalPreview(), 400);
+        return;
+      }
+
+      // 同步最新 Supabase 知識庫
+      let activeSops = knowledgeBase;
+      try {
+        if (supabaseClient) {
+          const { data: dbData, error: dbErr } = await supabaseClient
+            .from('kb_solutions')
+            .select('*')
+            .order('sop_id', { ascending: true });
+
+          if (!dbErr && dbData && dbData.length > 0) {
+            activeSops = dbData;
+            knowledgeBase = dbData;
+            const kbBadge = document.getElementById('kbCount');
+            if (kbBadge) kbBadge.innerText = activeSops.length;
+          }
+        }
+      } catch (err) {
+        console.warn("直接查詢 Supabase 異常，採用快取資料:", err);
+      }
+
+      const matches = findBestSopMatches(q, activeSops);
+
+      setTimeout(() => {
+        // 多筆候選情境釐清
+        if (matches.length >= 2 && matches[0].score >= 20 && (matches[0].score - matches[1].score <= 5)) {
+          const topOptions = [matches[0].item, matches[1].item];
+          if (matches[2] && matches[0].score - matches[2].score <= 8) topOptions.push(matches[2].item);
+          const clarifyMsg = '小威在知識庫中找到幾筆相似的排除指引，請問是哪一種情境？';
+          window.appendUserChat('ai', clarifyMsg, false, 'disambiguate', topOptions);
+          window.logChatToSupabase('ai', clarifyMsg);
+          window.speak("比對到幾種常見情況，請問是哪一種呢？");
+          return;
+        }
+
+        const best = matches.length > 0 ? matches[0].item : null;
+        startStepByStepGuidance(best);
+      }, 300);
+    };
+
+    window.handleSelectDisambiguation = function(sopId) {
+      const chosen = knowledgeBase.find(k => k.sop_id === sopId);
+      if (chosen) {
+        const text = `使用者確認情境：[${chosen.sop_id}] ${chosen.title}`;
+        inquiryContext.supplementaryInfo.push(text);
+        window.logChatToSupabase('user', text);
+        startStepByStepGuidance(chosen);
+      }
+    };
+
+    window.handleRejectDisambiguation = function() {
+      const text = "使用者表示皆非預設的候選問題";
+      inquiryContext.supplementaryInfo.push(text);
+      window.logChatToSupabase('user', text);
+      const reply = '請您再多補充一些細節（例如設備型號、錯誤代碼或受影響範圍），小威為您重新連線 Supabase 檢索！';
+      window.appendUserChat('ai', reply);
+      window.logChatToSupabase('ai', reply);
+      window.speak("請您再多補充一些細節，我為您重新比對。");
+    };
+
+    // 啟動循序逐條排查流程
+    function startStepByStepGuidance(sop) {
+      if (turnCount >= MAX_TURNS || !sop) {
+        const reason = turnCount >= MAX_TURNS ? "已排查達 5 輪上限" : "知識庫無直接相符條目";
+        inquiryContext.unresolvedReason = reason;
+        const msg = `小威評估此問題需要工程師現場/遠端協助處理 (${reason})。我已完整彙整您剛才提供的脈絡與設備資訊，請檢閱下方【報修案件表單】：`;
+        window.appendUserChat('ai', msg, false);
+        window.logChatToSupabase('ai', msg);
+        window.speak(msg);
+        openTicketModalPreview();
+        return;
+      }
+
+      if (sop.allow_self_resolve === false) {
+        inquiryContext.unresolvedReason = `SOP 規範此項目需由工程師到場或更換備品處置 (${sop.title})`;
+        const directMsg = `【${sop.title}】依資訊維護規範需由工程師到場維護或更換備品。<br><br>💡 注意事項：${(sop.safe_steps || '').replace(/\n/g, '<br>')}<br><br>小威已為您填妥報修案件，請檢閱送出！`;
+        window.appendUserChat('ai', directMsg, false);
+        window.logChatToSupabase('ai', directMsg);
+        window.speak("此問題需由工程師現場檢修，已為您準備好報修表單。");
+        openTicketModalPreview();
+        return;
+      }
+
+      // 提取所有步驟並初始化引導狀態
+      inquiryContext.matchedSop = sop;
+      const stepList = parseStepsToArray(sop.safe_steps || sop.steps);
+
+      activeGuidance = {
+        sop: sop,
+        steps: stepList,
+        currentStepIndex: 0
+      };
+
+      // 提供第 1 條測試方式
+      presentCurrentStep();
+    }
+
+    // 呈顯當前測試步驟並詢問使用者
+    function presentCurrentStep() {
+      const { sop, steps, currentStepIndex } = activeGuidance;
+      const total = steps.length;
+      const stepContent = steps[currentStepIndex];
+
+      // 記錄已建議步驟
+      inquiryContext.suggestedSteps.push(`[${sop.title}] 步驟 ${currentStepIndex + 1}: ${stepContent}`);
+
+      const stepPrompt = `針對【${sop.title}】，小威引導您逐步排查：<br><br>👉 <b>測試步驟 (${currentStepIndex + 1}/${total})</b>：<br><span class="text-indigo-950 font-bold bg-amber-50 p-1.5 rounded border border-amber-200 block my-1">${stepContent}</span><br>請問您照著完成此步驟後，問題是否已解決？`;
+
+      window.appendUserChat('ai', stepPrompt, true, 'step_action');
+      window.logChatToSupabase('ai', `測試步驟 (${currentStepIndex + 1}/${total})：${stepContent}`);
+      window.speak(`測試步驟第${currentStepIndex + 1}步：${stepContent}。請問完成後問題是否解決？`);
+    }
+
+    // 【核心調整 2 回饋處理】：使用者點擊「已解決」或「未解決，下一條」
+    window.handleStepResolved = function(isResolved) {
+      if (isResolved) {
+        const stepNum = activeGuidance.currentStepIndex + 1;
+        const msg = `太棒了！很高興在步驟 (${stepNum}) 順利為您排除障礙 🎉 本次諮詢對話歷程已歸檔，祝您工作順心！`;
+        window.appendUserChat('ai', msg);
+        window.logChatToSupabase('ai', msg);
+        window.speak(msg);
+        activeGuidance = { sop: null, steps: [], currentStepIndex: 0 };
+      } else {
+        // 未排除，前進至下一條步驟
+        activeGuidance.currentStepIndex++;
+
+        if (activeGuidance.currentStepIndex < activeGuidance.steps.length) {
+          // 還有後續步驟 -> 提供下一條測試方式
+          const nextNotice = "收到，已記錄未能排除。我們嘗試進行下一項測試：";
+          window.appendUserChat('ai', nextNotice);
+          window.logChatToSupabase('ai', nextNotice);
+          setTimeout(() => {
+            presentCurrentStep();
+          }, 400);
+        } else {
+          // 所有步驟皆已嘗試完畢
+          inquiryContext.unresolvedReason = `已依序執行全部 ${activeGuidance.steps.length} 項排查步驟均未能排除故障`;
+          const allExhaustedMsg = `針對此問題的所有標準排查步驟均已嘗試完畢，仍無法恢復正常。小威已自動將所有測試歷程完整彙整至【報修案件表單】，請點擊下方預覽確認送出！`;
+          window.appendUserChat('ai', allExhaustedMsg, false);
+          window.logChatToSupabase('ai', allExhaustedMsg);
+          window.speak("所有測試步驟均已嘗試完畢，正為您產出報修案件。");
+          setTimeout(() => {
+            openTicketModalPreview();
+          }, 500);
+        }
+      }
     };
 
     function extractSlotsFromUserMsg(text) {
-      const lower = text.toLowerCase();
+      const lower = String(text).toLowerCase();
       if (lower.includes('大家都') || lower.includes('其他人也') || lower.includes('整個科室') || lower.includes('全部都') || lower.includes('整廠')) {
         inquiryContext.impactScope = '多台 / 整個單位受影響';
       } else if (lower.includes('只有我') || lower.includes('就這台') || lower.includes('單獨一台')) {
@@ -1235,161 +1508,9 @@
       }
     }
 
-    function getNextProbe(categoryType) {
-      const probes = CATEGORY_PROBES[categoryType] || CATEGORY_PROBES.GENERAL;
-      for (const p of probes) {
-        if (p.key === 'impactScope' && inquiryContext.impactScope !== '個人/單機') continue;
-        if (p.key === 'deviceOrSystem' && inquiryContext.deviceOrSystem) continue;
-        if (p.key === 'errorCode' && inquiryContext.errorCode) continue;
-        return p;
-      }
-      return null;
-    }
-
-    window.handleUserSend = async function() {
-      const input = document.getElementById('userMsgInput');
-      if (!input) return;
-      const q = input.value.trim();
-      if (!q) return;
-      input.value = '';
-
-      window.appendUserChat('user', q);
-      window.logChatToSupabase('user', q);
-      turnCount++;
-      window.updateTurnUI();
-
-      if (!inquiryContext.originalProblem) {
-        inquiryContext.originalProblem = q;
-      } else {
-        inquiryContext.supplementaryInfo.push(q);
-      }
-      inquiryContext.userAttempts.push(q);
-
-      extractSlotsFromUserMsg(q);
-
-      const isSevereHardware = (q.includes('冒煙') || q.includes('焦味') || q.includes('斷掉') || q.includes('摔壞') || q.includes('燒掉') || q.includes('直接派工') || q.includes('報修就好'));
-      if (isSevereHardware) {
-        inquiryContext.unresolvedReason = `硬體嚴重異常/要求直接派修：${q}`;
-        const urgentMsg = `收到！偵測到可能為硬體嚴重異常或零件損毀。小威已為您整理好【報修案件表單】，請點擊下方預覽確認建立！`;
-        window.appendUserChat('ai', urgentMsg);
-        window.logChatToSupabase('ai', urgentMsg);
-        window.speak("偵測到硬體嚴重狀況，已為您直接整理報修案件表單。");
-        setTimeout(() => openTicketModalPreview(), 500);
-        return;
-      }
-
-      let activeSops = knowledgeBase;
-      try {
-        if (supabaseClient) {
-          const { data: dbData, error: dbErr } = await supabaseClient
-            .from('kb_solutions')
-            .select('*')
-            .order('sop_id', { ascending: true });
-
-          if (!dbErr && dbData && dbData.length > 0) {
-            activeSops = dbData;
-            knowledgeBase = dbData;
-            const kbBadge = document.getElementById('kbCount');
-            if (kbBadge) kbBadge.innerText = activeSops.length;
-          }
-        }
-      } catch (err) {
-        console.warn("直接查詢 Supabase 異常，採用快取資料:", err);
-      }
-
-      const matches = findBestSopMatches(q, activeSops);
-
-      setTimeout(() => {
-        if (matches.length >= 2 && matches[0].score >= 20 && (matches[0].score - matches[1].score <= 5)) {
-          const topOptions = [matches[0].item, matches[1].item];
-          if (matches[2] && matches[0].score - matches[2].score <= 8) topOptions.push(matches[2].item);
-          const clarifyMsg = '小威在知識庫中找到幾筆相似的排除指引，請問是哪一種情境？';
-          window.appendUserChat('ai', clarifyMsg, false, 'disambiguate', topOptions);
-          window.logChatToSupabase('ai', clarifyMsg);
-          window.speak("比對到幾種常見情況，請問是哪一種呢？");
-          return;
-        }
-
-        const best = matches.length > 0 ? matches[0].item : null;
-        applySopGuidance(best);
-      }, 350);
-    };
-
-    window.handleSelectDisambiguation = function(sopId) {
-      const chosen = knowledgeBase.find(k => k.sop_id === sopId);
-      if (chosen) {
-        const text = `使用者確認情境：[${chosen.sop_id}] ${chosen.title}`;
-        inquiryContext.supplementaryInfo.push(text);
-        window.logChatToSupabase('user', text);
-        applySopGuidance(chosen);
-      }
-    };
-
-    window.handleRejectDisambiguation = function() {
-      const text = "使用者表示皆非預設的候選問題";
-      inquiryContext.supplementaryInfo.push(text);
-      window.logChatToSupabase('user', text);
-      const reply = '請您再多補充一些細節（例如設備型號、錯誤代碼或受影響範圍），小威為您重新連線 Supabase 檢索！';
-      window.appendUserChat('ai', reply);
-      window.logChatToSupabase('ai', reply);
-      window.speak("請您再多補充一些細節，我為您重新比對。");
-    };
-
-    function applySopGuidance(sop) {
-      inquiryContext.matchedSop = sop;
-
-      if (turnCount >= MAX_TURNS || !sop) {
-        const reason = turnCount >= MAX_TURNS ? "已排查達 5 輪上限" : "知識庫無直接相符條目";
-        inquiryContext.unresolvedReason = reason;
-        const msg = `小威評估此問題需要工程師現場/遠端協助處理 (${reason})。我已完整彙整您剛才提供的脈絡與設備資訊，請檢閱下方【報修案件表單】：`;
-        window.appendUserChat('ai', msg, false);
-        window.logChatToSupabase('ai', msg);
-        window.speak(msg);
-        openTicketModalPreview();
-        return;
-      }
-
-      if (sop.allow_self_resolve === false) {
-        inquiryContext.unresolvedReason = `SOP 規範此項目需由工程師到場或更換備品處置 (${sop.title})`;
-        const directMsg = `【${sop.title}】依資訊規範需由工程師到場維護或更換備品。<br><br>💡 注意事項：${(sop.safe_steps || '').replace(/\n/g, '<br>')}<br><br>小威已為您填妥報修案件，請檢閱送出！`;
-        window.appendUserChat('ai', directMsg, false);
-        window.logChatToSupabase('ai', directMsg);
-        window.speak("此問題需由工程師現場檢修，已為您準備好報修表單。");
-        openTicketModalPreview();
-        return;
-      }
-
-      inquiryContext.suggestedSteps.push(sop.title);
-
-      const nextProbe = getNextProbe(inquiryContext.categoryType);
-      let probePromptText = '';
-      if (nextProbe) {
-        inquiryContext.pendingProbeKey = nextProbe.key;
-        probePromptText = `<br><br><span class="text-indigo-900 font-bold">🔍 小威想向您確認：</span><br>${nextProbe.prompt}`;
-      }
-
-      const guide = `小威為您從知識庫調出【${sop.title}】的標準排查步驟：<br><br>${(sop.safe_steps || sop.steps || '').replace(/\n/g, '<br>')}${probePromptText}<br><br>照著上述嘗試後，問題是否已解決？`;
-      window.appendUserChat('ai', guide, true, 'resolve');
-      window.logChatToSupabase('ai', guide);
-      window.speak(`為您找到${sop.title}的排查步驟，請依照指引嘗試。請問是否解決？`);
-    }
-
-    window.handleResolve = function(isResolved) {
-      if (isResolved) {
-        const msg = "太棒了！很高興能協助您順利排除障礙 🎉 本次諮詢對話歷程已歸檔，祝您工作順心！";
-        window.appendUserChat('ai', msg);
-        window.logChatToSupabase('ai', msg);
-        window.speak(msg);
-      } else {
-        inquiryContext.unresolvedReason = "使用者依照標準 SOP 排查後仍無法排除故障";
-        const msg = "收到，已確認未能排除。我已自動抓取您的帳號資料、排查脈絡與未解決原因填入【報修案件表單】，請您檢閱確認無誤後正式送出！";
-        window.appendUserChat('ai', msg);
-        window.logChatToSupabase('ai', msg);
-        window.speak("已確認未能排除，正為您產出報修案件。");
-        openTicketModalPreview();
-      }
-    };
-
+    // ==========================================
+    // H. 報修工單建立與確認
+    // ==========================================
     function openTicketModalPreview() {
       const now = new Date();
       const sId = now.getFullYear().toString() + 
@@ -1420,8 +1541,8 @@
       document.getElementById('m_urgency_display').innerHTML = `<span class="px-2 py-0.5 ${urgencyVal === 'P1' ? 'bg-rose-100 text-rose-900' : 'bg-amber-100 text-amber-900'} font-bold rounded">${urgencyVal}</span>`;
 
       const suppText = inquiryContext.supplementaryInfo.length > 0 ? inquiryContext.supplementaryInfo.join('；') : '無額外補充';
-      const stepsText = inquiryContext.suggestedSteps.length > 0 ? inquiryContext.suggestedSteps.map((s, idx) => `${idx + 1}. ${s}`).join('\n  ') : '無 (直接派工)';
-      const failReason = inquiryContext.unresolvedReason || '嘗試排查指引後問題依舊';
+      const stepsText = inquiryContext.suggestedSteps.length > 0 ? inquiryContext.suggestedSteps.map((s, idx) => `  ${idx + 1}. ${s}`).join('\n') : '  無 (直接派工)';
+      const failReason = inquiryContext.unresolvedReason || '依序嘗試排查測試後問題仍未解決';
 
       let problemFullText = `【問題摘要】：${inquiryContext.originalProblem || '設備障礙報修'}
 【發生時間】：${document.getElementById('m_call_time').innerText}
@@ -1431,9 +1552,9 @@
   - 使用者原始描述：${inquiryContext.originalProblem}
   - 歷程補充說明：${suppText}
   - 錯誤訊息/代碼：${inquiryContext.errorCode || '無特別標記'}
-【已執行排除步驟】：
-  ${stepsText}
-【未解決／轉單原因】：${failReason}
+【已執行排查測試歷程】：
+${stepsText}
+【未排除／轉單原因】：${failReason}
 【關聯對話 Session】：${currentSessionId}`;
 
       if (uploadedImageBase64) {
@@ -1492,7 +1613,7 @@
         if (error) throw error;
 
         window.closeTicketModal();
-        const successMsg = `🎉 <b>報修案件已成功寫入 tickets 資料表！</b><br>服務編號：<span class="font-mono text-indigo-900 font-bold">${ticketPayload.service_id}</span><br>完整問題脈絡已獨立存檔，工程師將主動聯絡您！`;
+        const successMsg = `🎉 <b>報修案件已成功寫入 tickets 資料表！</b><br>服務編號：<span class="font-mono text-indigo-900 font-bold">${ticketPayload.service_id}</span><br>完整逐步測試歷程已獨立存檔，工程師將主動聯絡您！`;
         window.appendUserChat('ai', successMsg);
         window.logChatToSupabase('ai', `報修工單建立完成：${ticketPayload.service_id}`);
         window.speak("報修案件已成功建立，工程師已接收通知，將儘速聯絡您！");
@@ -1508,58 +1629,8 @@
     };
 
     // ==========================================
-    // G. 註冊、後台管理與匯入
+    // I. 後台管理與資料表讀取
     // ==========================================
-    window.handleRegisterSubmit = async function(e) {
-      e.preventDefault();
-      if (!supabaseClient) {
-        alert("資料庫連線尚未就緒，請稍候重試。");
-        return;
-      }
-
-      const submitBtn = document.getElementById('regSubmitBtn');
-      if (submitBtn) {
-        submitBtn.innerText = "寫入 Supabase 中...";
-        submitBtn.disabled = true;
-      }
-
-      const cleanEmail = document.getElementById('regEmail').value.trim().toLowerCase();
-
-      const profilePayload = {
-        company: document.getElementById('regCompany').value.trim(),
-        org_type: document.getElementById('regOrgType').value,
-        unit_label: document.getElementById('regUnitLabel').value,
-        jurisdiction: document.getElementById('regJurisdiction').value.trim(),
-        dept: document.getElementById('regDept').value.trim(),
-        name: document.getElementById('regName').value.trim(),
-        email: cleanEmail,
-        phone: document.getElementById('regPhone').value.trim(),
-        role: 'user',
-        status: 'pending',
-        password: '123456'
-      };
-
-      try {
-        const { error } = await supabaseClient
-          .from('profiles')
-          .insert([profilePayload]);
-
-        if (error) throw error;
-
-        document.getElementById('registerForm').reset();
-        document.getElementById('pendingReviewBanner').classList.remove('hidden');
-        alert("✅ 註冊成功！資料已成功寫入 Supabase，預設密碼為 123456，請等待管理者審核開通！");
-      } catch (err) {
-        console.error("註冊失敗:", err);
-        alert("註冊失敗：" + (err.message || "信箱可能重複或資料表未開通權限"));
-      } finally {
-        if (submitBtn) {
-          submitBtn.innerText = "送出註冊 (等待審核)";
-          submitBtn.disabled = false;
-        }
-      }
-    };
-
     window.fetchUsersFromSupabase = async function() {
       if (!supabaseClient) return;
       const tbody = document.getElementById('userTableBody');
@@ -2053,41 +2124,6 @@
       } catch (err) {
         c.innerHTML = `<div class="text-rose-400 p-3">載入 chat_logs 表失敗：${err.message}</div>`;
       }
-    };
-
-    window.triggerCameraUpload = function() {
-      const input = document.getElementById('cameraInput');
-      if (input) input.click();
-    };
-
-    window.handleImageSelected = function(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        uploadedImageBase64 = e.target.result;
-        const imgMessage = `
-          <div>
-            <p class="mb-1 text-xs font-medium">📷 已傳送現場照片：</p>
-            <img src="${uploadedImageBase64}" class="rounded-lg max-h-48 border border-white/20 shadow-md">
-          </div>
-        `;
-        window.appendUserChat('user', imgMessage);
-        window.logChatToSupabase('user', '[上傳了現場障礙照片]', true);
-        turnCount++;
-        window.updateTurnUI();
-
-        setTimeout(() => {
-          const aiAnalysisText = "小威已接收到您上傳的設備照片！系統初步診斷顯示燈號或螢幕畫面有異常狀況。建議先確認後方連接線路是否牢固；若持續無法使用，請點選下方按鈕直接為您送出叫修單！";
-          window.appendUserChat('ai', aiAnalysisText, true);
-          window.logChatToSupabase('ai', aiAnalysisText);
-          if (typeof window.speak === 'function') {
-            window.speak("已收到您的故障照片。請問是否需要工程師到場處理？");
-          }
-        }, 800);
-      };
-      reader.readAsDataURL(file);
     };
 
     window.addEventListener('DOMContentLoaded', () => {
