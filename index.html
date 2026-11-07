@@ -413,7 +413,7 @@
           </button>
 
           <div class="flex-1">
-            <input id="userMsgInput" type="text" placeholder="告訴小威問題 (例：不能開機、印表機卡紙、HIS當機、什麼是DHCP)..."
+            <input id="userMsgInput" type="text" placeholder="告訴小威問題 (例：不能開機、印表機卡紙、HIS當機、什麼是dns)..."
                    class="w-full bg-slate-100 text-slate-800 text-sm rounded-full px-3.5 py-2 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-600"
                    onfocus="handleInputFocused(true)" onblur="handleInputFocused(false)"
                    onkeypress="if(event.key==='Enter') handleUserSend()">
@@ -718,7 +718,7 @@
     </div>
   </div>
 
-  <!-- 7. 核心 JavaScript (嚴謹停用詞過濾 + 專有名詞直通 DuckDuckGo) -->
+  <!-- 7. 核心 JavaScript (支援 JSONP 跨域 DuckDuckGo + 意圖區分) -->
   <script>
     // ==========================================
     // A. 語音核心宣告：精準小男生活潑稚嫩童音
@@ -761,7 +761,7 @@
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'zh-TW';
         
-        // 稚嫩清脆小男生童音調校
+        // 稚嫩童音調校
         utterance.pitch = 1.48; 
         utterance.rate = 1.15;
 
@@ -916,49 +916,72 @@
     };
 
     // ==========================================
-    // C. DuckDuckGo 官方免費即時解答 API 模組
+    // C. 【關鍵修復】：DuckDuckGo JSONP 跨域檢索 (100% 避開 CORS 阻擋)
     // ==========================================
-    async function searchDuckDuckGo(query) {
-      if (!query || !query.trim()) return null;
-      // 提取核心名詞，去除「什麼是」、「是什麼」等中文贅詞
-      const cleanQ = query.replace(/(什麼是|是什麼|什麼叫|請問|如何|怎麼)/g, '').trim();
-      const endpoint = `https://api.duckduckgo.com/?q=${encodeURIComponent(cleanQ)}&format=json&no_html=1&skip_disambig=1`;
-
-      try {
-        const res = await fetch(endpoint);
-        if (!res.ok) return null;
-        const data = await res.json();
-
-        // 1. 直接百科摘要 (AbstractText)
-        if (data.AbstractText && data.AbstractText.trim().length > 0) {
-          return {
-            type: 'abstract',
-            title: data.Heading || cleanQ,
-            text: data.AbstractText,
-            source: data.AbstractSource || 'DuckDuckGo 即時百科',
-            url: data.AbstractURL || `https://duckduckgo.com/?q=${encodeURIComponent(cleanQ)}`
-          };
+    function searchDuckDuckGo(query) {
+      return new Promise((resolve) => {
+        if (!query || !query.trim()) {
+          resolve(null);
+          return;
         }
 
-        // 2. 關聯條目 (RelatedTopics)
-        if (Array.isArray(data.RelatedTopics) && data.RelatedTopics.length > 0) {
-          const firstTopic = data.RelatedTopics.find(t => t.Text && t.FirstURL);
-          if (firstTopic) {
-            return {
-              type: 'topic',
-              title: cleanQ,
-              text: firstTopic.Text,
-              source: 'DuckDuckGo 關聯條目',
-              url: firstTopic.FirstURL
-            };
+        // 濾除「什麼是」、「是什麼」等虛字，取得核心名詞 (如 DNS, DHCP)
+        const cleanQ = query.replace(/(什麼是|是什麼|什麼叫|請問|如何|怎麼|為啥|為什麼|有誰知道)/g, '').replace(/[\s\-_，。！？\?]+/g, ' ').trim();
+        if (!cleanQ) {
+          resolve(null);
+          return;
+        }
+
+        const callbackName = 'ddg_cb_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        const script = document.createElement('script');
+        script.src = `https://api.duckduckgo.com/?q=${encodeURIComponent(cleanQ)}&format=json&no_html=1&skip_disambig=1&callback=${callbackName}`;
+
+        const timeoutTimer = setTimeout(() => {
+          cleanup();
+          resolve(null);
+        }, 3200);
+
+        function cleanup() {
+          clearTimeout(timeoutTimer);
+          if (script.parentNode) script.parentNode.removeChild(script);
+          delete window[callbackName];
+        }
+
+        window[callbackName] = function(data) {
+          cleanup();
+          if (data && data.AbstractText && data.AbstractText.trim().length > 0) {
+            resolve({
+              type: 'abstract',
+              title: data.Heading || cleanQ,
+              text: data.AbstractText,
+              source: data.AbstractSource || 'DuckDuckGo 即時百科',
+              url: data.AbstractURL || `https://duckduckgo.com/?q=${encodeURIComponent(cleanQ)}`
+            });
+          } else if (data && Array.isArray(data.RelatedTopics) && data.RelatedTopics.length > 0) {
+            const topic = data.RelatedTopics.find(t => t.Text && t.FirstURL);
+            if (topic) {
+              resolve({
+                type: 'topic',
+                title: cleanQ,
+                text: topic.Text,
+                source: 'DuckDuckGo 關聯主題',
+                url: topic.FirstURL
+              });
+            } else {
+              resolve(null);
+            }
+          } else {
+            resolve(null);
           }
-        }
+        };
 
-        return null;
-      } catch (err) {
-        console.warn("DuckDuckGo 查詢例外:", err);
-        return null;
-      }
+        script.onerror = function() {
+          cleanup();
+          resolve(null);
+        };
+
+        document.head.appendChild(script);
+      });
     }
 
     // ==========================================
@@ -1511,16 +1534,22 @@
     };
 
     // ==========================================
-    // H. 【核心修復】：停用詞過濾與精準語意抽取
+    // H. 【精準語意分析】：分流名詞解釋與排查 SOP
     // ==========================================
-    // 1. 提煉真正的核心主詞 (去除「什麼是」、「是什麼」、「如何」等口語贅字)
+    // 提煉核心名詞 (過濾「什麼是」、「是什麼」等虛字)
     function extractCoreIntent(text) {
       if (!text) return '';
       let clean = String(text).toLowerCase();
-      // 去除問句前綴與後綴
       clean = clean.replace(/(什麼是|是什麼|什麼叫|請問|請教一下|想問|如何|怎麼|為啥|為什麼|有誰知道)/g, '');
       clean = clean.replace(/[\s\-_，。！？\?]+/g, '').trim();
       return clean;
+    }
+
+    function isDefinitionQuery(text) {
+      if (!text) return false;
+      const lower = String(text).toLowerCase().trim();
+      return /^(什麼是|何謂|什麼叫|請問什麼是)/.test(lower) || 
+             /(是什麼|是什麼意思|的定義|是幹嘛的|是做什麼的)$/.test(lower);
     }
 
     function normalizeQuery(text) {
@@ -1559,11 +1588,9 @@
       return expanded;
     }
 
-    // 計算雙字元模糊交集 (過濾掉常見贅字)
     function calculateFuzzyScore(rawQuery, targetText) {
       if (!rawQuery || !targetText) return 0;
       let score = 0;
-      // 去除停用詞後再進行交集評分
       const cleanQ = extractCoreIntent(rawQuery);
       const cleanT = extractCoreIntent(targetText);
       if (cleanQ.length < 2 || cleanT.length < 2) return 0;
@@ -1575,9 +1602,10 @@
       return score;
     }
 
-    // 嚴謹匹配：防止如「什麼是DHCP」因「什麼是」而誤判命中「公司密碼設定規則是什麼」
+    // 嚴格知識庫檢索：若為「什麼是X」，嚴禁誤匹配無關排查 SOP
     function findBestSopMatches(queryText, sourceList = knowledgeBase) {
       if (!queryText || !sourceList || sourceList.length === 0) return [];
+      const isDef = isDefinitionQuery(queryText);
       const coreQ = extractCoreIntent(queryText);
       const normQ = normalizeQuery(queryText);
       const expandedQ = expandSynonyms(queryText);
@@ -1594,18 +1622,25 @@
         const sopIdL = String(k.sop_id || '').toLowerCase();
         const coreTitle = extractCoreIntent(titleL);
 
-        // 1. 核心主詞完全比對
+        // 如果使用者明確是在詢問名詞定義 (如「什麼是DNS」)
+        if (isDef) {
+          // 只有標題直接包含該專有名詞才給分
+          if (coreQ && (coreTitle === coreQ || coreTitle.includes(coreQ))) {
+            score += 45;
+          }
+          // 不得因為關鍵字陣列偶然含有該詞彙而誤跳至其他障礙排查
+          return { item: k, score: score };
+        }
+
+        // 常規故障排查比對邏輯
         if (coreQ && (coreTitle.includes(coreQ) || coreQ.includes(coreTitle))) {
           score += 40;
         }
 
-        // 2. SOP 編號命中
         if (rawQ.includes(sopIdL)) score += 50;
 
-        // 3. 雙字元交集加分 (已排除贅字)
         score += calculateFuzzyScore(coreQ, coreTitle);
 
-        // 4. 關鍵字陣列精確比對
         let kwList = [];
         if (Array.isArray(k.keywords)) {
           kwList = k.keywords;
@@ -1633,7 +1668,7 @@
         return { item: k, score: score };
       });
 
-      // 【門檻調高】：提高至 25 分，確保不會因為一兩個虛字就誤命中無關 SOP
+      // 嚴格門檻：25 分以上才視為有效命中內部 SOP
       return scored.filter(s => s.score >= 25).sort((a, b) => b.score - a.score);
     }
 
@@ -1664,6 +1699,9 @@
 
     async function autoLearnNewKeywordToSupabase(sopId, newQuery) {
       if (!supabaseClient || !sopId || !newQuery) return;
+      // 若為「什麼是X」的名詞詢問，不污染故障關鍵字庫
+      if (isDefinitionQuery(newQuery)) return;
+
       const cleanKeyword = String(newQuery).trim();
       if (cleanKeyword.length < 2 || cleanKeyword.length > 30) return;
 
@@ -1683,7 +1721,7 @@
             .update({ keywords: currentKws })
             .eq('sop_id', sopId);
 
-          console.log(`🤖 [自主學習成功] 已將新問法「${cleanKeyword}」沉澱進 [${sopId}] 的關鍵字庫中！`);
+          console.log(`🤖 [自主學習] 已將新問法「${cleanKeyword}」沉澱進 [${sopId}] 的關鍵字庫中！`);
         }
       } catch (err) {
         console.warn("自主學習寫入異常:", err);
@@ -1714,8 +1752,7 @@
 
       extractSlotsFromUserMsg(q);
 
-      // 小威動態切換思考表情與狀態
-      window.updateXiaoweiMood('thinking', `「收到！小威正在幫您尋找『${q}』最有效的測試方式...」`);
+      window.updateXiaoweiMood('thinking', `「收到！小威正在為您動腦筋分析『${q}』...」`);
 
       const isSevereHardware = (q.includes('冒煙') || q.includes('焦味') || q.includes('斷掉') || q.includes('摔壞') || q.includes('燒掉') || q.includes('直接派工') || q.includes('報修就好'));
       if (isSevereHardware) {
@@ -1787,7 +1824,7 @@
       window.speak("請您再多補充一些細節，我為您重新比對。");
     };
 
-    // 啟動排查：當內部查無 SOP 時，準確連線 DuckDuckGo API
+    // 啟動排查：當內部查無 SOP 時，準確連線 DuckDuckGo JSONP API
     async function startStepByStepGuidance(sop) {
       // 1. 內部知識庫有高信心相符 SOP
       if (sop) {
@@ -1816,8 +1853,8 @@
         return;
       }
 
-      // 2. 內部查無資料：小威連線 DuckDuckGo 官方免費 API
-      window.updateXiaoweiMood('thinking', '「內部知識庫暫無此紀錄，小威正連線 DuckDuckGo 尋找解答...」');
+      // 2. 內部查無資料：小威連線 DuckDuckGo 官方免費 API (JSONP 協議，避開 CORS)
+      window.updateXiaoweiMood('thinking', '「內部知識庫無此項目，小威正連線 DuckDuckGo 尋找解答...」');
       const ddgResult = await searchDuckDuckGo(inquiryContext.originalProblem);
 
       if (ddgResult) {
