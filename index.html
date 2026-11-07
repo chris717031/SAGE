@@ -27,6 +27,18 @@
       background-size: contain;
     }
 
+    .ticket-table td, .ticket-table th {
+      border: 1px solid #475569;
+      padding: 4px 6px;
+      font-size: 11px;
+    }
+    .ticket-table th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      text-align: left;
+      font-weight: 600;
+    }
+
     @keyframes micPulse {
       0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
       70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
@@ -36,6 +48,33 @@
       animation: micPulse 1.4s infinite ease-out;
       background-color: #ef4444 !important;
       color: white !important;
+    }
+
+    /* 小威專屬生動 Q 版動畫 */
+    @keyframes floatBob {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-5px) rotate(1.5deg); }
+    }
+    @keyframes blinkEye {
+      0%, 90%, 100% { transform: scaleY(1); }
+      95% { transform: scaleY(0.1); }
+    }
+    @keyframes waveHand {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(18deg); }
+      75% { transform: rotate(-10deg); }
+    }
+
+    .xiaowei-avatar {
+      animation: floatBob 3s ease-in-out infinite;
+    }
+    .xiaowei-eye {
+      transform-origin: center;
+      animation: blinkEye 3.8s infinite;
+    }
+    .xiaowei-hand {
+      transform-origin: bottom left;
+      animation: waveHand 1.6s ease-in-out infinite;
     }
   </style>
 </head>
@@ -195,7 +234,7 @@
         </button>
       </div>
 
-      <!-- 對話串流區 -->
+      <!-- 對話串流區 (登入後小威迎賓卡置頂於此) -->
       <div id="chatArea" class="flex-1 p-3.5 space-y-3.5 overflow-y-auto chat-bg no-scrollbar"></div>
 
       <!-- 輸入工具列 -->
@@ -384,13 +423,10 @@
     </div>
   </div>
 
-  <!-- ======================================================== -->
-  <!-- 5. 全新簡潔報修表單確認 Modal (直接對接公司報修系統)        -->
-  <!-- ======================================================== -->
+  <!-- 5. 全新簡潔報修表單確認 Modal -->
   <div id="ticketModal" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-white text-slate-900 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto border border-slate-200">
       
-      <!-- 標頭 -->
       <div class="bg-[#10183d] text-white px-5 py-3.5 flex justify-between items-center shrink-0">
         <div class="flex items-center space-x-2">
           <span class="text-xl">🎫</span>
@@ -402,16 +438,12 @@
         <button onclick="closeTicketModal()" class="text-slate-400 hover:text-white text-base">✕</button>
       </div>
 
-      <!-- 表單內容 (簡潔 7 大欄位 + 排查摘要) -->
       <div class="p-5 overflow-y-auto flex-1 space-y-3.5 text-xs">
-        
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <!-- 1. 客戶公司名稱 -->
           <div>
             <label class="block font-bold text-slate-700 mb-1">客戶公司名稱</label>
             <input type="text" id="simple_company" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-slate-700 font-medium">
           </div>
-          <!-- 2. 管轄單位 / 院區 / 分公司 / 廠別 -->
           <div>
             <label class="block font-bold text-slate-700 mb-1">管轄單位 / 院區 / 分公司 / 廠別</label>
             <input type="text" id="simple_jurisdiction" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-indigo-900 font-bold">
@@ -419,17 +451,14 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <!-- 3. 姓名 -->
           <div>
             <label class="block font-bold text-slate-700 mb-1">報修同仁姓名</label>
             <input type="text" id="simple_name" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-slate-700 font-medium">
           </div>
-          <!-- 4. 聯絡電話 -->
           <div>
             <label class="block font-bold text-slate-700 mb-1">聯絡電話 / 分機 <span class="text-rose-500">*</span></label>
             <input type="text" id="simple_phone" required class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-indigo-600">
           </div>
-          <!-- 5. 電子信箱 -->
           <div>
             <label class="block font-bold text-slate-700 mb-1">電子信箱 (Email)</label>
             <input type="email" id="simple_email" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-slate-700">
@@ -437,7 +466,6 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <!-- 6. 報修時間 (自動代入當下時間) -->
           <div>
             <label class="block font-bold text-slate-700 mb-1">報修時間 (系統當前時間)</label>
             <div class="relative">
@@ -445,7 +473,6 @@
               <span class="absolute right-2.5 top-2 text-slate-400 text-xs">🕒</span>
             </div>
           </div>
-          <!-- 7. 所在位置 (使用者可填入詳細診間或樓層) -->
           <div>
             <label class="block font-bold text-slate-700 mb-1">所在位置 (樓層 / 診間 / 座位) <span class="text-rose-500">*</span></label>
             <input type="text" id="simple_location" required placeholder="例：3F 門診第 5 診間、資訊大樓 2F 辦公室" 
@@ -453,15 +480,12 @@
           </div>
         </div>
 
-        <!-- 8. 問題說明與小威排查歷程 -->
         <div>
           <label class="block font-bold text-slate-700 mb-1">報修問題描述與已測試排除紀錄</label>
           <textarea id="simple_problem" rows="4" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs text-slate-800 leading-relaxed font-sans focus:outline-none"></textarea>
         </div>
-
       </div>
 
-      <!-- 操作按鈕 -->
       <div class="bg-slate-50 px-5 py-3 border-t border-slate-200 flex justify-end space-x-3 shrink-0">
         <button onclick="closeTicketModal()" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-200 text-xs font-medium transition">
           返回排查
@@ -545,10 +569,80 @@
     </div>
   </div>
 
-  <!-- 7. 核心 JavaScript (整合全新簡報修單、自動代入註冊資訊與當下時間) -->
+  <!-- 7. 核心 JavaScript (注入可愛小威動態組件 + 完整全域綁定) -->
   <script>
     // ==========================================
-    // A. 頂置全域語音宣告
+    // A. 小威可愛 Q 版動態組件定義 (戴工程帽與通話耳麥的小朋友)
+    // ==========================================
+    window.XIAOWEI_SVG_AVATAR = `
+      <div class="relative w-9 h-9 shrink-0 xiaowei-avatar select-none">
+        <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+          <!-- 衣服制服 -->
+          <path d="M30 86 Q50 78 70 86 L75 100 L25 100 Z" fill="#1e3a8a"/>
+          <path d="M44 82 L50 92 L56 82 Z" fill="#ffffff"/>
+          
+          <!-- 圓圓可愛臉龐 -->
+          <circle cx="50" cy="52" r="26" fill="#fed7aa"/>
+          <!-- 腮紅 -->
+          <circle cx="34" cy="58" r="4" fill="#fca5a5" opacity="0.65"/>
+          <circle cx="66" cy="58" r="4" fill="#fca5a5" opacity="0.65"/>
+          
+          <!-- 大眼睛 (支援 blinkEye 眨眼動態) -->
+          <g class="xiaowei-eye">
+            <circle cx="40" cy="50" r="3.5" fill="#1e293b"/>
+            <circle cx="41.5" cy="48.5" r="1.3" fill="#ffffff"/>
+            <circle cx="60" cy="50" r="3.5" fill="#1e293b"/>
+            <circle cx="61.5" cy="48.5" r="1.3" fill="#ffffff"/>
+          </g>
+          
+          <!-- 微笑小嘴 -->
+          <path d="M46 61 Q50 65 54 61" stroke="#b45309" stroke-width="2" fill="none" stroke-linecap="round"/>
+          
+          <!-- 可愛深色短髮 -->
+          <path d="M29 42 Q40 38 50 43 Q60 37 71 42 Q66 32 50 32 Q34 32 29 42 Z" fill="#475569"/>
+          
+          <!-- 威策工程師小黃帽 -->
+          <path d="M26 36 C26 20, 74 20, 74 36 C77 36, 78 40, 72 40 L28 40 C22 40, 23 36, 26 36 Z" fill="#f59e0b"/>
+          <!-- 安全帽反光 -->
+          <path d="M34 26 Q50 19 66 26" stroke="#fef3c7" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.8"/>
+          <!-- 威策 W 標記 -->
+          <text x="50" y="34" font-size="9" font-weight="900" fill="#78350f" text-anchor="middle" font-family="sans-serif">W</text>
+          
+          <!-- 客服工程師耳麥 -->
+          <path d="M24 45 A 26 26 0 0 1 76 45" stroke="#334155" stroke-width="3" fill="none"/>
+          <rect x="20" y="44" width="6" height="12" rx="3" fill="#0284c7"/>
+          <rect x="74" y="44" width="6" height="12" rx="3" fill="#0284c7"/>
+          <!-- 麥克風與收音頭 -->
+          <path d="M23 53 Q28 66 40 66" stroke="#334155" stroke-width="2" fill="none"/>
+          <circle cx="41" cy="66" r="2.5" fill="#0284c7"/>
+        </svg>
+        <!-- 打招呼小手手 -->
+        <div class="absolute -bottom-1 -right-1 text-xs xiaowei-hand">👋</div>
+      </div>
+    `;
+
+    // 登入後置頂呈現的小威生動值班中卡片
+    window.getXiaoWeiBannerHTML = function(userName) {
+      return `
+        <div id="xiaoweiWelcomeBanner" class="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50/90 to-indigo-50/90 border border-indigo-200/80 rounded-2xl shadow-sm mb-2 backdrop-blur-sm">
+          ${window.XIAOWEI_SVG_AVATAR}
+          <div class="flex-1 min-w-0">
+            <h4 class="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+              <span>小威值班中</span>
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-emerald-100 text-emerald-800 border border-emerald-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse mr-1"></span>在線守護
+              </span>
+            </h4>
+            <p class="text-[11px] text-slate-600 mt-0.5 truncate">
+              你好呀 ${userName}！有任何電腦、印表機或系統問題，我會一步一步陪您排查喔！
+            </p>
+          </div>
+        </div>
+      `;
+    };
+
+    // ==========================================
+    // B. 語音核心宣告
     // ==========================================
     let isVoiceEnabled = true;
     let recognition = null;
@@ -643,7 +737,7 @@
     };
 
     // ==========================================
-    // B. UI 與對話介面函式
+    // C. UI 與對話介面函式 (套用小威 Q 版頭像)
     // ==========================================
     window.updateTurnUI = function() {
       const badge = document.getElementById('turnCounterBadge');
@@ -708,6 +802,7 @@
       }
     };
 
+    // 聊天訊息輸出：以小威可愛 Q 版動態頭像取代舊色塊
     window.appendUserChat = function(role, text, showButtons = false, buttonType = 'step_action', options = []) {
       const area = document.getElementById('chatArea');
       if (!area) return;
@@ -717,7 +812,7 @@
         box.className = "flex justify-end";
         box.innerHTML = `<div class="bg-[#10183d] text-white text-[13px] rounded-2xl rounded-tr-sm p-3 max-w-[85%] leading-relaxed shadow-sm">${text}</div>`;
       } else {
-        box.className = "flex space-x-2 items-start";
+        box.className = "flex space-x-2.5 items-start";
         let actionArea = '';
 
         if (buttonType === 'disambiguate' && options.length > 0) {
@@ -739,13 +834,13 @@
         } else if (showButtons && buttonType === 'step_action') {
           actionArea = `
             <div class="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap gap-1.5">
-              <button onclick="handleStepResolved(true)" class="flex-1 min-w-[90px] py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs font-bold rounded shadow-sm">
+              <button onclick="handleStepResolved(true)" class="flex-1 min-w-[90px] py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs font-bold rounded shadow-sm transition">
                 ✅ 已排除解決
               </button>
-              <button onclick="handleStepResolved(false)" class="flex-1 min-w-[130px] py-1.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white text-xs font-bold rounded shadow-sm">
+              <button onclick="handleStepResolved(false)" class="flex-1 min-w-[130px] py-1.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white text-xs font-bold rounded shadow-sm transition">
                 ❌ 未排除，下一條測試
               </button>
-              <button onclick="openTicketModalPreview()" class="py-1.5 px-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs rounded">
+              <button onclick="openTicketModalPreview()" class="py-1.5 px-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs rounded transition">
                 🎫 直接報修
               </button>
             </div>
@@ -753,7 +848,7 @@
         }
 
         box.innerHTML = `
-          <div class="w-7 h-7 rounded-full bg-[#10183d] text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 border border-indigo-200">威</div>
+          ${window.XIAOWEI_SVG_AVATAR}
           <div class="bg-white/95 border border-slate-200 text-slate-800 text-[13px] rounded-2xl rounded-tl-sm p-3 max-w-[85%] shadow-sm leading-relaxed backdrop-blur-sm">
             ${text}${actionArea}
           </div>
@@ -764,7 +859,7 @@
     };
 
     // ==========================================
-    // C. Supabase 初始化與狀態變數
+    // D. Supabase 初始化與狀態變數
     // ==========================================
     const SUPABASE_URL = 'https://tgvuxmlkbhnnjsyajjow.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_EE0J2uwbUorM9ywIXsbjdw_usVeipmc';
@@ -853,7 +948,7 @@
     };
 
     // ==========================================
-    // D. 登入成功處理
+    // E. 登入成功處理 (生動小威迎賓卡呈現)
     // ==========================================
     window.loginUserSuccess = function(user) {
       currentUser = user;
@@ -900,6 +995,7 @@
         try { window.fetchTicketsFromSupabase(); } catch(e){}
         try { window.fetchChatLogsFromSupabase(); } catch(e){}
       } else {
+        // 一般使用者登入
         const mgmtSec = document.getElementById('managementSection');
         if (mgmtSec) mgmtSec.classList.add('hidden');
         const userSec = document.getElementById('userSection');
@@ -909,7 +1005,10 @@
 
         window.resetInquiryContext();
         const chatArea = document.getElementById('chatArea');
-        if (chatArea) chatArea.innerHTML = '';
+        if (chatArea) {
+          // 置頂加入小威生動值班迎賓橫幅
+          chatArea.innerHTML = window.getXiaoWeiBannerHTML(currentUser.name || '同仁');
+        }
 
         const hello = `${currentUser.name} 您好！我是威策 IT 智慧助手小威。我已連線知識庫，將會一步一步引導您排查測試各類設備障礙。請問今天您的設備遇到什麼狀況呢？`;
         window.appendUserChat('ai', hello);
@@ -1051,7 +1150,7 @@
     };
 
     // ==========================================
-    // E. 密碼複雜度驗證邏輯
+    // F. 密碼複雜度檢驗與修改
     // ==========================================
     function evaluatePasswordComplexity(pwd) {
       return {
@@ -1188,7 +1287,7 @@
     };
 
     // ==========================================
-    // F. 人性化語意正規化與同義互通
+    // G. 人性化語意正規化、同義互通與自主學習
     // ==========================================
     function normalizeQuery(text) {
       if (!text) return '';
@@ -1348,7 +1447,7 @@
     }
 
     // ==========================================
-    // G. 對話發送與逐步測試流程
+    // H. 對話發送與逐步測試引導流程
     // ==========================================
     window.handleUserSend = async function() {
       const input = document.getElementById('userMsgInput');
@@ -1559,29 +1658,20 @@
     }
 
     // ==========================================
-    // H. 【全新改版】：簡易報修確認表單控制 (對接報修系統)
+    // I. 報修確認表單控制 (對接公司報修系統)
     // ==========================================
     function openTicketModalPreview() {
       const now = new Date();
-      // 生成當前精準時間：YYYY-MM-DD HH:mm:ss
       const currentTimeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
 
-      // 1. 自動代入公司名稱
       document.getElementById('simple_company').value = currentUser.company || '威策電腦';
-      // 2. 自動代入管轄單位 / 院區 / 分公司 / 廠別
       document.getElementById('simple_jurisdiction').value = currentUser.jurisdiction || currentUser.dept || '全院/總公司';
-      // 3. 自動代入姓名
       document.getElementById('simple_name').value = currentUser.name || '';
-      // 4. 自動代入聯絡電話
       document.getElementById('simple_phone').value = currentUser.phone || '';
-      // 5. 自動代入 Email
       document.getElementById('simple_email').value = currentUser.email || '';
-      // 6. 自動代入當下報修時間
       document.getElementById('simple_call_time').value = currentTimeStr;
-      // 7. 自動代入或提供輸入所在位置
       document.getElementById('simple_location').value = inquiryContext.location || '';
 
-      // 組裝問題與排除歷程摘要
       const suppText = inquiryContext.supplementaryInfo.length > 0 ? inquiryContext.supplementaryInfo.join('；') : '無額外補充';
       const stepsText = inquiryContext.suggestedSteps.length > 0 ? inquiryContext.suggestedSteps.map((s, idx) => `  ${idx + 1}. ${s}`).join('\n') : '  未執行排查 (直接報修)';
       const failReason = inquiryContext.unresolvedReason || '依序嘗試排查測試後問題仍未解決';
@@ -1678,7 +1768,6 @@ ${stepsText}
         window.logChatToSupabase('ai', `報修案件建立完成：${ticketPayload.service_id} (位置: ${ticketPayload.location})`);
         window.speak("報修案件已成功建立，工程師已接收通知，將儘速聯絡您！");
         
-        // 刷新後台報修案件清單
         if (typeof window.fetchTicketsFromSupabase === 'function') {
           window.fetchTicketsFromSupabase();
         }
@@ -1694,7 +1783,7 @@ ${stepsText}
     };
 
     // ==========================================
-    // I. 後台管理與資料表讀取
+    // J. 註冊、後台管理與資料表讀取
     // ==========================================
     window.handleRegisterSubmit = async function(e) {
       e.preventDefault();
@@ -2154,7 +2243,6 @@ ${stepsText}
       }
     };
 
-    // 讀取獨立的 tickets 報修案件表單 (支援全新簡化欄位呈顯)
     window.fetchTicketsFromSupabase = async function() {
       if (!supabaseClient) return;
       const c = document.getElementById('ticketsLogContainer');
@@ -2207,7 +2295,6 @@ ${stepsText}
       }
     };
 
-    // 讀取獨立的 chat_logs 對話歷程
     window.fetchChatLogsFromSupabase = async function() {
       if (!supabaseClient) return;
       const c = document.getElementById('chatLogsContainer');
