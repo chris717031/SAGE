@@ -27,18 +27,6 @@
       background-size: contain;
     }
 
-    .ticket-table td, .ticket-table th {
-      border: 1px solid #475569;
-      padding: 4px 6px;
-      font-size: 11px;
-    }
-    .ticket-table th {
-      background-color: #f1f5f9;
-      color: #0f172a;
-      text-align: left;
-      font-weight: 600;
-    }
-
     @keyframes micPulse {
       0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
       70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
@@ -340,7 +328,7 @@
 
   </main>
 
-  <!-- 4. 變更密碼 Modal (強化複雜性規範校驗) -->
+  <!-- 4. 變更密碼 Modal -->
   <div id="changePwdModal" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-white text-slate-800 w-full max-w-sm rounded-2xl p-5 shadow-2xl border border-slate-200 my-auto">
       <div class="flex justify-between items-center mb-2.5 border-b border-slate-200 pb-2">
@@ -353,7 +341,6 @@
         為保障帳號資安，首次登入必須設定符合企業資安規範之新密碼！
       </div>
 
-      <!-- 密碼複雜度指示清單 -->
       <div class="mb-3 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] space-y-1">
         <p class="font-bold text-slate-700 mb-1">密碼複雜度要求（四項皆需符合）：</p>
         <div id="rule-len" class="text-slate-500 flex items-center gap-1.5 transition">
@@ -397,146 +384,93 @@
     </div>
   </div>
 
-  <!-- 5. 威策電腦叫修表單確認 Modal -->
-  <div id="ticketModal" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-    <div class="bg-white text-slate-900 w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
-      <div class="bg-[#10183d] text-white px-4 py-2.5 flex justify-between items-center shrink-0">
+  <!-- ======================================================== -->
+  <!-- 5. 全新簡潔報修表單確認 Modal (直接對接公司報修系統)        -->
+  <!-- ======================================================== -->
+  <div id="ticketModal" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white text-slate-900 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto border border-slate-200">
+      
+      <!-- 標頭 -->
+      <div class="bg-[#10183d] text-white px-5 py-3.5 flex justify-between items-center shrink-0">
         <div class="flex items-center space-x-2">
-          <span class="text-amber-400 font-bold">⚠️ 案件建立前確認</span>
-          <span class="text-xs text-slate-300">請檢閱並確認以下報修資訊是否完整</span>
+          <span class="text-xl">🎫</span>
+          <div>
+            <h3 class="text-sm font-bold text-white tracking-wide">建立報修案件確認</h3>
+            <p class="text-[11px] text-sky-200">請檢閱並確認報修資訊，確認後將同步建立案件記錄</p>
+          </div>
         </div>
         <button onclick="closeTicketModal()" class="text-slate-400 hover:text-white text-base">✕</button>
       </div>
 
-      <div class="p-4 overflow-y-auto flex-1 text-slate-800">
-        <table class="w-full ticket-table border-collapse border border-slate-700">
-          <tbody>
-            <tr>
-              <th class="w-20">服務編號</th>
-              <td id="m_service_id" class="font-mono font-bold text-indigo-900">--</td>
-              <td colspan="2"></td>
-            </tr>
-            <tr>
-              <th>普查編號</th>
-              <td><input id="m_census_id" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" placeholder="選填"></td>
-              <th class="w-20">財產編號</th>
-              <td><input id="m_asset_id" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" placeholder="選填"></td>
-            </tr>
-            <tr>
-              <th>電腦名稱</th>
-              <td><input id="m_pc_name" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" value="PC-WORKSTATION-01"></td>
-              <th>資產狀況</th>
-              <td><input id="m_asset_status" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" value="使用中"></td>
-            </tr>
-            <tr>
-              <th>客戶</th>
-              <td id="m_client_name" class="font-bold">--</td>
-              <th>電話</th>
-              <td><input id="m_phone" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded"></td>
-            </tr>
-            <tr>
-              <th>廠別/單位</th>
-              <td colspan="3" id="m_plant" class="font-medium">--</td>
-            </tr>
-            <tr>
-              <th>部門</th>
-              <td colspan="3"><input id="m_dept" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded"></td>
-            </tr>
-            <tr>
-              <th>位置</th>
-              <td><input id="m_location" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" placeholder="例：3F 辦公室"></td>
-              <th>BU</th>
-              <td><input id="m_bu" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" placeholder="例：維護服務處"></td>
-            </tr>
-            <tr>
-              <th>Cost Center</th>
-              <td><input id="m_cost_center" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" placeholder="選填"></td>
-              <td colspan="2" class="text-right text-slate-500">預計到達 / 預計處理 <span class="font-bold text-slate-800">30 min</span></td>
-            </tr>
-            <tr>
-              <th>Email</th>
-              <td colspan="3" id="m_email">--</td>
-            </tr>
-            <tr>
-              <th>地址</th>
-              <td colspan="3">
-                <input id="m_address" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" placeholder="請填寫設備所在詳細地址 / 樓層診間室號">
-              </td>
-            </tr>
-            <tr>
-              <th>機型/系統</th>
-              <td><input id="m_model" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" placeholder="例：HIS 門診系統 / HP LaserJet"></td>
-              <th>叫修時間</th>
-              <td id="m_call_time" class="font-mono">--</td>
-            </tr>
-            <tr>
-              <th>機號/序號</th>
-              <td><input id="m_sn" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" placeholder="選填"></td>
-              <th>到達時間</th>
-              <td>--:--</td>
-            </tr>
-            <tr>
-              <td colspan="2">
-                <span class="mr-2">合約: <b>● Y ○ N</b></span>
-                <span>現場叫修: <b>○ Y ● N</b></span>
-              </td>
-              <th>完修時間</th>
-              <td>--:--</td>
-            </tr>
-            <tr>
-              <th colspan="4" class="text-center bg-slate-200 font-bold">問題完整說明 (含脈絡、已嘗試步驟與未排除原因)</th>
-            </tr>
-            <tr>
-              <td colspan="4">
-                <textarea id="m_problem" rows="7" class="w-full bg-amber-50/60 border border-slate-300 rounded p-1.5 text-xs leading-relaxed focus:outline-none font-sans"></textarea>
-              </td>
-            </tr>
-            <tr>
-              <th colspan="4" class="text-center bg-slate-200">解決方式 (外派工程師現場填寫)</th>
-            </tr>
-            <tr>
-              <td colspan="4">
-                <textarea id="m_solution" rows="2" class="w-full bg-slate-50 border border-slate-300 rounded p-1 text-xs focus:outline-none" placeholder="待到場工程師處置後填寫..."></textarea>
-              </td>
-            </tr>
-            <tr>
-              <th>其它</th>
-              <td colspan="3">
-                <div class="flex items-center space-x-2 text-[10px]">
-                  <span class="font-bold">[一般處理]</span>
-                  <label><input type="checkbox"> 保養案件</label>
-                  <label><input type="checkbox"> 派工案件</label>
-                  <label class="font-bold text-indigo-900"><input type="checkbox" checked> 外派案件</label>
-                  <label><input type="checkbox"> 不需要收費</label>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <th>備註</th>
-              <td colspan="3"><input id="m_remark" type="text" class="w-full bg-slate-50 border border-slate-300 px-1 py-0.5 rounded" value="小威 IT 助手逐步引導測試未果自動建單"></td>
-            </tr>
-            <tr>
-              <th>工程師</th>
-              <td>Jady.Lin (調度指派中)</td>
-              <th>重要性</th>
-              <td id="m_urgency_display"><span class="px-2 py-0.5 bg-amber-100 text-amber-900 font-bold rounded">P2 一般</span></td>
-            </tr>
-            <tr>
-              <th>狀態</th>
-              <td colspan="3" class="font-bold text-sky-800">叫修資料確認</td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- 表單內容 (簡潔 7 大欄位 + 排查摘要) -->
+      <div class="p-5 overflow-y-auto flex-1 space-y-3.5 text-xs">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- 1. 客戶公司名稱 -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">客戶公司名稱</label>
+            <input type="text" id="simple_company" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-slate-700 font-medium">
+          </div>
+          <!-- 2. 管轄單位 / 院區 / 分公司 / 廠別 -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">管轄單位 / 院區 / 分公司 / 廠別</label>
+            <input type="text" id="simple_jurisdiction" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-indigo-900 font-bold">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <!-- 3. 姓名 -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">報修同仁姓名</label>
+            <input type="text" id="simple_name" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-slate-700 font-medium">
+          </div>
+          <!-- 4. 聯絡電話 -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">聯絡電話 / 分機 <span class="text-rose-500">*</span></label>
+            <input type="text" id="simple_phone" required class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-indigo-600">
+          </div>
+          <!-- 5. 電子信箱 -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">電子信箱 (Email)</label>
+            <input type="email" id="simple_email" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-slate-700">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- 6. 報修時間 (自動代入當下時間) -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">報修時間 (系統當前時間)</label>
+            <div class="relative">
+              <input type="text" id="simple_call_time" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 text-indigo-950 font-mono font-bold">
+              <span class="absolute right-2.5 top-2 text-slate-400 text-xs">🕒</span>
+            </div>
+          </div>
+          <!-- 7. 所在位置 (使用者可填入詳細診間或樓層) -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">所在位置 (樓層 / 診間 / 座位) <span class="text-rose-500">*</span></label>
+            <input type="text" id="simple_location" required placeholder="例：3F 門診第 5 診間、資訊大樓 2F 辦公室" 
+                   class="w-full bg-amber-50/60 border border-amber-300 rounded-lg px-3 py-2 text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-indigo-600">
+          </div>
+        </div>
+
+        <!-- 8. 問題說明與小威排查歷程 -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">報修問題描述與已測試排除紀錄</label>
+          <textarea id="simple_problem" rows="4" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs text-slate-800 leading-relaxed font-sans focus:outline-none"></textarea>
+        </div>
+
       </div>
 
-      <div class="bg-slate-100 px-4 py-3 border-t border-slate-200 flex justify-end space-x-3 shrink-0">
-        <button onclick="closeTicketModal()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-200 text-xs font-medium">
-          返回對話
+      <!-- 操作按鈕 -->
+      <div class="bg-slate-50 px-5 py-3 border-t border-slate-200 flex justify-end space-x-3 shrink-0">
+        <button onclick="closeTicketModal()" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-200 text-xs font-medium transition">
+          返回排查
         </button>
-        <button onclick="confirmSubmitTicket()" id="btnConfirmTicket" class="px-5 py-2 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-white rounded-lg text-xs font-bold shadow-md">
-          ✅ 確認無誤，寫入 Supabase 案件表單
+        <button onclick="confirmSubmitTicket()" id="btnConfirmTicket" class="px-5 py-2 bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-1.5">
+          <span>✅</span> 確認送出並建立案件
         </button>
       </div>
+
     </div>
   </div>
 
@@ -611,7 +545,7 @@
     </div>
   </div>
 
-  <!-- 7. 核心 JavaScript (嚴格複雜性密碼檢驗 + 人性化語意 + 逐步排查) -->
+  <!-- 7. 核心 JavaScript (整合全新簡報修單、自動代入註冊資訊與當下時間) -->
   <script>
     // ==========================================
     // A. 頂置全域語音宣告
@@ -984,7 +918,6 @@
           window.speak(hello, () => window.startListening());
         }
 
-        // 【安全規範】：新用戶預設密碼 123456 強制攔截變更密碼
         if (user.password === '123456') {
           setTimeout(() => {
             window.openChangePasswordModal(true);
@@ -1118,9 +1051,8 @@
     };
 
     // ==========================================
-    // E. 密碼複雜度驗證邏輯與視覺提示
+    // E. 密碼複雜度驗證邏輯
     // ==========================================
-    // 密碼複雜性檢測器：驗證長度與四大類型
     function evaluatePasswordComplexity(pwd) {
       return {
         length: pwd.length >= 8,
@@ -1199,7 +1131,6 @@
         return;
       }
 
-      // 【核心校驗】：符合長度8碼與四項規範
       const c = evaluatePasswordComplexity(p1);
       const errors = [];
       if (!c.length) errors.push("・長度至少需為 8 個字元");
@@ -1443,10 +1374,10 @@
       const isSevereHardware = (q.includes('冒煙') || q.includes('焦味') || q.includes('斷掉') || q.includes('摔壞') || q.includes('燒掉') || q.includes('直接派工') || q.includes('報修就好'));
       if (isSevereHardware) {
         inquiryContext.unresolvedReason = `硬體嚴重異常/要求直接派修：${q}`;
-        const urgentMsg = `收到！偵測到可能為硬體嚴重異常或零件損毀。小威已為您自動彙整並產生【報修案件表單】，請點擊下方預覽確認建立！`;
+        const urgentMsg = `收到！偵測到可能為硬體嚴重異常或零件損毀。小威已為您自動彙整並產生【報修確認表單】，請點擊下方確認送出建立案件！`;
         window.appendUserChat('ai', urgentMsg);
         window.logChatToSupabase('ai', urgentMsg);
-        window.speak("偵測到硬體嚴重狀況，已為您直接整理報修案件表單。");
+        window.speak("偵測到硬體嚴重狀況，已為您直接整理報修確認表單。");
         setTimeout(() => openTicketModalPreview(), 400);
         return;
       }
@@ -1513,7 +1444,7 @@
       if (turnCount >= MAX_TURNS || !sop) {
         const reason = turnCount >= MAX_TURNS ? "已排查達 5 輪上限" : "知識庫無直接相符條目";
         inquiryContext.unresolvedReason = reason;
-        const msg = `小威評估此問題需要工程師現場/遠端協助處理 (${reason})。我已完整彙整您剛才提供的脈絡與設備資訊，請檢閱下方【報修案件表單】：`;
+        const msg = `小威評估此問題需要工程師現場/遠端協助處理 (${reason})。我已為您整理好【報修確認表單】，請檢閱送出建立案件：`;
         window.appendUserChat('ai', msg, false);
         window.logChatToSupabase('ai', msg);
         window.speak(msg);
@@ -1583,7 +1514,7 @@
           }, 350);
         } else {
           inquiryContext.unresolvedReason = `已依序執行全部 ${activeGuidance.steps.length} 項排查步驟均未能排除故障`;
-          const allExhaustedMsg = `針對此問題的所有標準排查步驟均已嘗試完畢，仍無法恢復正常。小威已自動將所有測試歷程完整彙整至【報修案件表單】，請點擊下方預覽確認送出！`;
+          const allExhaustedMsg = `針對此問題的所有標準排查步驟均已嘗試完畢，仍無法恢復正常。小威已自動將所有測試歷程完整彙整至【報修確認表單】，請點擊下方預覽確認送出！`;
           window.appendUserChat('ai', allExhaustedMsg, false);
           window.logChatToSupabase('ai', allExhaustedMsg);
           window.speak("所有測試步驟均已嘗試完畢，正為您產出報修案件。");
@@ -1628,59 +1559,47 @@
     }
 
     // ==========================================
-    // H. 報修工單建立與確認
+    // H. 【全新改版】：簡易報修確認表單控制 (對接報修系統)
     // ==========================================
     function openTicketModalPreview() {
       const now = new Date();
-      const sId = now.getFullYear().toString() + 
-                  String(now.getMonth() + 1).padStart(2, '0') + 
-                  String(now.getDate()).padStart(2, '0') + 
-                  String(now.getHours()).padStart(2, '0') + 
-                  String(now.getMinutes()).padStart(2, '0') + 
-                  String(now.getSeconds()).padStart(2, '0').slice(-2);
+      // 生成當前精準時間：YYYY-MM-DD HH:mm:ss
+      const currentTimeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
 
-      document.getElementById('m_service_id').innerText = sId;
-      document.getElementById('m_client_name').innerText = currentUser.name;
-      document.getElementById('m_phone').value = currentUser.phone || '';
-      document.getElementById('m_plant').innerText = `${currentUser.company || ''} ${currentUser.jurisdiction || ''}`;
-      document.getElementById('m_dept').value = currentUser.dept || '';
-      document.getElementById('m_email').innerText = currentUser.email || '';
-      document.getElementById('m_call_time').innerText = inquiryContext.startTime || `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      // 1. 自動代入公司名稱
+      document.getElementById('simple_company').value = currentUser.company || '威策電腦';
+      // 2. 自動代入管轄單位 / 院區 / 分公司 / 廠別
+      document.getElementById('simple_jurisdiction').value = currentUser.jurisdiction || currentUser.dept || '全院/總公司';
+      // 3. 自動代入姓名
+      document.getElementById('simple_name').value = currentUser.name || '';
+      // 4. 自動代入聯絡電話
+      document.getElementById('simple_phone').value = currentUser.phone || '';
+      // 5. 自動代入 Email
+      document.getElementById('simple_email').value = currentUser.email || '';
+      // 6. 自動代入當下報修時間
+      document.getElementById('simple_call_time').value = currentTimeStr;
+      // 7. 自動代入或提供輸入所在位置
+      document.getElementById('simple_location').value = inquiryContext.location || '';
 
-      document.getElementById('m_address').value = '';
-
-      if (inquiryContext.location) {
-        document.getElementById('m_location').value = inquiryContext.location;
-      }
-
-      const matchedTitle = inquiryContext.matchedSop ? inquiryContext.matchedSop.title : '';
-      document.getElementById('m_model').value = inquiryContext.deviceOrSystem || matchedTitle || '一般主機/系統';
-
-      const urgencyVal = inquiryContext.matchedSop ? (inquiryContext.matchedSop.urgency || 'P2') : 'P2';
-      document.getElementById('m_urgency_display').innerHTML = `<span class="px-2 py-0.5 ${urgencyVal === 'P1' ? 'bg-rose-100 text-rose-900' : 'bg-amber-100 text-amber-900'} font-bold rounded">${urgencyVal}</span>`;
-
+      // 組裝問題與排除歷程摘要
       const suppText = inquiryContext.supplementaryInfo.length > 0 ? inquiryContext.supplementaryInfo.join('；') : '無額外補充';
-      const stepsText = inquiryContext.suggestedSteps.length > 0 ? inquiryContext.suggestedSteps.map((s, idx) => `  ${idx + 1}. ${s}`).join('\n') : '  無 (直接派工)';
+      const stepsText = inquiryContext.suggestedSteps.length > 0 ? inquiryContext.suggestedSteps.map((s, idx) => `  ${idx + 1}. ${s}`).join('\n') : '  未執行排查 (直接報修)';
       const failReason = inquiryContext.unresolvedReason || '依序嘗試排查測試後問題仍未解決';
+      const matchedTitle = inquiryContext.matchedSop ? inquiryContext.matchedSop.title : (inquiryContext.deviceOrSystem || '設備障礙');
 
-      let problemFullText = `【問題摘要】：${inquiryContext.originalProblem || '設備障礙報修'}
-【發生時間】：${document.getElementById('m_call_time').innerText}
-【影響範圍】：${inquiryContext.impactScope}
-【設備／系統】：${inquiryContext.deviceOrSystem || matchedTitle || '未指定'}
-【故障現象細節】：
-  - 使用者原始描述：${inquiryContext.originalProblem}
-  - 歷程補充說明：${suppText}
-  - 錯誤訊息/代碼：${inquiryContext.errorCode || '無特別標記'}
+      let problemFullText = `【報修設備/項目】：${matchedTitle}
+【使用者問題描述】：${inquiryContext.originalProblem || '設備故障報修'}
+【歷程補充說明】：${suppText}
 【已執行排查測試歷程】：
 ${stepsText}
-【未排除／轉單原因】：${failReason}
+【轉單/未排除原因】：${failReason}
 【關聯對話 Session】：${currentSessionId}`;
 
       if (uploadedImageBase64) {
-        problemFullText += `\n【現場照片紀錄】：使用者已於前端拍照上傳障礙照片`;
+        problemFullText += `\n【現場照片紀錄】：同仁已於前端拍照上傳障礙照片`;
       }
 
-      document.getElementById('m_problem').value = problemFullText;
+      document.getElementById('simple_problem').value = problemFullText;
       document.getElementById('ticketModal').classList.remove('hidden');
     }
 
@@ -1695,29 +1614,51 @@ ${stepsText}
         return;
       }
 
+      const locationVal = document.getElementById('simple_location').value.trim();
+      const phoneVal = document.getElementById('simple_phone').value.trim();
+
+      if (!locationVal) {
+        alert("請填寫【所在位置】(例如：3F 門診第 5 診間)，以利工程師快速到場！");
+        document.getElementById('simple_location').focus();
+        return;
+      }
+      if (!phoneVal) {
+        alert("請填寫【聯絡電話 / 分機】，以利工程師回電聯繫！");
+        document.getElementById('simple_phone').focus();
+        return;
+      }
+
       const confirmBtn = document.getElementById('btnConfirmTicket');
       if (confirmBtn) {
-        confirmBtn.innerText = "寫入案件表單中...";
+        confirmBtn.innerText = "寫入報修案件中...";
         confirmBtn.disabled = true;
       }
 
+      const now = new Date();
+      const sId = 'TK-' + now.getFullYear().toString() + 
+                  String(now.getMonth() + 1).padStart(2, '0') + 
+                  String(now.getDate()).padStart(2, '0') + 
+                  String(now.getHours()).padStart(2, '0') + 
+                  String(now.getMinutes()).padStart(2, '0') + 
+                  String(now.getSeconds()).padStart(2, '0').slice(-2);
+
       const ticketPayload = {
-        service_id: document.getElementById('m_service_id').innerText,
+        service_id: sId,
         user_id: (currentUser.id && currentUser.id !== 'admin-master') ? currentUser.id : null,
-        client_name: currentUser.name,
-        phone: document.getElementById('m_phone').value,
-        company_plant: `${currentUser.company || ''} ${currentUser.jurisdiction || ''}`.trim(),
-        department: document.getElementById('m_dept').value,
-        location: document.getElementById('m_location').value || "辦公室",
-        bu: document.getElementById('m_bu').value || "資訊服務處",
-        cost_center: document.getElementById('m_cost_center').value || "",
-        email: currentUser.email,
-        address: document.getElementById('m_address').value.trim() || "",
-        device_model: document.getElementById('m_model').value || "一般主機",
-        device_sn: document.getElementById('m_sn').value || "",
-        call_time: document.getElementById('m_call_time').innerText,
-        problem_description: document.getElementById('m_problem').value,
-        solution: document.getElementById('m_solution').value || "",
+        client_name: document.getElementById('simple_name').value,
+        phone: phoneVal,
+        company_plant: `${document.getElementById('simple_company').value} (${document.getElementById('simple_jurisdiction').value})`,
+        department: currentUser.dept || '',
+        location: locationVal,
+        bu: "資訊服務處",
+        cost_center: "",
+        email: document.getElementById('simple_email').value,
+        address: locationVal,
+        device_model: inquiryContext.deviceOrSystem || (inquiryContext.matchedSop ? inquiryContext.matchedSop.title : '一般主機'),
+        device_sn: "",
+        call_time: document.getElementById('simple_call_time').value,
+        problem_description: document.getElementById('simple_problem').value,
+        solution: "",
         dispatch_type: "外派案件",
         status: "叫修資料確認",
         engineer: "Jady.Lin (調度指派中)",
@@ -1732,23 +1673,28 @@ ${stepsText}
         if (error) throw error;
 
         window.closeTicketModal();
-        const successMsg = `🎉 <b>報修案件已成功寫入 tickets 資料表！</b><br>服務編號：<span class="font-mono text-indigo-900 font-bold">${ticketPayload.service_id}</span><br>完整逐步測試歷程已獨立存檔，工程師將主動聯絡您！`;
+        const successMsg = `🎉 <b>報修案件已成功建立！</b><br>服務編號：<span class="font-mono text-indigo-900 font-bold">${ticketPayload.service_id}</span><br>報修時間：<span class="font-mono font-medium">${ticketPayload.call_time}</span><br>所在位置：${ticketPayload.location}<br>案件資料已自動同步至報修清單，維護工程師已收到通報並將主動與您聯繫！`;
         window.appendUserChat('ai', successMsg);
-        window.logChatToSupabase('ai', `報修工單建立完成：${ticketPayload.service_id}`);
+        window.logChatToSupabase('ai', `報修案件建立完成：${ticketPayload.service_id} (位置: ${ticketPayload.location})`);
         window.speak("報修案件已成功建立，工程師已接收通知，將儘速聯絡您！");
+        
+        // 刷新後台報修案件清單
+        if (typeof window.fetchTicketsFromSupabase === 'function') {
+          window.fetchTicketsFromSupabase();
+        }
       } catch (err) {
         console.error("建單錯誤:", err);
         alert("工單寫入 Supabase 失敗：" + err.message);
       } finally {
         if (confirmBtn) {
-          confirmBtn.innerText = "✅ 確認無誤，寫入 Supabase 案件表單";
+          confirmBtn.innerText = "✅ 確認送出並建立案件";
           confirmBtn.disabled = false;
         }
       }
     };
 
     // ==========================================
-    // I. 後台管理與自主學習增補
+    // I. 後台管理與資料表讀取
     // ==========================================
     window.handleRegisterSubmit = async function(e) {
       e.preventDefault();
@@ -2208,6 +2154,7 @@ ${stepsText}
       }
     };
 
+    // 讀取獨立的 tickets 報修案件表單 (支援全新簡化欄位呈顯)
     window.fetchTicketsFromSupabase = async function() {
       if (!supabaseClient) return;
       const c = document.getElementById('ticketsLogContainer');
@@ -2232,17 +2179,25 @@ ${stepsText}
 
         data.forEach(t => {
           const item = document.createElement('div');
-          item.className = "p-3 bg-slate-800 border border-slate-700 rounded-xl space-y-1";
+          item.className = "p-3.5 bg-slate-800 border border-slate-700 rounded-xl space-y-2 hover:border-slate-600 transition";
           item.innerHTML = `
-            <div class="flex justify-between font-bold text-sky-300">
-              <span>單號：${t.service_id} (${t.company_plant || ''} - ${t.client_name})</span>
-              <span class="text-amber-400 font-mono">${t.status}</span>
+            <div class="flex justify-between items-start font-bold text-sky-300">
+              <div>
+                <span class="text-amber-400 font-mono text-sm">${t.service_id}</span>
+                <span class="text-white ml-1.5">${t.client_name}</span>
+                <span class="text-slate-400 text-xs font-normal">(${t.company_plant || ''})</span>
+              </div>
+              <span class="px-2 py-0.5 bg-indigo-900/80 border border-indigo-400 text-indigo-200 text-[10px] rounded-full">${t.status}</span>
             </div>
-            <div class="text-[11px] text-slate-300 whitespace-pre-line bg-slate-900/60 p-2 rounded mt-1 font-mono">${t.problem_description || '無詳細說明'}</div>
-            <div class="text-[10px] text-slate-400 flex justify-between pt-1 border-t border-slate-700/60 mt-1">
-              <span>電話：${t.phone || '無'}</span>
-              <span>地址/位置：${t.location || ''} ${t.address || ''}</span>
-              <span>叫修時間：${t.call_time}</span>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-1.5 text-[11px] text-slate-300 bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+              <div><span class="text-slate-400">🕒 報修時間：</span>${t.call_time}</div>
+              <div><span class="text-slate-400">📍 所在位置：</span><span class="font-bold text-amber-300">${t.location || t.address || '未填寫'}</span></div>
+              <div><span class="text-slate-400">📞 電話/Email：</span>${t.phone || '無'} / ${t.email || ''}</div>
+            </div>
+
+            <div class="text-[11px] text-slate-200 whitespace-pre-line bg-slate-900/40 p-2.5 rounded-lg border border-slate-700/30 leading-relaxed">
+              <span class="font-bold text-sky-400">📋 故障與測試歷程：</span><br>${t.problem_description || '無詳細說明'}
             </div>
           `;
           c.appendChild(item);
@@ -2252,6 +2207,7 @@ ${stepsText}
       }
     };
 
+    // 讀取獨立的 chat_logs 對話歷程
     window.fetchChatLogsFromSupabase = async function() {
       if (!supabaseClient) return;
       const c = document.getElementById('chatLogsContainer');
@@ -2345,7 +2301,7 @@ ${stepsText}
         window.updateTurnUI();
 
         setTimeout(() => {
-          const aiAnalysisText = "小威已接收到您上傳的設備照片！系統初步診斷顯示燈號或螢幕畫面有異常狀況。建議先確認後方連接線路是否牢固；若持續無法使用，請點選下方按鈕直接為您送出叫修單！";
+          const aiAnalysisText = "小威已接收到您上傳的設備照片！系統初步診斷顯示燈號或螢幕畫面有異常狀況。建議先確認後方連接線路是否牢固；若持續無法使用，請點選下方按鈕直接為您送出報修單！";
           window.appendUserChat('ai', aiAnalysisText, true);
           window.logChatToSupabase('ai', aiAnalysisText);
           if (typeof window.speak === 'function') {
