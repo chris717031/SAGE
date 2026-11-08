@@ -121,11 +121,11 @@
     </div>
 
     <div class="flex items-center space-x-1.5">
-      <button onclick="promptConfigureGeminiKey()" class="text-[10px] bg-indigo-900/90 hover:bg-indigo-800 border border-indigo-400/50 text-indigo-200 px-2.5 py-0.5 rounded-full transition flex items-center gap-1">
-        <span>✨</span> Gemini AI
+      <button onclick="promptConfigureGroqKey()" class="text-[10px] bg-amber-900/80 hover:bg-amber-800 border border-amber-400/50 text-amber-200 px-2.5 py-0.5 rounded-full transition flex items-center gap-1">
+        <span>⚡</span> Groq AI 設定
       </button>
       <span id="supabaseStatusBadge" class="text-[9px] bg-emerald-950 text-emerald-300 border border-emerald-600/50 px-2 py-0.5 rounded-full">
-        ● Supabase + Gemini 連線中
+        ● Supabase + Groq 連線中
       </span>
       <button id="changePwdBtn" onclick="openChangePasswordModal(false)" class="hidden px-2 py-1 bg-indigo-900/80 hover:bg-indigo-800 border border-indigo-400/40 rounded text-indigo-200 text-xs transition">
         🔑 變更密碼
@@ -244,7 +244,7 @@
       </div>
     </section>
 
-    <!-- 2. 使用者介面：交談視窗內走動、表情生動的小男孩（小威）工作區 -->
+    <!-- 2. 使用者介面：交談視窗內走動的小男孩（小威）工作區 -->
     <section id="userSection" class="hidden absolute inset-0 flex flex-col bg-white text-slate-800 overflow-hidden">
       
       <!-- 頂部排查狀態條 -->
@@ -254,9 +254,9 @@
           <span id="turnCounterBadge" class="text-[10px] bg-[#10183d] text-white px-1.5 py-0.2 rounded font-mono">
             追問: 0/5 輪
           </span>
-          <span class="text-[10px] bg-indigo-100 text-indigo-900 border border-indigo-300 px-1.5 py-0.2 rounded font-medium flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span>
-            Supabase + Gemini Flash
+          <span class="text-[10px] bg-amber-100 text-amber-950 border border-amber-300 px-1.5 py-0.2 rounded font-medium flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            Supabase + Groq LPU
           </span>
         </span>
         <button onclick="toggleVoiceOutput()" id="voiceToggleBtn" class="text-[10px] bg-indigo-900 text-white px-2.5 py-0.5 rounded-full shadow-sm">
@@ -416,7 +416,7 @@
           </button>
 
           <div class="flex-1">
-            <input id="userMsgInput" type="text" placeholder="告訴小威問題 (例：不能開機、印表機卡紙、HIS當機、什麼是dns)..."
+            <input id="userMsgInput" type="text" placeholder="告訴小威問題 (例：不能開機、印表機卡紙、HIS當機、什麼是DNS)..."
                    class="w-full bg-slate-100 text-slate-800 text-sm rounded-full px-3.5 py-2 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-600"
                    onfocus="handleInputFocused(true)" onblur="handleInputFocused(false)"
                    onkeypress="if(event.key==='Enter') handleUserSend()">
@@ -721,34 +721,33 @@
     </div>
   </div>
 
-  <!-- 7. 核心 JavaScript (注入專屬 Gemini Flash API Key) -->
+  <!-- 7. 核心 JavaScript (正宗小男生聲音 + Groq Cloud LPU AI 核心) -->
   <script>
     // ==========================================
-    // A. Google Gemini 1.5/2.5 Flash API 設定與連線模組
+    // A. Groq Cloud LPU AI 核心連線模組 (Llama-3.3-70B)
     // ==========================================
-    // 已直接設定您提供的 Gemini API Key 作為系統預設值
-    const DEFAULT_GEMINI_API_KEY = 'AQ.Ab8RN6LIEAF7A_2HN0eJYxLS3Ud39MHNDeHdf6dUxGPflfY7tw';
+    const DEFAULT_GROQ_API_KEY = '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';
 
-    window.getGeminiApiKey = function() {
-      const stored = localStorage.getItem('welltake_gemini_api_key');
+    window.getGroqApiKey = function() {
+      const stored = localStorage.getItem('welltake_groq_api_key');
       if (stored && stored.trim().length > 0) return stored.trim();
-      return DEFAULT_GEMINI_API_KEY;
+      return DEFAULT_GROQ_API_KEY;
     };
 
-    window.promptConfigureGeminiKey = function() {
-      const current = window.getGeminiApiKey();
-      const input = prompt("【Google Gemini Flash 免費 API Key 設定】\n如需替換金鑰，請貼上新的 API Key（預設已載入您的專屬 Key）：", current || '');
+    window.promptConfigureGroqKey = function() {
+      const current = window.getGroqApiKey();
+      const input = prompt("【Groq Cloud AI 設定】\n如需替換金鑰，請輸入新的 API Key（預設已載入您的專屬 Key）：", current || '');
       if (input !== null) {
-        localStorage.setItem('welltake_gemini_api_key', input.trim());
-        alert("✅ Gemini API Key 已更新並儲存於本機瀏覽器！");
+        localStorage.setItem('welltake_groq_api_key', input.trim());
+        alert("✅ Groq API Key 已成功儲存！");
       }
     };
 
-    async function callGeminiFlashAI(query, isDef = false) {
-      const apiKey = window.getGeminiApiKey();
+    async function callGroqAI(query, isDef = false) {
+      const apiKey = window.getGroqApiKey();
       if (!apiKey) return null;
 
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const endpoint = "https://api.groq.com/openai/v1/chat/completions";
 
       const systemPrompt = `你是一位熱心、專業、親切的企業與醫療 IT 維護小幫手「小威」，講話口吻活潑清脆、充滿耐心。
 使用者向你詢問了一個問題，但內部標準知識庫暫無此專屬條目。請針對使用者的問題提供專業解答：
@@ -764,42 +763,42 @@
 4. 【嚴格禁止】：絕不要輸出任何外部網頁超連結或叫使用者去點外部網站，請直接在回答中給出排查解答。`;
 
       const requestBody = {
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: `${systemPrompt}\n\n使用者提問：${query}` }]
-          }
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: query }
         ],
-        generationConfig: {
-          temperature: 0.35,
-          maxOutputTokens: 800
-        }
+        temperature: 0.35,
+        max_tokens: 800
       };
 
       try {
         const res = await fetch(endpoint, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json"
+          },
           body: JSON.stringify(requestBody)
         });
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
-          console.warn("Gemini Flash 請求失敗:", errData);
+          console.warn("Groq 請求失敗:", errData);
           throw new Error(errData.error?.message || `HTTP ${res.status}`);
         }
 
         const data = await res.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        const text = data.choices?.[0]?.message?.content;
         return text ? text.trim() : null;
       } catch (err) {
-        console.error("Gemini Flash 服務異常:", err);
+        console.error("Groq AI 服務異常:", err);
         return null;
       }
     }
 
     // ==========================================
-    // B. 語音核心宣告：精準小男生活潑稚嫩童音
+    // B. 語音核心宣告：精選正宗「男童 / 青年男聲」音質
     // ==========================================
     let isVoiceEnabled = true;
     let recognition = null;
@@ -817,15 +816,30 @@
       window.speechSynthesis.onvoiceschanged = loadVoices;
     }
 
+    // 智能鎖定正宗男聲核心（排除 HsiaoChen、Yating、MeiJia 等女聲）
     function pickBoyVoice() {
       if (!availableVoices || availableVoices.length === 0) loadVoices();
-      const preferred = availableVoices.find(v => 
-        (v.lang === 'zh-TW' || v.lang === 'zh-HK' || v.lang.startsWith('zh')) &&
-        (v.name.includes('HsiaoChen') || v.name.includes('Yating') || v.name.includes('Mei-Jia') || v.name.includes('Natural') || v.name.includes('Google'))
+      
+      // 1. 優先尋找 Microsoft Yunxi（微軟官方正宗小男孩音）
+      const boyVoice = availableVoices.find(v => 
+        v.name.includes('Yunxi') || v.name.includes('Kangkang') || v.name.includes('Danny')
       );
-      if (preferred) return preferred;
-      const anyZh = availableVoices.find(v => v.lang.includes('zh'));
-      return anyZh || null;
+      if (boyVoice) return boyVoice;
+
+      // 2. 其次尋找台灣在地男性聲音（Zhiwei 志偉 或含有 Male/男 的聲音）
+      const twMaleVoice = availableVoices.find(v => 
+        (v.lang === 'zh-TW' || v.lang.startsWith('zh')) &&
+        (v.name.includes('Zhiwei') || v.name.includes('Male') || v.name.includes('男') || v.name.includes('Yunjian'))
+      );
+      if (twMaleVoice) return twMaleVoice;
+
+      // 3. 備選：任何標記為 Male 或男性的中文聲音
+      const anyMaleZh = availableVoices.find(v => 
+        v.lang.includes('zh') && (v.name.toLowerCase().includes('male') || v.name.includes('男'))
+      );
+      if (anyMaleZh) return anyMaleZh;
+
+      return null;
     }
 
     window.speak = function(text, onComplete = null) {
@@ -835,16 +849,18 @@
       }
       try {
         window.speechSynthesis.cancel();
-        const cleanText = String(text || '').replace(/<[^>]*>/g, '').replace(/📷|💻|💡|✅|❌|📋|⚠️|👤|🤖|👉|🎫|✨|🔍/g, '');
+        const cleanText = String(text || '').replace(/<[^>]*>/g, '').replace(/📷|💻|💡|✅|❌|📋|⚠️|👤|🤖|👉|🎫|✨|🔍|⚡/g, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'zh-TW';
         
-        // 稚嫩童音調校
-        utterance.pitch = 1.48; 
+        // 正宗小男生音調設定 (pitch 1.25，搭配男聲核心即為活潑少年童音)
+        utterance.pitch = 1.25; 
         utterance.rate = 1.15;
 
         const boyVoice = pickBoyVoice();
-        if (boyVoice) utterance.voice = boyVoice;
+        if (boyVoice) {
+          utterance.voice = boyVoice;
+        }
 
         utterance.onend = () => { if (onComplete) onComplete(); };
         utterance.onerror = () => { if (onComplete) onComplete(); };
@@ -973,7 +989,7 @@
       } else {
         window.setBoyExpression('surprised');
         if (walkerEl) walkerEl.classList.remove('paused');
-        bubbleEl.innerText = customText || '「我是小威！有問題隨時告訴我，我陪您排查！」';
+        bubbleEl.innerText = customText || '「我是小威！請問您的設備遇到什麼狀況呢？」';
       }
     };
 
@@ -1217,7 +1233,7 @@
     };
 
     // ==========================================
-    // F. 登入成功處理
+    // F. 登入成功處理 (精簡招呼語)
     // ==========================================
     window.loginUserSuccess = function(user) {
       currentUser = user;
@@ -1275,9 +1291,10 @@
         const chatArea = document.getElementById('chatArea');
         if (chatArea) chatArea.innerHTML = '';
 
-        window.updateXiaoweiMood('idle', `「你好呀 ${currentUser.name}！我是小威，設備卡住了嗎？讓我陪您看看！」`);
+        // 【精簡招呼語】嚴格符合指示要求
+        const hello = `${currentUser.name} 您好！我是小威。請問您的設備遇到什麼狀況呢？`;
+        window.updateXiaoweiMood('idle', `「${hello}」`);
 
-        const hello = `${currentUser.name} 您好！我是小威。我在這裡走動待命，已連線內部知識庫與 Google Gemini AI，隨時陪您一步一步測試與排查各類設備故障。請問今天遇到什麼狀況呢？`;
         window.appendUserChat('ai', hello);
         window.logChatToSupabase('ai', hello);
         if (typeof window.speak === 'function') {
@@ -1621,6 +1638,7 @@
       return score;
     }
 
+    // 嚴格知識庫檢索：避免誤匹配
     function findBestSopMatches(queryText, sourceList = knowledgeBase) {
       if (!queryText || !sourceList || sourceList.length === 0) return [];
       const isDef = isDefinitionQuery(queryText);
@@ -1740,7 +1758,7 @@
       }
     }
 
-    function parseGeminiGeneratedSteps(rawText) {
+    function parseGroqGeneratedSteps(rawText) {
       if (!rawText) return [];
       const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
       const parsed = [];
@@ -1759,7 +1777,7 @@
     }
 
     // ==========================================
-    // I. 對話發送與逐步測試引導流程 (Gemini Flash 核心驅動)
+    // I. 對話發送與逐步測試引導流程 (Groq Cloud AI 核心驅動)
     // ==========================================
     window.handleUserSend = async function() {
       const input = document.getElementById('userMsgInput');
@@ -1784,6 +1802,7 @@
 
       window.updateXiaoweiMood('thinking', `「收到！小威正在為您動腦筋分析『${q}』...」`);
 
+      // 嚴重硬體故障直接建單
       const isSevereHardware = (q.includes('冒煙') || q.includes('焦味') || q.includes('斷掉') || q.includes('摔壞') || q.includes('燒掉') || q.includes('直接派工') || q.includes('報修就好'));
       if (isSevereHardware) {
         inquiryContext.unresolvedReason = `硬體嚴重異常/要求直接派修：${q}`;
@@ -1854,6 +1873,7 @@
       window.speak("請您再多補充一些細節，我為您重新比對。");
     };
 
+    // 啟動排查：內部 SOP 優先；查無資料時直接呼叫 Groq Cloud AI 生成解答
     async function startStepByStepGuidance(sop) {
       // 1. 內部知識庫有高信心相符 SOP
       if (sop) {
@@ -1882,37 +1902,37 @@
         return;
       }
 
-      // 2. 內部查無資料：直接連線 Google Gemini Flash API 生成解答
+      // 2. 內部查無資料：直接連線 Groq Cloud AI (Llama-3.3-70B) 生成解答
       const isDef = isDefinitionQuery(inquiryContext.originalProblem);
-      window.updateXiaoweiMood('thinking', '「內部知識庫無此專屬條目，小威正連線 Gemini Flash AI 智能分析...」');
+      window.updateXiaoweiMood('thinking', '「內部知識庫無此專屬條目，小威正連線 Groq Cloud AI 智能分析...」');
 
-      const geminiAnswer = await callGeminiFlashAI(inquiryContext.originalProblem, isDef);
+      const groqAnswer = await callGroqAI(inquiryContext.originalProblem, isDef);
 
-      if (geminiAnswer) {
+      if (groqAnswer) {
         if (isDef) {
-          // A. 名詞定義：在氣泡內直接呈現概念，附帶已解答確認按鈕
+          // A. 名詞定義：在氣泡內直接呈現完整概念，附帶已解答確認按鈕
           window.updateXiaoweiMood('step', '「小威找到完整名詞解讀囉！」');
 
           const defHtml = `
-            針對您的提問，小威透過 <b>Google Gemini AI</b> 為您整理出核心說明：<br><br>
-            <div class="bg-indigo-50/80 p-3 rounded-xl border border-indigo-200 text-slate-800 text-xs leading-relaxed my-1">
-              <span class="font-bold text-indigo-950 flex items-center gap-1 mb-1">
-                <span>✨</span> AI 智能知識解答
+            針對您的提問，小威透過 <b>Groq Cloud AI (Llama-3.3)</b> 為您整理出核心說明：<br><br>
+            <div class="bg-amber-50/90 p-3 rounded-xl border border-amber-300 text-slate-800 text-xs leading-relaxed my-1 shadow-sm">
+              <span class="font-bold text-amber-950 flex items-center gap-1 mb-1">
+                <span>⚡</span> AI 智能知識解答
               </span>
-              ${geminiAnswer.replace(/\n/g, '<br>')}
+              ${groqAnswer.replace(/\n/g, '<br>')}
             </div><br>
             請問上述說明是否已解答您的疑問？
           `;
 
-          inquiryContext.suggestedSteps.push(`[Gemini AI 名詞解答]: ${geminiAnswer.substring(0, 35)}...`);
+          inquiryContext.suggestedSteps.push(`[Groq AI 名詞解答]: ${groqAnswer.substring(0, 35)}...`);
           window.appendUserChat('ai', defHtml, true, 'definition_action');
-          window.logChatToSupabase('ai', `Gemini AI 解答: ${geminiAnswer}`);
+          window.logChatToSupabase('ai', `Groq AI 解答: ${groqAnswer}`);
           window.speak("已為您產生解答說明，請問是否已解決您的疑問？");
         } else {
-          // B. 故障排除：將 Gemini 生成的 1. 2. 3. 步驟納入小威逐條測試引擎
+          // B. 故障排除：將 Groq 生成的 1. 2. 3. 步驟納入小威逐條測試引擎
           window.updateXiaoweiMood('step', '「小威已為您規劃專屬排查步驟，我們一步一步測試！」');
 
-          const dynamicSteps = parseGeminiGeneratedSteps(geminiAnswer);
+          const dynamicSteps = parseGroqGeneratedSteps(groqAnswer);
           inquiryContext.matchedSop = {
             sop_id: 'AI-DYNAMIC',
             title: `AI 智能排查：${inquiryContext.originalProblem}`,
@@ -1926,7 +1946,7 @@
             currentStepIndex: 0
           };
 
-          const introMsg = `內部資料庫暫無專屬 SOP，小威透過 <b>Gemini Flash</b> 為您規劃了 <b>${dynamicSteps.length} 項測試步驟</b>，我們一步一步排查看看：`;
+          const introMsg = `內部資料庫暫無專屬 SOP，小威透過 <b>Groq Cloud AI</b> 為您規劃了 <b>${dynamicSteps.length} 項測試步驟</b>，我們一步一步排查看看：`;
           window.appendUserChat('ai', introMsg);
 
           setTimeout(() => {
@@ -1934,7 +1954,7 @@
           }, 350);
         }
       } else {
-        // C. 若無 API Key 或網路異常，啟動通用急救測試步驟
+        // C. 若網路異常或金鑰失效，啟動通用急救測試步驟
         window.updateXiaoweiMood('step', '「小威為您啟動標準通用急救排查！」');
 
         const defaultSteps = [
@@ -2324,7 +2344,7 @@ ${stepsText}
         if (kbBadge) kbBadge.innerText = knowledgeBase.length;
         const statusBadge = document.getElementById('supabaseStatusBadge');
         if (statusBadge) {
-          statusBadge.innerText = `● Supabase + Gemini (SOP: ${knowledgeBase.length} 筆)`;
+          statusBadge.innerText = `● Supabase + Groq (SOP: ${knowledgeBase.length} 筆)`;
         }
         renderKbList();
       } catch (err) {
@@ -2734,7 +2754,7 @@ ${stepsText}
 
           item.innerHTML = `
             <div class="flex justify-between items-center mb-1 text-[10px] text-slate-400">
-              <span class="font-bold ${isUser ? 'text-sky-300' : 'text-emerald-400'}">
+              <span class="font-bold ${isUser ? 'text-sky-300' : 'text-amber-400'}">
                 ${isUser ? '👤 使用者' : '👦 小威'}: ${log.user_name || '訪客'} (${log.company || ''} ${log.jurisdiction || ''})
               </span>
               <span class="font-mono">${new Date(log.created_at).toLocaleString()}</span>
