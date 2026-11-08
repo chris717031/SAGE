@@ -721,10 +721,21 @@
     </div>
   </div>
 
-  <!-- 7. 核心 JavaScript (正宗小男生聲音 + Groq Cloud LPU AI 核心) -->
+  <!-- 7. 核心 JavaScript (正宗小男生男童聲音 + Groq Cloud LPU 智能大腦) -->
   <script>
     // ==========================================
-    // A. Groq Cloud LPU AI 核心連線模組 (Llama-3.3-70B)
+    // A. 內建核心 IT 基礎詞庫 (作為零延遲備援保障)
+    // ==========================================
+    const BUILTIN_IT_GLOSSARY = {
+      'dns': 'DNS（網域名稱系統，Domain Name System）就像是網路世界的「電話簿」。當我們在瀏覽器輸入好記的網址（例如 www.google.com 或院內系統網址）時，DNS 會在背景默默把它「翻譯」成電腦設備看得懂的數字 IP 位址（如 192.168.1.1），讓我們不必死背一長串數字就能順利連線開啟網站！',
+      'dhcp': 'DHCP（動態主機設定協定，Dynamic Host Configuration Protocol）就像是網路世界的「自動發號碼牌櫃台」。每台電腦、印表機或平板要連上網路，都需要一組專屬的 IP 門牌號碼。DHCP 伺服器會在設備連線瞬間自動指派一組可用的 IP 位址、子網路遮罩與閘道器，無須手動逐台設定！',
+      'vpn': 'VPN（虛擬私人網路，Virtual Private Network）就像是在公共網路上建造一條「專屬的加密安全隧道」。當同仁在院外、分公司或出差地點時，開啟 VPN 連線就能讓傳輸封包全程高規格加密，如同坐在辦公室內網一樣安全使用 HIS 醫療系統與檔案伺服器！',
+      'ip': 'IP（網際網路協定）位址就像是連網設備在網路世界中的「專屬門牌號碼」。每台電腦、醫療工作站或印表機都必須擁有唯一合法的 IP 位址，網路封包才能精準送達目的地。',
+      'his': 'HIS（醫療資訊系統，Hospital Information System）是醫院的數位神經中樞，整合掛號、門診醫令、電子病歷、檢驗檢查、藥局調劑、住院照護、批價計費到健保申報的所有流程，確保醫療數據即時互通。'
+    };
+
+    // ==========================================
+    // B. Groq Cloud LPU AI 核心連線模組 (Llama-3.3-70B，支援 CORS 代理)
     // ==========================================
     const DEFAULT_GROQ_API_KEY = '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';
 
@@ -747,10 +758,8 @@
       const apiKey = window.getGroqApiKey();
       if (!apiKey) return null;
 
-      const endpoint = "https://api.groq.com/openai/v1/chat/completions";
-
       const systemPrompt = `你是一位熱心、專業、親切的企業與醫療 IT 維護小幫手「小威」，講話口吻活潑清脆、充滿耐心。
-使用者向你詢問了一個問題，但內部標準知識庫暫無此專屬條目。請針對使用者的問題提供專業解答：
+使用者向你詢問了一個問題，請針對使用者的問題提供專業解答：
 
 【規範指示】：
 1. 繁體中文回答（台灣慣用 IT 與維護術語）。
@@ -772,33 +781,62 @@
         max_tokens: 800
       };
 
-      try {
-        const res = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${apiKey}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(requestBody)
-        });
+      // 雙通道請求：優先使用 CORS 代理通道，確保純前端 GitHub Pages 不受瀏覽器跨域限制阻擋
+      const candidateEndpoints = [
+        "https://corsproxy.io/?https://api.groq.com/openai/v1/chat/completions",
+        "https://api.groq.com/openai/v1/chat/completions"
+      ];
 
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          console.warn("Groq 請求失敗:", errData);
-          throw new Error(errData.error?.message || `HTTP ${res.status}`);
+      for (const endpoint of candidateEndpoints) {
+        try {
+          const res = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${apiKey}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestBody)
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            const text = data.choices?.[0]?.message?.content;
+            if (text && text.trim().length > 0) {
+              return text.trim();
+            }
+          }
+        } catch (e) {
+          console.warn("Groq 通道重試:", endpoint, e);
         }
-
-        const data = await res.json();
-        const text = data.choices?.[0]?.message?.content;
-        return text ? text.trim() : null;
-      } catch (err) {
-        console.error("Groq AI 服務異常:", err);
-        return null;
       }
+
+      // 第三備援：若 Groq 網絡代理短暫抖動，調用無 CORS 阻擋的開源端點備援
+      try {
+        const fallbackRes = await fetch("https://text.pollinations.ai/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: query }
+            ],
+            model: "openai",
+            seed: 42
+          })
+        });
+        if (fallbackRes.ok) {
+          const text = await fallbackRes.text();
+          if (text && text.trim().length > 0) return text.trim();
+        }
+      } catch (e) {
+        console.warn("備援端點異常:", e);
+      }
+
+      return null;
     }
 
     // ==========================================
-    // B. 語音核心宣告：精選正宗「男童 / 青年男聲」音質
+    // C. 語音核心宣告：正宗「男童 / 青年男聲」音質（徹底過濾女聲）
     // ==========================================
     let isVoiceEnabled = true;
     let recognition = null;
@@ -816,28 +854,38 @@
       window.speechSynthesis.onvoiceschanged = loadVoices;
     }
 
-    // 智能鎖定正宗男聲核心（排除 HsiaoChen、Yating、MeiJia 等女聲）
+    // 智能鎖定正宗男聲核心（堅決排除 HsiaoChen 曉臻、Yating 雅婷、Mei-Jia 美佳等女聲）
     function pickBoyVoice() {
       if (!availableVoices || availableVoices.length === 0) loadVoices();
       
-      // 1. 優先尋找 Microsoft Yunxi（微軟官方正宗小男孩音）
+      const isFemale = (name) => {
+        const lower = name.toLowerCase();
+        return lower.includes('hsiaochen') || lower.includes('yating') || 
+               lower.includes('mei-jia') || lower.includes('meijia') || 
+               lower.includes('hsiaoyu') || lower.includes('xiaoxiao') || 
+               lower.includes('xiaoyi') || lower.includes('female') || 
+               name.includes('女') || name.includes('曉臻') || 
+               name.includes('雅婷') || name.includes('美佳');
+      };
+
+      // 1. 優先尋找 Microsoft Yunxi（微軟官方正宗小男孩童聲音質）
       const boyVoice = availableVoices.find(v => 
-        v.name.includes('Yunxi') || v.name.includes('Kangkang') || v.name.includes('Danny')
+        (v.name.includes('Yunxi') || v.name.includes('Kangkang') || v.name.includes('Danny')) && !isFemale(v.name)
       );
       if (boyVoice) return boyVoice;
 
-      // 2. 其次尋找台灣在地男性聲音（Zhiwei 志偉 或含有 Male/男 的聲音）
-      const twMaleVoice = availableVoices.find(v => 
+      // 2. 尋找微軟台灣男聲 Zhiwei（志偉）或含有 Male/男 的語音
+      const maleVoice = availableVoices.find(v => 
         (v.lang === 'zh-TW' || v.lang.startsWith('zh')) &&
-        (v.name.includes('Zhiwei') || v.name.includes('Male') || v.name.includes('男') || v.name.includes('Yunjian'))
+        (v.name.includes('Zhiwei') || v.name.includes('Yunjian') || v.name.includes('Yunyang') || 
+         v.name.toLowerCase().includes('male') || v.name.includes('男')) &&
+        !isFemale(v.name)
       );
-      if (twMaleVoice) return twMaleVoice;
+      if (maleVoice) return maleVoice;
 
-      // 3. 備選：任何標記為 Male 或男性的中文聲音
-      const anyMaleZh = availableVoices.find(v => 
-        v.lang.includes('zh') && (v.name.toLowerCase().includes('male') || v.name.includes('男'))
-      );
-      if (anyMaleZh) return anyMaleZh;
+      // 3. 備選：任何標記為 Male 或非女性的中文聲音
+      const anyNonFemaleZh = availableVoices.find(v => v.lang.includes('zh') && !isFemale(v.name));
+      if (anyNonFemaleZh) return anyNonFemaleZh;
 
       return null;
     }
@@ -853,9 +901,9 @@
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'zh-TW';
         
-        // 正宗小男生音調設定 (pitch 1.25，搭配男聲核心即為活潑少年童音)
-        utterance.pitch = 1.25; 
-        utterance.rate = 1.15;
+        // 正宗小男生少年音調（搭配男聲核心，1.22 即為純真、清脆的小男孩聲音）
+        utterance.pitch = 1.22; 
+        utterance.rate = 1.12;
 
         const boyVoice = pickBoyVoice();
         if (boyVoice) {
@@ -939,7 +987,7 @@
     };
 
     // ==========================================
-    // C. 小男孩走動、肢體動作與表情切換引擎
+    // D. 小男孩走動、肢體動作與表情切換引擎
     // ==========================================
     window.setBoyExpression = function(exprName) {
       const exprSurprised = document.getElementById('expr-surprised');
@@ -1010,7 +1058,7 @@
     };
 
     // ==========================================
-    // D. UI 介面切換與訊息氣泡
+    // E. UI 介面切換與訊息氣泡
     // ==========================================
     window.updateTurnUI = function() {
       const badge = document.getElementById('turnCounterBadge');
@@ -1144,7 +1192,7 @@
     };
 
     // ==========================================
-    // E. Supabase 初始化與狀態變數
+    // F. Supabase 初始化與狀態變數
     // ==========================================
     const SUPABASE_URL = 'https://tgvuxmlkbhnnjsyajjow.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_EE0J2uwbUorM9ywIXsbjdw_usVeipmc';
@@ -1233,7 +1281,7 @@
     };
 
     // ==========================================
-    // F. 登入成功處理 (精簡招呼語)
+    // G. 登入成功處理 (精簡招呼語：「xxx 您好！我是小威。請問您的設備遇到什麼狀況呢？」)
     // ==========================================
     window.loginUserSuccess = function(user) {
       currentUser = user;
@@ -1434,7 +1482,7 @@
     };
 
     // ==========================================
-    // G. 密碼複雜度檢驗與修改
+    // H. 密碼複雜度檢驗與修改
     // ==========================================
     function evaluatePasswordComplexity(pwd) {
       return {
@@ -1571,7 +1619,7 @@
     };
 
     // ==========================================
-    // H. 精準語意分析：意圖分流與停用詞過濾
+    // I. 精準語意分析：意圖分流與停用詞過濾
     // ==========================================
     function extractCoreIntent(text) {
       if (!text) return '';
@@ -1777,7 +1825,7 @@
     }
 
     // ==========================================
-    // I. 對話發送與逐步測試引導流程 (Groq Cloud AI 核心驅動)
+    // J. 對話發送與逐步測試引導流程 (Groq Cloud AI 核心驅動)
     // ==========================================
     window.handleUserSend = async function() {
       const input = document.getElementById('userMsgInput');
@@ -1904,9 +1952,15 @@
 
       // 2. 內部查無資料：直接連線 Groq Cloud AI (Llama-3.3-70B) 生成解答
       const isDef = isDefinitionQuery(inquiryContext.originalProblem);
+      const coreWord = extractCoreIntent(inquiryContext.originalProblem).toLowerCase();
       window.updateXiaoweiMood('thinking', '「內部知識庫無此專屬條目，小威正連線 Groq Cloud AI 智能分析...」');
 
-      const groqAnswer = await callGroqAI(inquiryContext.originalProblem, isDef);
+      let groqAnswer = await callGroqAI(inquiryContext.originalProblem, isDef);
+
+      // 若網路或跨域異常，但問題為常見名詞定義，優先啟用內建詞庫保障
+      if (!groqAnswer && isDef && BUILTIN_IT_GLOSSARY[coreWord]) {
+        groqAnswer = BUILTIN_IT_GLOSSARY[coreWord];
+      }
 
       if (groqAnswer) {
         if (isDef) {
@@ -1954,7 +2008,14 @@
           }, 350);
         }
       } else {
-        // C. 若網路異常或金鑰失效，啟動通用急救測試步驟
+        // C. 若純故障排查且無 AI 可用，才啟動通用硬體排查
+        if (isDef) {
+          window.updateXiaoweiMood('step', '「小威暫時查無此名詞定義，請問是否有具體設備故障？」');
+          const noDefMsg = `小威在目前資料庫中暫無「${inquiryContext.originalProblem}」的定義紀錄。請問您目前是否有遇到具體的電腦、印表機或系統操作障礙需要我協助排查呢？`;
+          window.appendUserChat('ai', noDefMsg, false);
+          return;
+        }
+
         window.updateXiaoweiMood('step', '「小威為您啟動標準通用急救排查！」');
 
         const defaultSteps = [
@@ -2071,7 +2132,7 @@
     }
 
     // ==========================================
-    // J. 報修確認表單控制
+    // K. 報修確認表單控制
     // ==========================================
     function openTicketModalPreview() {
       const now = new Date();
@@ -2196,7 +2257,7 @@ ${stepsText}
     };
 
     // ==========================================
-    // K. 註冊、後台管理與資料表讀取
+    // L. 註冊、後台管理與資料表讀取
     // ==========================================
     window.handleRegisterSubmit = async function(e) {
       e.preventDefault();
